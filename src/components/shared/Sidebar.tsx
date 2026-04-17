@@ -128,21 +128,21 @@ export function Sidebar() {
 
           <div className="pt-6 border-t border-gray-100 flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-brand-light flex items-center justify-center overflow-hidden">
-              {user.avatar ? (
+              {user.image ? (
                 <img
-                  src={user.avatar}
-                  alt={user.nome}
+                  src={user.image}
+                  alt={user.name}
                   className="w-full h-full object-cover"
                 />
               ) : (
                 <span className="text-brand font-semibold text-xs">
-                  {user.nome.charAt(0).toUpperCase()}
+                  {user.name.charAt(0).toUpperCase()}
                 </span>
               )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">
-                {user.nome}
+                {user.name}
               </p>
               <p className="text-xs text-gray-400 truncate">{user.email}</p>
             </div>
