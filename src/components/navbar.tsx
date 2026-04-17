@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
 export function Navbar() {
@@ -78,18 +79,18 @@ export function Navbar() {
         {/* Menu */}
         <nav className="hidden md:flex flex-row gap-1">
           {[
-            { label: 'Dashboard', href: '/' },
-            { label: 'Orçamentos', href: '/budgets' },
-            { label: 'Funcionalidades', href: '/features' },
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Orçamentos', href: '/orcamentos' },
+            { label: 'Catálogo', href: '/catalogo' },
           ].map((item) => (
-            <a
+            <Link
               key={item.label}
               href={item.href}
               className="relative px-4 py-2 text-sm font-medium text-[#5F5E5A] hover:text-[#2A6B5C] transition-colors group"
             >
               {item.label}
               <span className="absolute inset-x-4 -bottom-1 h-0.5 bg-[#2A6B5C] scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
-            </a>
+            </Link>
           ))}
         </nav>
 

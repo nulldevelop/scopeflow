@@ -1,24 +1,25 @@
 import type { Metadata } from 'next'
-import { Figtree, Geist, Geist_Mono } from 'next/font/google'
+import { Sora, IBM_Plex_Mono } from 'next/font/google'
 import '@/styles/globals.css'
 import { cn } from '@/lib/utils'
+import { ScopeFlowProvider } from '@/context/ScopeFlowContext'
 
-const figtree = Figtree({ subsets: ['latin'], variable: '--font-sans' })
-
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const sora = Sora({
   subsets: ['latin'],
+  weight: ['300', '400', '500', '600'],
+  variable: '--font-sora',
 })
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+const ibmPlexMono = IBM_Plex_Mono({
   subsets: ['latin'],
+  weight: ['400', '500'],
+  variable: '--font-mono',
 })
 
 export const metadata: Metadata = {
-  title: 'ScopeFlow - Gerenciador de Orçamentos',
+  title: 'ScopeFlow - Precificação Inteligente',
   description:
-    'ScopeFlow é um gerenciador de orçamentos que ajuda a organizar e controlar suas finanças de forma eficiente.',
+    'A plataforma de precificação inteligente para desenvolvedores freelancers e pequenas software houses.',
   icons: {
     icon: '/favicon.ico',
   },
@@ -33,13 +34,14 @@ export default function RootLayout({
     <html
       lang="pt-BR"
       className={cn(
-        geistSans.variable,
-        geistMono.variable,
-        'font-sans',
-        figtree.variable,
+        sora.variable,
+        ibmPlexMono.variable,
+        'font-sans antialiased',
       )}
     >
-      <body>{children}</body>
+      <body className="font-sans">
+        <ScopeFlowProvider>{children}</ScopeFlowProvider>
+      </body>
     </html>
   )
 }
