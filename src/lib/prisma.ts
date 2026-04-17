@@ -1,24 +1,14 @@
 import 'dotenv/config'
 import { PrismaMariaDb } from '@prisma/adapter-mariadb'
 import { PrismaClient } from '../generated/prisma/client'
-
-// 🔹 Validação das variáveis de ambiente
-function getEnv(name: string): string {
-  const value = process.env[name]
-
-  if (!value) {
-    throw new Error(`❌ Variável de ambiente ${name} não definida`)
-  }
-
-  return value
-}
+import { env } from './env'
 
 // 🔹 Configuração do adapter
 const adapter = new PrismaMariaDb({
-  host: getEnv('DATABASE_HOST'),
-  user: getEnv('DATABASE_USER'),
-  password: getEnv('DATABASE_PASSWORD'),
-  database: getEnv('DATABASE_NAME'),
+  host: env.DATABASE_HOST,
+  user: env.DATABASE_USER,
+  password: env.DATABASE_PASSWORD,
+  database: env.DATABASE_NAME,
   connectionLimit: 5,
 })
 
@@ -31,9 +21,12 @@ export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
     adapter,
-    log: ['error', 'warn'],
+    log:
+      env.NODE_ENV === 'development'
+        ? ['query', 'info', 'warn', 'error']
+        : ['error'],
   })
 
-if (process.env.NODE_ENV !== 'production') {
+if (env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma
 }
