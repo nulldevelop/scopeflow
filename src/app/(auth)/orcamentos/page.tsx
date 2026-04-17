@@ -11,8 +11,6 @@ import {
   MoreHorizontal,
   Calendar,
   Users,
-  Clock,
-  Layers,
 } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { ProjectStatus } from '@/types'

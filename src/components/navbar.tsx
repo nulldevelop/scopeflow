@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
 export function Navbar() {
@@ -35,6 +34,7 @@ export function Navbar() {
               fill="none"
               className="transition-transform duration-300 group-hover:scale-105"
             >
+              <title>ScopeFlow Logo</title>
               <rect width="60" height="60" rx="14" fill="#2A6B5C" />
               <rect
                 x="13"

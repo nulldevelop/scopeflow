@@ -15,7 +15,6 @@ import {
   Check,
   Calculator,
   Calendar,
-  Clock,
   Layers,
 } from 'lucide-react'
 import {
@@ -27,7 +26,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Quote, QuoteItem, Feature } from '@/types'
+import { Quote, QuoteItem } from '@/types'
 import { cn } from '@/lib/utils'
 
 export default function QuoteEditorPage() {

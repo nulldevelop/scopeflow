@@ -6,7 +6,6 @@ import {
   Globe,
   Layout,
   Lock,
-  LucideIcon,
   Mail,
   Plus,
   Search,
@@ -14,7 +13,7 @@ import {
   Upload,
   Zap,
 } from 'lucide-react'
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -34,7 +33,7 @@ const categories = [
   'Outro',
 ];
 
-const categoryIcons: Record<string, LucideIcon> = {
+const categoryIcons: Record<string, React.ElementType> = {
   Autenticação: Lock,
   Dashboard: Layout,
   Pagamentos: CreditCard,

@@ -62,13 +62,8 @@ export default function DashboardPage() {
     )
     .slice(0, 5)
 
-  return (<<<<<<< HEAD
-    <Card>
-      <CardHeader>
-        <CardTitle>Dashboard</CardTitle>
-      </CardHeader>
-    </Card>
-====== = <div className="px-8 pb-12">
+  return (
+    <div className="px-8 pb-12">
       <Header title="Bom dia, [nome] 👋" />
 
       {/* Metrics Grid */}
@@ -241,5 +236,5 @@ export default function DashboardPage() {
         </Card>
       </div>
     </div>
->>>>>>> 39871a3f7cc2f382478b139fb141734f30152175)
+  )
 }
