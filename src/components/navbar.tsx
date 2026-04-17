@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 
@@ -94,15 +95,11 @@ export function Navbar() {
 
         {/* Auth Buttons */}
         <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            className="text-[#5F5E5A] hover:text-[#2A6B5C] hover:bg-[#EAF3EF] hidden sm:flex"
-          >
-            Entrar
-          </Button>
-          <Button className="bg-[#2A6B5C] hover:bg-[#1A4A3E] text-white shadow-lg shadow-[#2A6B5C]/20 hover:shadow-xl hover:shadow-[#2A6B5C]/30 transition-all hover:-translate-y-0.5">
-            Começar grátis
-          </Button>
+          <Link href="/signin" className="relative">
+            <Button className="bg-[#2A6B5C] hover:bg-[#1A4A3E] text-white shadow-lg shadow-[#2A6B5C]/20 hover:shadow-xl hover:shadow-[#2A6B5C]/30 transition-all hover:-translate-y-0.5">
+              Começar grátis
+            </Button>
+          </Link>
         </div>
       </div>
     </header>

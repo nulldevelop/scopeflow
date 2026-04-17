@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function Dashboard() {
   return (
@@ -7,5 +7,5 @@ export default function Dashboard() {
         <CardTitle>Dashboard</CardTitle>
       </CardHeader>
     </Card>
-  );
+  )
 }
