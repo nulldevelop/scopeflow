@@ -1,10 +1,15 @@
 'use client'
 
-import React, { createContext, useContext, useState, ReactNode } from 'react'
-import { Quote, Feature, User } from '@/types'
-import { mockQuotes } from '@/lib/mock/orcamentos'
+import React, {
+  createContext,
+  type ReactNode,
+  useContext,
+  useState,
+} from 'react'
 import { mockFeatures } from '@/lib/mock/funcionalidades'
+import { mockQuotes } from '@/lib/mock/orcamentos'
 import { mockUser } from '@/lib/mock/usuario'
+import type { Feature, Quote, User } from '@/types'
 
 interface ScopeFlowContextType {
   quotes: Quote[]
