@@ -6,3 +6,214 @@ generator client {
 datasource db {
   provider = "mysql"
 }
+
+// --- Autenticação & Multi-tenancy (Better-Auth) ---
+
+model User {
+  id            String       @id @default(uuid())
+  name          String       @db.Text
+  email         String
+  emailVerified Boolean      @default(false)
+  image         String?      @db.Text
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+  member        Member?
+  invitations   Invitation[]
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id                   String   @id @default(uuid())
+  expiresAt            DateTime
+  token                String
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  ipAddress            String?  @db.Text
+  userAgent            String?  @db.Text
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activeOrganizationId String?  @db.Text
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id @default(uuid())
+  accountId             String    @db.Text
+  providerId            String    @db.Text
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?   @db.Text
+  refreshToken          String?   @db.Text
+  idToken               String?   @db.Text
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?   @db.Text
+  password              String?   @db.Text
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id @default(uuid())
+  identifier String   @db.Text
+  value      String   @db.Text
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier(length: 191)])
+  @@map("verification")
+}
+
+model Organization {
+  id          String       @id @default(uuid())
+  name        String       @db.Text
+  slug        String
+  logo        String?      @db.Text
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  metadata    String?      @db.Text
+  members     Member[]
+  invitations Invitation[]
+  clients     Client[]
+  categories  Category[]
+  features    Feature[]
+  quotes      Quote[]
+
+  @@unique([slug])
+  @@map("organization")
+}
+
+model Member {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String       @unique
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           String       @db.Text
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
+  @@map("member")
+}
+
+model Invitation {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email          String       @db.Text
+  role           String?      @db.Text
+  status         String       @db.Text
+  expiresAt      DateTime
+  createdAt      DateTime     @default(now())
+  inviterId      String
+  user           User         @relation(fields: [inviterId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([email(length: 191)])
+  @@map("invitation")
+}
+
+// --- Negócio: ScopeFlow ---
+
+model Client {
+  id             String       @id @default(uuid())
+  name           String       @db.Text
+  email          String?      @db.Text
+  document       String?      @db.Text
+  phone          String?      @db.Text
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  quotes         Quote[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId])
+  @@map("client")
+}
+
+model Category {
+  id             String       @id @default(uuid())
+  name           String       @db.Text
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  features       Feature[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId])
+  @@map("category")
+}
+
+model Feature {
+  id             String       @id @default(uuid())
+  name           String       @db.Text
+  description    String?      @db.Text
+  baseHours      Decimal      @db.Decimal(10, 2)
+  complexity     String       @default("media")
+  categoryId     String?
+  category       Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId])
+  @@index([categoryId])
+  @@map("feature")
+}
+
+model Quote {
+  id             String       @id @default(uuid())
+  title          String       @db.Text
+  description    String?      @db.Text
+  status         String       @default("rascunho")
+  totalHours     Decimal      @db.Decimal(10, 2)
+  totalValue     Decimal      @db.Decimal(15, 2)
+  hourlyRate     Decimal      @db.Decimal(10, 2)
+  discount       Decimal      @default(0) @db.Decimal(5, 2)
+  urgencyFee     Decimal      @default(0) @db.Decimal(5, 2)
+  entryAmount    Decimal      @default(0) @db.Decimal(15, 2)
+  installments   Int          @default(1)
+  expirationDate DateTime?
+  sentAt         DateTime?
+  approvedAt     DateTime?
+  clientId       String?
+  client         Client?      @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  items          QuoteItem[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId])
+  @@index([clientId])
+  @@map("quote")
+}
+
+model QuoteItem {
+  id          String   @id @default(uuid())
+  name        String   @db.Text
+  description String?  @db.Text
+  hours       Decimal  @db.Decimal(10, 2)
+  unitValue   Decimal  @db.Decimal(15, 2)
+  order       Int      @default(0)
+  quoteId     String
+  quote       Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  featureId   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([quoteId])
+  @@map("quote_item")
+}

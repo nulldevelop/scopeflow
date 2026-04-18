@@ -1,4 +1,6 @@
 import { Button } from '@/components/ui/button'
+import { MagicCard } from '@/components/magicui/magic-card'
+import { BorderBeam } from '@/components/magicui/border-beam'
 
 const plans = [
   {
@@ -48,30 +50,34 @@ export function Pricing() {
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-14">
           <h2 className="text-2xl md:text-3xl font-medium tracking-tight text-[#1C1C1A] mb-4">
-            Planes que crescem com você
+            Planos que crescem com você
           </h2>
           <p className="text-[#5F5E5A] max-w-xl mx-auto">
             Escolha o plano que melhor se adapta às suas necessidades.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="grid md:grid-cols-3 gap-6">
           {plans.map((plan, index) => (
-            <div
+            <MagicCard
               key={index}
-              className={`relative bg-white rounded-xl p-6 ${
+              className={`relative bg-white rounded-xl p-6 flex flex-col ${
                 plan.featured
-                  ? 'border-2 border-[#2A6B5C] shadow-lg'
-                  : 'border border-[#D3D1C7]'
+                  ? 'border-[#2A6B5C]/50 shadow-lg'
+                  : 'border-[#D3D1C7]'
               }`}
+              gradientColor={plan.featured ? '#2A6B5C' : '#D3D1C7'}
             >
               {plan.featured && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 text-[10px] font-medium uppercase tracking-wider rounded-full bg-[#2A6B5C] text-white">
-                  Popular
-                </span>
+                <>
+                  <BorderBeam size={250} duration={12} delay={9} />
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 text-[10px] font-medium uppercase tracking-wider rounded-full bg-[#2A6B5C] text-white z-20">
+                    Popular
+                  </span>
+                </>
               )}
 
-              <div className="text-center mb-6">
+              <div className="text-center mb-6 relative z-10">
                 <p className="text-xs font-medium uppercase tracking-wider text-[#888780] mb-2">
                   {plan.name}
                 </p>
@@ -86,20 +92,20 @@ export function Pricing() {
                 </p>
               </div>
 
-              <ul className="space-y-3 mb-6">
+              <ul className="space-y-3 mb-8 flex-1 relative z-10">
                 {plan.features.map((feature, i) => (
                   <li
                     key={i}
                     className="flex items-start gap-2 text-sm text-[#5F5E5A]"
                   >
-                    <span className="w-1 h-1 rounded-full bg-[#2A6B5C] mt-2 flex-shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#2A6B5C] mt-1.5 flex-shrink-0" />
                     {feature}
                   </li>
                 ))}
               </ul>
 
               <Button
-                className={`w-full ${
+                className={`w-full relative z-10 ${
                   plan.featured
                     ? 'bg-[#2A6B5C] hover:bg-[#1A4A3E] text-white'
                     : 'bg-[#F5F4F0] text-[#5F5E5A] hover:bg-[#ECEAE3]'
@@ -107,7 +113,7 @@ export function Pricing() {
               >
                 {plan.name === 'Grátis' ? 'Começar grátis' : 'Assinar'}
               </Button>
-            </div>
+            </MagicCard>
           ))}
         </div>
       </div>

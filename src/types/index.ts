@@ -1,32 +1,48 @@
-export type ProjectStatus = 'rascunho' | 'enviada' | 'aprovada' | 'recusada'
+export type ProjectStatus = 'rascunho' | 'enviada' | 'aprovada' | 'recusada' | 'expirada'
 
-export interface QuoteItem {
+export interface Organization {
   id: string
-  nome: string
-  horas: number
-  valorUnitario: number
+  name: string
+  slug: string
+  logo?: string
+  createdAt: string
+  updatedAt: string
 }
 
-export interface Quote {
+export interface User {
   id: string
-  titulo: string
-  clienteNome: string
-  clienteEmail: string
-  status: ProjectStatus
-  totalHoras: number
-  totalValor: number
-  prazoSemanas: number
-  modulos: number
-  entrada: number
-  parcelas: number
-  criadoEm: string
-  enviadoEm?: string
-  validoAte: string
-  itens: QuoteItem[]
+  name: string
+  email: string
+  image?: string
+  member?: Member
   valorHora: number
-  desconto?: number // em porcentagem
-  acrescimoUrgencia?: number // em porcentagem
-  notasInternas?: string
+  plano: 'free' | 'pro' | 'enterprise'
+}
+
+export interface Member {
+  id: string
+  organizationId: string
+  organization?: Organization
+  userId: string
+  role: string
+  createdAt: string
+}
+
+export interface Client {
+  id: string
+  name: string
+  email?: string
+  document?: string
+  phone?: string
+  organizationId: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Category {
+  id: string
+  name: string
+  organizationId: string
 }
 
 export type FeatureComplexity = 'baixa' | 'media' | 'alta'
@@ -50,10 +66,39 @@ export interface Feature {
   complexidade: FeatureComplexity
 }
 
-export interface User {
+export interface QuoteItem {
+  id: string
   nome: string
-  email: string
+  horas: number
+  valorUnitario: number
+  order?: number
+  quoteId?: string
+  featureId?: string
+}
+
+export interface Quote {
+  id: string
+  titulo: string
+  clienteNome: string
+  clienteEmail: string
+  status: ProjectStatus
+  totalHoras: number
+  totalValor: number
+  prazoSemanas: number
+  modulos: number
+  entrada: number
+  parcelas: number
+  criadoEm: string
+  enviadoEm?: string
+  validoAte: string
+  itens: QuoteItem[]
   valorHora: number
-  plano: 'free' | 'pro' | 'enterprise'
-  avatar?: string
+  desconto: number // em porcentagem
+  acrescimoUrgencia: number // em porcentagem
+  notasInternas?: string
+  
+  // Relações legadas/futuras para compatibilidade
+  clientId?: string
+  client?: Client
+  organizationId?: string
 }

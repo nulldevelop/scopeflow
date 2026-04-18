@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 
 export function Navbar() {
@@ -34,6 +34,7 @@ export function Navbar() {
               fill="none"
               className="transition-transform duration-300 group-hover:scale-105"
             >
+              <title>ScopeFlow Logo</title>
               <rect width="60" height="60" rx="14" fill="#2A6B5C" />
               <rect
                 x="13"
@@ -95,15 +96,7 @@ export function Navbar() {
 
         {/* Auth Buttons */}
         <div className="flex items-center gap-3">
-          <Link href="/login">
-            <Button
-              variant="ghost"
-              className="text-[#5F5E5A] hover:text-[#2A6B5C] hover:bg-[#EAF3EF] hidden sm:flex"
-            >
-              Entrar
-            </Button>
-          </Link>
-          <Link href="/login">
+          <Link href="/signin" className="relative">
             <Button className="bg-[#2A6B5C] hover:bg-[#1A4A3E] text-white shadow-lg shadow-[#2A6B5C]/20 hover:shadow-xl hover:shadow-[#2A6B5C]/30 transition-all hover:-translate-y-0.5">
               Começar grátis
             </Button>

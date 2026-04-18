@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   description:
     'A plataforma de precificação inteligente para desenvolvedores freelancers e pequenas software houses.',
   icons: {
-    icon: '/favicon.ico',
+    icon: '/logo.svg',
   },
 }
 

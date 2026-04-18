@@ -1,26 +1,27 @@
-'use client';
+'use client'
 
-import { Header } from '@/components/shared/Header';
-import { MetricCard } from '@/components/shared/MetricCard';
-import { StatusBadge } from '@/components/shared/StatusBadge';
 import {
-  FileText,
-  CheckCircle2,
-  TrendingUp,
-  DollarSign,
   ArrowRight,
   Plus,
-} from 'lucide-react';
+  CheckCircle2,
+  DollarSign,
+  FileText,
+  TrendingUp,
+} from 'lucide-react'
+import Link from 'next/link'
 import {
-  BarChart,
   Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
-import { useScopeFlow } from '@/context/ScopeFlowContext';
+} from 'recharts'
+import { Header } from '@/components/shared/Header'
+import { MetricCard } from '@/components/shared/MetricCard'
+import { StatusBadge } from '@/components/shared/StatusBadge'
+import { Card } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -28,12 +29,11 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Card } from '@/components/ui/card';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation';
-import { ProfileSelector } from '@/components/shared/ProfileSelector';
+} from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
+import { useRouter } from 'next/navigation'
+import { ProfileSelector } from '@/components/shared/ProfileSelector'
+import { useScopeFlow } from '@/context/ScopeFlowContext'
 
 const chartData = [
   { name: 'Jan', value: 4 },

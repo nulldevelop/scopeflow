@@ -1,8 +1,10 @@
 import { Button } from '@/components/ui/button'
+import { Meteors } from '@/components/magicui/meteors'
 
 export function Hero() {
   return (
     <section className="relative overflow-hidden bg-[#0E2E26] px-6 py-24 md:py-32 lg:py-40">
+      <Meteors number={30} />
       <div className="absolute inset-0 opacity-30">
         <div className="absolute bottom-0 left-0 w-[60%] h-[50%] bg-[#2A6B5C] blur-[120px]" />
         <div className="absolute top-0 right-0 w-[40%] h-[60%] bg-[#1A4A3E] blur-[100px]" />

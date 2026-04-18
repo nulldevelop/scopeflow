@@ -15,7 +15,6 @@ import {
   Check,
   Calculator,
   Calendar,
-  Clock,
   Layers,
   Lock,
   Layout,
