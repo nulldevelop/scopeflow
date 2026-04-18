@@ -3,6 +3,7 @@ import { Sora, IBM_Plex_Mono } from 'next/font/google'
 import '@/styles/globals.css'
 import { cn } from '@/lib/utils'
 import { ScopeFlowProvider } from '@/context/ScopeFlowContext'
+import { ProfileSelector } from '@/components/shared/ProfileSelector'
 
 const sora = Sora({
   subsets: ['latin'],
@@ -33,6 +34,7 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
+      suppressHydrationWarning
       className={cn(
         sora.variable,
         ibmPlexMono.variable,
@@ -40,7 +42,9 @@ export default function RootLayout({
       )}
     >
       <body className="font-sans">
-        <ScopeFlowProvider>{children}</ScopeFlowProvider>
+        <ScopeFlowProvider>
+          {children}
+        </ScopeFlowProvider>
       </body>
     </html>
   )

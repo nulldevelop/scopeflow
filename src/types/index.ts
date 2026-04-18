@@ -15,6 +15,8 @@ export interface User {
   email: string
   image?: string
   member?: Member
+  valorHora: number
+  plano: 'free' | 'pro' | 'enterprise'
 }
 
 export interface Member {
@@ -43,55 +45,60 @@ export interface Category {
   organizationId: string
 }
 
+export type FeatureComplexity = 'baixa' | 'media' | 'alta'
+
+export type DevProfile = 
+  | 'landing_page' 
+  | 'frontend' 
+  | 'backend' 
+  | 'fullstack' 
+  | 'software_house' 
+  | 'saas'
+
 export interface Feature {
   id: string
-  name: string
-  description?: string
-  baseHours: number
-  complexity: 'baixa' | 'media' | 'alta'
-  categoryId?: string
-  category?: Category
-  organizationId: string
+  nome: string
+  descricao: string
+  categoria: string
+  horasEstimadas: number // Default/Fallback hours
+  horasPorPerfil?: Partial<Record<DevProfile, number>>
+  profile_tags: DevProfile[]
+  complexidade: FeatureComplexity
 }
 
 export interface QuoteItem {
   id: string
-  name: string
-  description?: string
-  hours: number
-  unitValue: number
-  order: number
-  quoteId: string
+  nome: string
+  horas: number
+  valorUnitario: number
+  order?: number
+  quoteId?: string
   featureId?: string
 }
 
 export interface Quote {
   id: string
-  title: string
-  description?: string
+  titulo: string
+  clienteNome: string
+  clienteEmail: string
   status: ProjectStatus
+  totalHoras: number
+  totalValor: number
+  prazoSemanas: number
+  modulos: number
+  entrada: number
+  parcelas: number
+  criadoEm: string
+  enviadoEm?: string
+  validoAte: string
+  itens: QuoteItem[]
+  valorHora: number
+  desconto: number // em porcentagem
+  acrescimoUrgencia: number // em porcentagem
+  notasInternas?: string
   
-  // Valores
-  totalHours: number
-  totalValue: number
-  hourlyRate: number
-  
-  // Condições
-  discount: number
-  urgencyFee: number
-  entryAmount: number
-  installments: number
-  
-  // Datas
-  expirationDate?: string
-  sentAt?: string
-  approvedAt?: string
-  createdAt: string
-  updatedAt: string
-  
-  // Relações
+  // Relações legadas/futuras para compatibilidade
   clientId?: string
   client?: Client
-  organizationId: string
-  items: QuoteItem[]
+  organizationId?: string
 }
