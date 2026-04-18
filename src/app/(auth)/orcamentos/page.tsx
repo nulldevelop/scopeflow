@@ -13,11 +13,13 @@ import {
   Users,
   Clock,
   Layers,
+  Plus,
 } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { ProjectStatus } from '@/types'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 const filterOptions: { label: string; value: ProjectStatus | 'Todos' }[] = [
   { label: 'Todos', value: 'Todos' },
@@ -29,6 +31,7 @@ const filterOptions: { label: string; value: ProjectStatus | 'Todos' }[] = [
 
 export default function QuotesPage() {
   const { quotes } = useScopeFlow()
+  const router = useRouter()
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | 'Todos'>(
     'Todos',
@@ -45,7 +48,15 @@ export default function QuotesPage() {
 
   return (
     <div className="px-8 pb-12">
-      <Header title="Orçamentos" />
+      <Header title="Orçamentos">
+        <Button
+          onClick={() => router.push('/orcamentos/novo')}
+          className="bg-brand text-white hover:bg-brand-dark rounded-lg flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          Novo orçamento
+        </Button>
+      </Header>
 
       {/* Filters */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">

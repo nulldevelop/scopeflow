@@ -31,12 +31,22 @@ export interface Quote {
 
 export type FeatureComplexity = 'baixa' | 'media' | 'alta'
 
+export type DevProfile = 
+  | 'landing_page' 
+  | 'frontend' 
+  | 'backend' 
+  | 'fullstack' 
+  | 'software_house' 
+  | 'saas'
+
 export interface Feature {
   id: string
   nome: string
   descricao: string
   categoria: string
-  horasEstimadas: number
+  horasEstimadas: number // Default/Fallback hours
+  horasPorPerfil?: Partial<Record<DevProfile, number>>
+  profile_tags: DevProfile[]
   complexidade: FeatureComplexity
 }
 

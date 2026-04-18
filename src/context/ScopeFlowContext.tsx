@@ -1,7 +1,7 @@
 'use client'
 
-import React, { createContext, useContext, useState, ReactNode } from 'react'
-import { Quote, Feature, User } from '@/types'
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react'
+import { Quote, Feature, User, DevProfile } from '@/types'
 import { mockQuotes } from '@/lib/mock/orcamentos'
 import { mockFeatures } from '@/lib/mock/funcionalidades'
 import { mockUser } from '@/lib/mock/usuario'
@@ -10,6 +10,8 @@ interface ScopeFlowContextType {
   quotes: Quote[]
   features: Feature[]
   user: User
+  profile: DevProfile | null
+  setProfile: (profile: DevProfile) => void
   addQuote: (quote: Quote) => void
   updateQuote: (quote: Quote) => void
   deleteQuote: (id: string) => void
@@ -26,6 +28,20 @@ export function ScopeFlowProvider({ children }: { children: ReactNode }) {
   const [quotes, setQuotes] = useState<Quote[]>(mockQuotes)
   const [features, setFeatures] = useState<Feature[]>(mockFeatures)
   const [user] = useState<User>(mockUser)
+  const [profile, setProfileState] = useState<DevProfile | null>(null)
+
+  // Carregar perfil do localStorage apenas após a montagem (lado do cliente)
+  useEffect(() => {
+    const savedProfile = localStorage.getItem('scopeflow-profile') as DevProfile | null
+    if (savedProfile) {
+      setProfileState(savedProfile)
+    }
+  }, [])
+
+  const setProfile = (newProfile: DevProfile) => {
+    setProfileState(newProfile)
+    localStorage.setItem('scopeflow-profile', newProfile)
+  }
 
   const addQuote = (quote: Quote) => setQuotes((prev) => [quote, ...prev])
   const updateQuote = (quote: Quote) =>
@@ -46,6 +62,8 @@ export function ScopeFlowProvider({ children }: { children: ReactNode }) {
         quotes,
         features,
         user,
+        profile,
+        setProfile,
         addQuote,
         updateQuote,
         deleteQuote,

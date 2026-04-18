@@ -9,6 +9,7 @@ import {
   TrendingUp,
   DollarSign,
   ArrowRight,
+  Plus,
 } from 'lucide-react';
 import {
   BarChart,
@@ -30,7 +31,9 @@ import {
 } from '@/components/ui/table';
 import { Card } from '@/components/ui/card';
 import Link from 'next/link';
-
+import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
+import { ProfileSelector } from '@/components/shared/ProfileSelector';
 
 const chartData = [
   { name: 'Jan', value: 4 },
@@ -43,10 +46,11 @@ const chartData = [
 
 export default function DashboardPage() {
   const { quotes } = useScopeFlow()
+  const router = useRouter()
 
   const totalQuotes = quotes.length
   const approvedQuotes = quotes.filter((q) => q.status === 'aprovada').length
-  const conversionRate = ((approvedQuotes / totalQuotes) * 100).toFixed(1)
+  const conversionRate = totalQuotes > 0 ? ((approvedQuotes / totalQuotes) * 100).toFixed(1) : '0'
   const avgTicket =
     quotes.length > 0
       ? (
@@ -65,7 +69,16 @@ export default function DashboardPage() {
 
   return (
     <div className="px-8 pb-12">
-      <Header title="Bom dia, [nome] 👋" />
+      <ProfileSelector />
+      <Header title="Bom dia, [nome] 👋">
+        <Button
+          onClick={() => router.push('/orcamentos/novo')}
+          className="bg-brand text-white hover:bg-brand-dark rounded-lg flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          Novo orçamento
+        </Button>
+      </Header>
 
       {/* Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

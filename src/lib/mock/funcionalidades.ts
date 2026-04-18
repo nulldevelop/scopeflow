@@ -7,6 +7,14 @@ export const mockFeatures: Feature[] = [
     descricao: 'Autenticação padrão com e-mail e senha.',
     categoria: 'Autenticação',
     horasEstimadas: 6,
+    horasPorPerfil: {
+      fullstack: 6,
+      frontend: 3,
+      backend: 4,
+      saas: 5,
+      software_house: 6,
+    },
+    profile_tags: ['fullstack', 'frontend', 'backend', 'saas', 'software_house'],
     complexidade: 'baixa',
   },
   {
@@ -15,6 +23,14 @@ export const mockFeatures: Feature[] = [
     descricao: 'Autenticação social utilizando conta Google.',
     categoria: 'Autenticação',
     horasEstimadas: 8,
+    horasPorPerfil: {
+      fullstack: 8,
+      frontend: 4,
+      backend: 6,
+      saas: 7,
+      software_house: 8,
+    },
+    profile_tags: ['fullstack', 'frontend', 'backend', 'saas', 'software_house'],
     complexidade: 'media',
   },
   {
@@ -23,6 +39,13 @@ export const mockFeatures: Feature[] = [
     descricao: 'Fluxo de esqueci minha senha com envio de token por e-mail.',
     categoria: 'Autenticação',
     horasEstimadas: 4,
+    horasPorPerfil: {
+      fullstack: 4,
+      frontend: 2,
+      backend: 3,
+      saas: 4,
+    },
+    profile_tags: ['fullstack', 'frontend', 'backend', 'saas'],
     complexidade: 'baixa',
   },
   {
@@ -31,6 +54,13 @@ export const mockFeatures: Feature[] = [
     descricao: 'Painel visual com gráficos e KPIs principais.',
     categoria: 'Dashboard',
     horasEstimadas: 24,
+    horasPorPerfil: {
+      fullstack: 24,
+      frontend: 16,
+      saas: 20,
+      software_house: 24,
+    },
+    profile_tags: ['fullstack', 'frontend', 'saas', 'software_house'],
     complexidade: 'alta',
   },
   {
@@ -39,6 +69,12 @@ export const mockFeatures: Feature[] = [
     descricao: 'Listagem de dados com filtros, ordenação e paginação.',
     categoria: 'CMS',
     horasEstimadas: 16,
+    horasPorPerfil: {
+      fullstack: 16,
+      frontend: 10,
+      saas: 12,
+    },
+    profile_tags: ['fullstack', 'frontend', 'saas'],
     complexidade: 'media',
   },
   {
@@ -47,6 +83,13 @@ export const mockFeatures: Feature[] = [
     descricao: 'Upload de imagens e documentos para S3 ou similar.',
     categoria: 'Upload',
     horasEstimadas: 12,
+    horasPorPerfil: {
+      fullstack: 12,
+      backend: 8,
+      saas: 10,
+      software_house: 12,
+    },
+    profile_tags: ['fullstack', 'backend', 'saas', 'software_house'],
     complexidade: 'media',
   },
   {
@@ -55,6 +98,13 @@ export const mockFeatures: Feature[] = [
     descricao: 'Checkout e gestão de assinaturas com Stripe.',
     categoria: 'Pagamentos',
     horasEstimadas: 32,
+    horasPorPerfil: {
+      fullstack: 32,
+      backend: 20,
+      saas: 28,
+      software_house: 32,
+    },
+    profile_tags: ['fullstack', 'backend', 'saas', 'software_house'],
     complexidade: 'alta',
   },
   {
@@ -63,6 +113,12 @@ export const mockFeatures: Feature[] = [
     descricao: 'Integração com SendGrid ou Resend para notificações.',
     categoria: 'E-mail',
     horasEstimadas: 8,
+    horasPorPerfil: {
+      fullstack: 8,
+      backend: 4,
+      saas: 6,
+    },
+    profile_tags: ['fullstack', 'backend', 'saas'],
     complexidade: 'baixa',
   },
   {
@@ -71,6 +127,13 @@ export const mockFeatures: Feature[] = [
     descricao: 'Exposição de endpoints para integração de terceiros.',
     categoria: 'API',
     horasEstimadas: 20,
+    horasPorPerfil: {
+      fullstack: 20,
+      backend: 14,
+      saas: 18,
+      software_house: 20,
+    },
+    profile_tags: ['fullstack', 'backend', 'saas', 'software_house'],
     complexidade: 'media',
   },
   {
@@ -79,6 +142,12 @@ export const mockFeatures: Feature[] = [
     descricao: 'Exportação de relatórios ou faturas em formato PDF.',
     categoria: 'Outro',
     horasEstimadas: 12,
+    horasPorPerfil: {
+      fullstack: 12,
+      backend: 8,
+      saas: 10,
+    },
+    profile_tags: ['fullstack', 'backend', 'saas'],
     complexidade: 'media',
   },
   {
@@ -87,6 +156,13 @@ export const mockFeatures: Feature[] = [
     descricao: 'Notificações em tempo real via browser ou mobile.',
     categoria: 'Outro',
     horasEstimadas: 16,
+    horasPorPerfil: {
+      fullstack: 16,
+      frontend: 10,
+      saas: 14,
+      software_house: 16,
+    },
+    profile_tags: ['fullstack', 'frontend', 'saas', 'software_house'],
     complexidade: 'alta',
   },
   {
@@ -95,6 +171,27 @@ export const mockFeatures: Feature[] = [
     descricao: 'Sistema para disparar eventos para URLs externas.',
     categoria: 'Integrações',
     horasEstimadas: 14,
+    horasPorPerfil: {
+      fullstack: 14,
+      backend: 10,
+      saas: 12,
+      software_house: 14,
+    },
+    profile_tags: ['fullstack', 'backend', 'saas', 'software_house'],
     complexidade: 'media',
+  },
+  {
+    id: 'f13',
+    nome: 'Landing Page Institucional',
+    descricao: 'Site de página única com seções de serviços, sobre e contato.',
+    categoria: 'Landing Page',
+    horasEstimadas: 16,
+    horasPorPerfil: {
+      landing_page: 12,
+      frontend: 10,
+      fullstack: 16,
+    },
+    profile_tags: ['landing_page', 'frontend', 'fullstack'],
+    complexidade: 'baixa',
   },
 ]
