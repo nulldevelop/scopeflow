@@ -7,6 +7,12 @@ datasource db {
   provider = "mysql"
 }
 
+enum ROLES {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
 // --- Autenticação & Multi-tenancy (Better-Auth) ---
 
 model User {
@@ -21,6 +27,7 @@ model User {
   accounts      Account[]
   member        Member?
   invitations   Invitation[]
+  role          ROLES        @default(MEMBER)
 
   @@unique([email])
   @@map("user")
@@ -100,7 +107,7 @@ model Member {
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userId         String       @unique
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role           String       @db.Text
+  role           ROLES        @default(MEMBER)
   createdAt      DateTime     @default(now())
 
   @@index([organizationId])
