@@ -1,10 +1,10 @@
 'use server'
 
-import { auth } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { headers } from 'next/headers'
 import { z } from 'zod'
+import { auth } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
 
 const featureSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
@@ -19,14 +19,19 @@ export async function createFeature(data: z.infer<typeof featureSchema>) {
     headers: await headers(),
   })
 
-  if (!session?.session.activeOrganizationId) {
-    throw new Error('Você deve estar em uma organização para criar uma funcionalidade.')
+  const organizationId = (session?.session as { activeOrganizationId?: string })
+    ?.activeOrganizationId
+
+  if (!organizationId) {
+    throw new Error(
+      'Você deve estar em uma organização para criar uma funcionalidade.',
+    )
   }
 
   const result = await prisma.feature.create({
     data: {
       ...data,
-      organizationId: session.session.activeOrganizationId,
+      organizationId,
     },
   })
 

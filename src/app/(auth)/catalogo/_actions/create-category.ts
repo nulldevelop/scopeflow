@@ -10,14 +10,21 @@ export async function createCategory(name: string) {
     headers: await headers(),
   })
 
-  if (!session?.session.activeOrganizationId) {
+  if (!session?.session) {
+    throw new Error('Sessão expirada.')
+  }
+
+  const organizationId = (session.session as { activeOrganizationId?: string })
+    .activeOrganizationId
+
+  if (!organizationId) {
     throw new Error('Sessão expirada.')
   }
 
   const result = await prisma.category.create({
     data: {
       name,
-      organizationId: session.session.activeOrganizationId,
+      organizationId,
     },
   })
 

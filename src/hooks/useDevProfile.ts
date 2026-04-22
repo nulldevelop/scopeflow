@@ -1,7 +1,7 @@
 'use client'
 
 import { useScopeFlow } from '@/context/ScopeFlowContext'
-import { Feature, DevProfile } from '@/types'
+import { DevProfile, type Feature } from '@/types'
 
 export function useDevProfile() {
   const { profile, setProfile } = useScopeFlow()
@@ -20,6 +20,6 @@ export function useDevProfile() {
     profile,
     setProfile,
     isRelevant,
-    getHours
+    getHours,
   }
 }

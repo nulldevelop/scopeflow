@@ -1,16 +1,15 @@
 import { createAuthClient } from 'better-auth/react'
+import { organizationClient } from 'better-auth/client/plugins'
 import { env } from './env'
 
 // 🔹 Configuração centralizada
 const authConfig = {
   baseURL: env.NEXT_PUBLIC_AUTH_URL,
+  plugins: [organizationClient()],
 }
 
 // 🔹 Instância do client
-const authClient = createAuthClient(authConfig)
+export const authClient = createAuthClient(authConfig)
 
 // 🔹 Exportações
-export const signIn = authClient.signIn
-export const signUp = authClient.signUp
-export const signOut = authClient.signOut
-export const useSession = authClient.useSession
+export const { signIn, signUp, signOut, useSession, organization } = authClient

@@ -1,23 +1,26 @@
 'use server'
 
-import { auth } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { headers } from 'next/headers'
+import { auth } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
 
 export async function deleteFeature(id: string) {
   const session = await auth.api.getSession({
     headers: await headers(),
   })
 
-  if (!session?.session.activeOrganizationId) {
+  const organizationId = (session?.session as { activeOrganizationId?: string })
+    ?.activeOrganizationId
+
+  if (!organizationId) {
     throw new Error('Sessão expirada.')
   }
 
   const result = await prisma.feature.delete({
     where: {
       id,
-      organizationId: session.session.activeOrganizationId,
+      organizationId,
     },
   })
 

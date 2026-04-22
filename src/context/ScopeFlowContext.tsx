@@ -1,10 +1,16 @@
 'use client'
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react'
-import { Quote, Feature, User, DevProfile } from '@/types'
-import { mockQuotes } from '@/lib/mock/orcamentos'
+import React, {
+  createContext,
+  type ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from 'react'
 import { mockFeatures } from '@/lib/mock/funcionalidades'
+import { mockQuotes } from '@/lib/mock/orcamentos'
 import { mockUser } from '@/lib/mock/usuario'
+import type { DevProfile, Feature, Quote, User } from '@/types'
 
 interface ScopeFlowContextType {
   quotes: Quote[]
@@ -32,7 +38,9 @@ export function ScopeFlowProvider({ children }: { children: ReactNode }) {
 
   // Carregar perfil do localStorage apenas após a montagem (lado do cliente)
   useEffect(() => {
-    const savedProfile = localStorage.getItem('scopeflow-profile') as DevProfile | null
+    const savedProfile = localStorage.getItem(
+      'scopeflow-profile',
+    ) as DevProfile | null
     if (savedProfile) {
       setProfileState(savedProfile)
     }
