@@ -1,51 +1,33 @@
-'use client'
-
-import React, { useState } from 'react'
+import { FileText, Mail, MoreHorizontal, Plus, Search } from 'lucide-react'
 import { Header } from '@/components/shared/Header'
-import { useScopeFlow } from '@/context/ScopeFlowContext'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Search, Plus, Mail, Phone, MoreHorizontal, FileText } from 'lucide-react'
 import { Card } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Input } from '@/components/ui/input'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { getSessionClients } from './_data-access/get-clients'
 
-import { useRouter } from 'next/navigation'
+export default async function ClientsPage() {
+  const clients = await getSessionClients('')
 
-export default function ClientsPage() {
-  const { quotes } = useScopeFlow()
-  const router = useRouter()
-  const [searchTerm, setSearchTerm] = useState('')
+  return <ClientList clients={clients} />
+}
 
-  // Extrair clientes únicos dos orçamentos
-  const clients = Array.from(
-    new Map(
-      quotes.map((quote) => [
-        quote.clienteEmail,
-        {
-          nome: quote.clienteNome,
-          email: quote.clienteEmail,
-          totalOrcamentos: quotes.filter((q) => q.clienteEmail === quote.clienteEmail).length,
-          totalInvestido: quotes
-            .filter((q) => q.clienteEmail === quote.clienteEmail && q.status === 'aprovada')
-            .reduce((acc, curr) => acc + curr.totalValor, 0),
-        },
-      ])
-    ).values()
-  )
-
-  const filteredClients = clients.filter(
-    (client) =>
-      client.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client.email.toLowerCase().includes(searchTerm.toLowerCase())
-  )
-
+function ClientList({
+  clients,
+}: {
+  clients: Awaited<ReturnType<typeof getSessionClients>>
+}) {
   return (
     <div className="px-8 pb-12">
       <Header title="Clientes">
-        <Button
-          onClick={() => router.push('/orcamentos/novo')}
-          className="bg-brand text-white hover:bg-brand-dark rounded-lg flex items-center gap-2"
-        >
+        <Button className="bg-brand text-white hover:bg-brand-dark rounded-lg flex items-center gap-2">
           <Plus className="w-4 h-4" />
           Novo cliente
         </Button>
@@ -57,8 +39,6 @@ export default function ClientsPage() {
           <Input
             placeholder="Buscar por nome ou e-mail..."
             className="pl-10 bg-white border-gray-200 rounded-lg h-11"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
       </div>
@@ -85,13 +65,13 @@ export default function ClientsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredClients.map((client) => (
+            {clients.map((client) => (
               <TableRow
                 key={client.email}
                 className="border-b border-gray-50 hover:bg-gray-50/30 transition-colors"
               >
                 <TableCell className="font-medium text-gray-900">
-                  {client.nome}
+                  {client.name}
                 </TableCell>
                 <TableCell className="text-gray-600">
                   <div className="flex items-center gap-2">
@@ -100,13 +80,13 @@ export default function ClientsPage() {
                   </div>
                 </TableCell>
                 <TableCell className="text-gray-600">
-                   <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2">
                     <FileText className="w-3 h-3 text-gray-400" />
-                    {client.totalOrcamentos}
+                    {client.totalQuotes}
                   </div>
                 </TableCell>
                 <TableCell className="font-mono text-gray-900">
-                  {client.totalInvestido.toLocaleString('pt-BR', {
+                  {client.totalApproved.toLocaleString('pt-BR', {
                     style: 'currency',
                     currency: 'BRL',
                   })}
@@ -122,11 +102,9 @@ export default function ClientsPage() {
         </Table>
       </Card>
 
-      {filteredClients.length === 0 && (
+      {clients.length === 0 && (
         <div className="py-20 text-center">
-          <p className="text-gray-400">
-            Nenhum cliente encontrado.
-          </p>
+          <p className="text-gray-400">Nenhum cliente encontrado.</p>
         </div>
       )}
     </div>

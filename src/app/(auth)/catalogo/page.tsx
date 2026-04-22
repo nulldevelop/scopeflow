@@ -1,9 +1,9 @@
-﻿import { auth } from "@/lib/auth"
-import { getCategories } from "./_data-access/get-categories"
-import { getFeatures } from "./_data-access/get-features"
-import { headers } from "next/headers"
-import CatalogClient, { type CatalogFeature } from "./_components/CatalogClient"
-import { redirect } from "next/navigation"
+import { headers } from 'next/headers'
+import { redirect } from 'next/navigation'
+import { auth } from '@/lib/auth'
+import CatalogClient, { type CatalogFeature } from './_components/CatalogClient'
+import { getAllCategories } from './_data-access/get-categories'
+import { getAllFeatures } from './_data-access/get-features'
 
 export default async function CatalogoContainer() {
   const session = await auth.api.getSession({
@@ -11,14 +11,15 @@ export default async function CatalogoContainer() {
   })
 
   if (!session?.session.activeOrganizationId) {
-    redirect("/signin")
+    redirect('/signin')
   }
 
-  const organizationId = session.session.activeOrganizationId
+  const organizationId = (session.session as { activeOrganizationId?: string })
+    .activeOrganizationId!
 
   const [featuresData, categories] = await Promise.all([
-    getFeatures(organizationId),
-    getCategories(organizationId),
+    getAllFeatures(organizationId),
+    getAllCategories(organizationId),
   ])
 
   const features: CatalogFeature[] = featuresData.map((f) => ({
@@ -28,16 +29,13 @@ export default async function CatalogoContainer() {
     baseHours: Number(f.baseHours),
     complexity: f.complexity,
     categoryId: f.categoryId,
-    category: f.category ? {
-      id: f.category.id,
-      name: f.category.name,
-    } : null,
+    category: f.category
+      ? {
+          id: f.category.id,
+          name: f.category.name,
+        }
+      : null,
   }))
 
-  return (
-    <CatalogClient
-      initialFeatures={features}
-      categories={categories}
-    />
-  )
+  return <CatalogClient initialFeatures={features} categories={categories} />
 }

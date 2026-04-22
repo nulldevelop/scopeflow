@@ -1,53 +1,53 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { useScopeFlow } from '@/context/ScopeFlowContext'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Card } from '@/components/ui/card'
 import {
-  Plus,
-  Trash2,
-  ChevronLeft,
-  Clock,
-  Search,
-  Check,
+  ArrowRight,
   Calculator,
   Calendar,
-  Layers,
-  Lock,
-  Layout,
+  Check,
+  ChevronDown,
+  ChevronLeft,
+  ChevronUp,
+  Clock,
   CreditCard,
-  Mail,
-  Upload,
   Database,
   Globe,
-  Share2,
-  Zap,
-  ArrowRight,
   Info,
-  ChevronDown,
-  ChevronUp,
-  Rocket,
-  Sparkles,
-  Users as UsersIcon,
-  Zap as ZapIcon,
+  Layers,
+  Layout,
   Layout as LayoutIcon,
+  Lock,
+  Mail,
+  Plus,
+  Rocket,
+  Search,
+  Share2,
+  Sparkles,
+  Trash2,
+  Upload,
+  Users as UsersIcon,
+  Zap,
+  Zap as ZapIcon,
 } from 'lucide-react'
+import { useParams, useRouter } from 'next/navigation'
+import React, { useEffect, useMemo, useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
 } from '@/components/ui/dialog'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Quote, QuoteItem, Feature, DevProfile } from '@/types'
-import { cn } from '@/lib/utils'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { useScopeFlow } from '@/context/ScopeFlowContext'
 import { useDevProfile } from '@/hooks/useDevProfile'
+import { cn } from '@/lib/utils'
+import { type DevProfile, Feature, type Quote, type QuoteItem } from '@/types'
 
 const profileInfo: Record<string, { name: string; icon: any }> = {
   landing_page: { name: 'Landing Page Dev', icon: Globe },
@@ -64,7 +64,15 @@ const recommendedCategories: Record<string, string[]> = {
   backend: ['API', 'Autenticação', 'Pagamentos', 'Integrações'],
   fullstack: ['Autenticação', 'Pagamentos', 'Dashboard', 'CMS', 'API'],
   saas: ['Autenticação', 'Pagamentos', 'Dashboard', 'CMS', 'API', 'Upload'],
-  software_house: ['Autenticação', 'Pagamentos', 'Dashboard', 'CMS', 'API', 'Integrações', 'Upload'],
+  software_house: [
+    'Autenticação',
+    'Pagamentos',
+    'Dashboard',
+    'CMS',
+    'API',
+    'Integrações',
+    'Upload',
+  ],
 }
 
 const categoryIcons: Record<string, any> = {
@@ -77,7 +85,7 @@ const categoryIcons: Record<string, any> = {
   API: Globe,
   Integrações: Share2,
   Outro: Zap,
-};
+}
 
 const categories = [
   'Todos',
@@ -90,15 +98,19 @@ const categories = [
   'API',
   'Integrações',
   'Outro',
-];
+]
 
-export default function QuoteEditorPage({ params: propsParams }: { params?: { id: string } }) {
+export default function QuoteEditorPage({
+  params: propsParams,
+}: {
+  params?: { id: string }
+}) {
   const router = useRouter()
   const hookParams = useParams()
   const { quotes, features, user, updateQuote, addQuote } = useScopeFlow()
   const { profile, setProfile, isRelevant, getHours } = useDevProfile()
 
-  const id = propsParams?.id || hookParams?.id as string
+  const id = propsParams?.id || (hookParams?.id as string)
   const isNew = id === 'novo' || !id
 
   const [quote, setQuote] = useState<Partial<Quote>>({
@@ -202,14 +214,18 @@ export default function QuoteEditorPage({ params: propsParams }: { params?: { id
   }
 
   const filteredFeatures = features.filter((f) => {
-    const matchesSearch = f.nome.toLowerCase().includes(featureSearch.toLowerCase()) || 
-                         f.descricao.toLowerCase().includes(featureSearch.toLowerCase()) ||
-                         f.categoria.toLowerCase().includes(featureSearch.toLowerCase());
-    const matchesCategory = activeCategory === 'Todos' || f.categoria === activeCategory;
-    return matchesSearch && matchesCategory;
+    const matchesSearch =
+      f.nome.toLowerCase().includes(featureSearch.toLowerCase()) ||
+      f.descricao.toLowerCase().includes(featureSearch.toLowerCase()) ||
+      f.categoria.toLowerCase().includes(featureSearch.toLowerCase())
+    const matchesCategory =
+      activeCategory === 'Todos' || f.categoria === activeCategory
+    return matchesSearch && matchesCategory
   })
 
-  const ActiveProfileIcon = profile ? (profileInfo[profile]?.icon || ZapIcon) : ZapIcon;
+  const ActiveProfileIcon = profile
+    ? profileInfo[profile]?.icon || ZapIcon
+    : ZapIcon
 
   return (
     <div className="px-8 pb-20 max-w-[1600px] mx-auto">
@@ -226,7 +242,9 @@ export default function QuoteEditorPage({ params: propsParams }: { params?: { id
           <h1 className="text-2xl font-bold text-gray-900 leading-none mb-1">
             {isNew ? 'Criar Novo Orçamento' : 'Editar Orçamento'}
           </h1>
-          <p className="text-sm text-gray-400">Preencha os detalhes para gerar sua proposta comercial.</p>
+          <p className="text-sm text-gray-400">
+            Preencha os detalhes para gerar sua proposta comercial.
+          </p>
         </div>
       </div>
 
@@ -236,55 +254,79 @@ export default function QuoteEditorPage({ params: propsParams }: { params?: { id
           <Card className="p-8 bg-white border border-gray-100 rounded-[24px] shadow-sm">
             <div className="flex items-center gap-2 mb-8">
               <div className="w-1 h-6 bg-brand rounded-full" />
-              <h3 className="text-sm font-bold uppercase tracking-[0.1em] text-gray-400">Informações do Cliente</h3>
+              <h3 className="text-sm font-bold uppercase tracking-[0.1em] text-gray-400">
+                Informações do Cliente
+              </h3>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
               <div className="space-y-2 md:col-span-2">
-                <label className="text-xs font-bold text-gray-500 uppercase ml-1">Título do Projeto</label>
+                <label className="text-xs font-bold text-gray-500 uppercase ml-1">
+                  Título do Projeto
+                </label>
                 <Input
                   value={quote.titulo}
-                  onChange={(e) => setQuote({ ...quote, titulo: e.target.value })}
+                  onChange={(e) =>
+                    setQuote({ ...quote, titulo: e.target.value })
+                  }
                   placeholder="Ex: Plataforma E-commerce B2B"
                   className="h-12 bg-gray-50/50 border-gray-100 rounded-xl focus:bg-white transition-all text-base"
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-500 uppercase ml-1">Nome do Cliente / Empresa</label>
+                <label className="text-xs font-bold text-gray-500 uppercase ml-1">
+                  Nome do Cliente / Empresa
+                </label>
                 <Input
                   value={quote.clienteNome}
-                  onChange={(e) => setQuote({ ...quote, clienteNome: e.target.value })}
+                  onChange={(e) =>
+                    setQuote({ ...quote, clienteNome: e.target.value })
+                  }
                   placeholder="Ex: Tech Solutions Inc."
                   className="h-12 bg-gray-50/50 border-gray-100 rounded-xl focus:bg-white transition-all text-base"
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-500 uppercase ml-1">Email de Contato</label>
+                <label className="text-xs font-bold text-gray-500 uppercase ml-1">
+                  Email de Contato
+                </label>
                 <Input
                   value={quote.clienteEmail}
-                  onChange={(e) => setQuote({ ...quote, clienteEmail: e.target.value })}
+                  onChange={(e) =>
+                    setQuote({ ...quote, clienteEmail: e.target.value })
+                  }
                   placeholder="cliente@empresa.com"
                   className="h-12 bg-gray-50/50 border-gray-100 rounded-xl focus:bg-white transition-all text-base"
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-500 uppercase ml-1">Sua Hora Técnica (R$)</label>
+                <label className="text-xs font-bold text-gray-500 uppercase ml-1">
+                  Sua Hora Técnica (R$)
+                </label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">R$</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">
+                    R$
+                  </span>
                   <Input
                     type="number"
                     value={quote.valorHora}
-                    onChange={(e) => setQuote({ ...quote, valorHora: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setQuote({ ...quote, valorHora: Number(e.target.value) })
+                    }
                     className="pl-11 h-12 bg-gray-50/50 border-gray-100 rounded-xl focus:bg-white transition-all font-mono text-base"
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-500 uppercase ml-1">Validade da Proposta</label>
+                <label className="text-xs font-bold text-gray-500 uppercase ml-1">
+                  Validade da Proposta
+                </label>
                 <Input
                   type="date"
                   value={quote.validoAte}
-                  onChange={(e) => setQuote({ ...quote, validoAte: e.target.value })}
+                  onChange={(e) =>
+                    setQuote({ ...quote, validoAte: e.target.value })
+                  }
                   className="h-12 bg-gray-50/50 border-gray-100 rounded-xl focus:bg-white transition-all text-base"
                 />
               </div>
@@ -295,14 +337,14 @@ export default function QuoteEditorPage({ params: propsParams }: { params?: { id
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-2">
                 <div className="w-1 h-6 bg-brand rounded-full" />
-                <h3 className="text-sm font-bold uppercase tracking-[0.1em] text-gray-400">Escopo do Projeto</h3>
+                <h3 className="text-sm font-bold uppercase tracking-[0.1em] text-gray-400">
+                  Escopo do Projeto
+                </h3>
               </div>
-              
+
               <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                 <DialogTrigger asChild>
-                  <Button
-                    className="bg-brand text-white hover:bg-brand-dark rounded-xl px-6 h-10 shadow-lg shadow-brand/20 transition-all hover:scale-[1.02] active:scale-[0.98] gap-2 font-semibold"
-                  >
+                  <Button className="bg-brand text-white hover:bg-brand-dark rounded-xl px-6 h-10 shadow-lg shadow-brand/20 transition-all hover:scale-[1.02] active:scale-[0.98] gap-2 font-semibold">
                     <Plus className="w-4 h-4" />
                     Adicionar Funcionalidades
                   </Button>
@@ -312,13 +354,18 @@ export default function QuoteEditorPage({ params: propsParams }: { params?: { id
                     <DialogHeader className="mb-6">
                       <div className="flex items-center justify-between">
                         <div>
-                          <DialogTitle className="text-2xl font-bold text-gray-900">Catálogo de Funcionalidades</DialogTitle>
-                          <p className="text-sm text-gray-400">Selecione os módulos que compõem o escopo do seu projeto.</p>
+                          <DialogTitle className="text-2xl font-bold text-gray-900">
+                            Catálogo de Funcionalidades
+                          </DialogTitle>
+                          <p className="text-sm text-gray-400">
+                            Selecione os módulos que compõem o escopo do seu
+                            projeto.
+                          </p>
                         </div>
 
                         {/* Perfil Ativo Toggle */}
                         <div className="relative">
-                          <button 
+                          <button
                             onClick={() => setShowProfileMenu(!showProfileMenu)}
                             className="flex items-center gap-3 px-4 py-2 bg-gray-50 border border-gray-100 rounded-2xl hover:bg-white hover:shadow-sm transition-all"
                           >
@@ -326,12 +373,20 @@ export default function QuoteEditorPage({ params: propsParams }: { params?: { id
                               <ActiveProfileIcon className="w-4 h-4" />
                             </div>
                             <div className="text-left">
-                              <p className="text-[10px] font-black uppercase text-gray-400 leading-none mb-1">Perfil Ativo</p>
+                              <p className="text-[10px] font-black uppercase text-gray-400 leading-none mb-1">
+                                Perfil Ativo
+                              </p>
                               <p className="text-sm font-bold text-gray-900 leading-none">
-                                {profile ? profileInfo[profile]?.name : 'Selecione um perfil'}
+                                {profile
+                                  ? profileInfo[profile]?.name
+                                  : 'Selecione um perfil'}
                               </p>
                             </div>
-                            {showProfileMenu ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+                            {showProfileMenu ? (
+                              <ChevronUp className="w-4 h-4 text-gray-400" />
+                            ) : (
+                              <ChevronDown className="w-4 h-4 text-gray-400" />
+                            )}
                           </button>
 
                           {showProfileMenu && (
@@ -340,17 +395,23 @@ export default function QuoteEditorPage({ params: propsParams }: { params?: { id
                                 <button
                                   key={id}
                                   onClick={() => {
-                                    setProfile(id as DevProfile);
-                                    setShowProfileMenu(false);
+                                    setProfile(id as DevProfile)
+                                    setShowProfileMenu(false)
                                   }}
                                   className={cn(
-                                    "w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all",
-                                    profile === id ? "bg-brand/5 text-brand" : "text-gray-600 hover:bg-gray-50"
+                                    'w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all',
+                                    profile === id
+                                      ? 'bg-brand/5 text-brand'
+                                      : 'text-gray-600 hover:bg-gray-50',
                                   )}
                                 >
                                   <info.icon className="w-4 h-4" />
-                                  <span className="text-sm font-bold">{info.name}</span>
-                                  {profile === id && <Check className="w-4 h-4 ml-auto" />}
+                                  <span className="text-sm font-bold">
+                                    {info.name}
+                                  </span>
+                                  {profile === id && (
+                                    <Check className="w-4 h-4 ml-auto" />
+                                  )}
                                 </button>
                               ))}
                             </div>
@@ -358,7 +419,7 @@ export default function QuoteEditorPage({ params: propsParams }: { params?: { id
                         </div>
                       </div>
                     </DialogHeader>
-                    
+
                     <div className="flex flex-col md:flex-row gap-4">
                       <div className="relative flex-1">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
@@ -370,22 +431,26 @@ export default function QuoteEditorPage({ params: propsParams }: { params?: { id
                         />
                       </div>
                       <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
-                        {categories.slice(0, 5).map(cat => {
-                          const isRecommended = profile && recommendedCategories[profile]?.includes(cat);
+                        {categories.slice(0, 5).map((cat) => {
+                          const isRecommended =
+                            profile &&
+                            recommendedCategories[profile]?.includes(cat)
                           return (
                             <button
                               key={cat}
                               onClick={() => setActiveCategory(cat)}
                               className={cn(
-                                "relative px-5 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap border-2 flex items-center gap-2",
-                                activeCategory === cat 
-                                  ? "bg-brand border-brand text-white shadow-md shadow-brand/20" 
-                                  : isRecommended 
-                                    ? "bg-brand/5 border-brand/20 text-brand hover:border-brand/40"
-                                    : "bg-white border-gray-100 text-gray-500 hover:border-gray-200"
+                                'relative px-5 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap border-2 flex items-center gap-2',
+                                activeCategory === cat
+                                  ? 'bg-brand border-brand text-white shadow-md shadow-brand/20'
+                                  : isRecommended
+                                    ? 'bg-brand/5 border-brand/20 text-brand hover:border-brand/40'
+                                    : 'bg-white border-gray-100 text-gray-500 hover:border-gray-200',
                               )}
                             >
-                              {isRecommended && <Sparkles className="w-3.5 h-3.5" />}
+                              {isRecommended && (
+                                <Sparkles className="w-3.5 h-3.5" />
+                              )}
                               {cat}
                             </button>
                           )
@@ -397,11 +462,15 @@ export default function QuoteEditorPage({ params: propsParams }: { params?: { id
                   <div className="flex flex-1 overflow-hidden min-h-[400px]">
                     {/* Sidebar moderna */}
                     <div className="w-56 bg-gray-50/50 p-6 space-y-1 hidden lg:block overflow-y-auto border-r border-gray-100">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 px-2">Categorias</p>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 px-2">
+                        Categorias
+                      </p>
                       {categories.map((cat) => {
-                         const Icon = categoryIcons[cat] || ZapIcon;
-                         const isRecommended = profile && recommendedCategories[profile]?.includes(cat);
-                         return (
+                        const Icon = categoryIcons[cat] || ZapIcon
+                        const isRecommended =
+                          profile &&
+                          recommendedCategories[profile]?.includes(cat)
+                        return (
                           <button
                             key={cat}
                             onClick={() => setActiveCategory(cat)}
@@ -409,11 +478,18 @@ export default function QuoteEditorPage({ params: propsParams }: { params?: { id
                               'w-full flex items-center justify-between px-3 py-3 rounded-xl text-sm font-medium transition-all group',
                               activeCategory === cat
                                 ? 'bg-white text-brand shadow-sm border border-gray-100'
-                                : 'text-gray-500 hover:text-gray-900'
+                                : 'text-gray-500 hover:text-gray-900',
                             )}
                           >
                             <div className="flex items-center gap-3">
-                              <Icon className={cn("w-4 h-4 transition-colors", activeCategory === cat ? "text-brand" : "text-gray-300 group-hover:text-gray-600")} />
+                              <Icon
+                                className={cn(
+                                  'w-4 h-4 transition-colors',
+                                  activeCategory === cat
+                                    ? 'text-brand'
+                                    : 'text-gray-300 group-hover:text-gray-600',
+                                )}
+                              />
                               {cat}
                             </div>
                             {isRecommended && (
@@ -429,13 +505,15 @@ export default function QuoteEditorPage({ params: propsParams }: { params?: { id
                     {/* Grid de Features Refinado */}
                     <div className="flex-1 overflow-y-auto p-8 grid grid-cols-1 md:grid-cols-2 gap-4 custom-scrollbar bg-white">
                       {filteredFeatures.map((feature) => {
-                        const Icon = categoryIcons[feature.categoria] || ZapIcon;
-                        const isSelected = selectedFeatureIds.includes(feature.id);
-                        const relevant = isRelevant(feature);
-                        const hours = getHours(feature);
-                        const originalHours = feature.horasEstimadas;
-                        const hasCustomHours = hours !== originalHours;
-                        
+                        const Icon = categoryIcons[feature.categoria] || ZapIcon
+                        const isSelected = selectedFeatureIds.includes(
+                          feature.id,
+                        )
+                        const relevant = isRelevant(feature)
+                        const hours = getHours(feature)
+                        const originalHours = feature.horasEstimadas
+                        const hasCustomHours = hours !== originalHours
+
                         return (
                           <div
                             key={feature.id}
@@ -451,7 +529,9 @@ export default function QuoteEditorPage({ params: propsParams }: { params?: { id
                               isSelected
                                 ? 'border-brand bg-brand/5 ring-4 ring-brand/5'
                                 : 'border-gray-50 hover:border-gray-200 hover:bg-gray-50/30 shadow-sm',
-                              !relevant && !isSelected && 'opacity-40 grayscale-[0.5] hover:opacity-80 transition-opacity'
+                              !relevant &&
+                                !isSelected &&
+                                'opacity-40 grayscale-[0.5] hover:opacity-80 transition-opacity',
                             )}
                           >
                             {!relevant && (
@@ -461,38 +541,54 @@ export default function QuoteEditorPage({ params: propsParams }: { params?: { id
                             )}
 
                             <div className="flex justify-between items-start">
-                              <div className={cn(
-                                'w-10 h-10 rounded-xl flex items-center justify-center transition-all',
-                                isSelected ? 'bg-brand text-white shadow-md shadow-brand/30' : 'bg-white text-gray-400 border border-gray-100 group-hover:border-brand/20 group-hover:text-brand'
-                              )}>
+                              <div
+                                className={cn(
+                                  'w-10 h-10 rounded-xl flex items-center justify-center transition-all',
+                                  isSelected
+                                    ? 'bg-brand text-white shadow-md shadow-brand/30'
+                                    : 'bg-white text-gray-400 border border-gray-100 group-hover:border-brand/20 group-hover:text-brand',
+                                )}
+                              >
                                 <Icon className="w-5 h-5" />
                               </div>
-                              <div className={cn(
-                                "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all",
-                                isSelected ? "bg-brand border-brand text-white" : "bg-white border-gray-200 group-hover:border-brand/50"
-                              )}>
-                                {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                              <div
+                                className={cn(
+                                  'w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all',
+                                  isSelected
+                                    ? 'bg-brand border-brand text-white'
+                                    : 'bg-white border-gray-200 group-hover:border-brand/50',
+                                )}
+                              >
+                                {isSelected && (
+                                  <Check className="w-3.5 h-3.5 stroke-[3]" />
+                                )}
                               </div>
                             </div>
-                            
+
                             <div className="mt-4">
-                              <h4 className="font-bold text-gray-900 truncate text-base mb-1">{feature.nome}</h4>
-                              <p className="text-xs text-gray-400 line-clamp-2 leading-relaxed">{feature.descricao}</p>
+                              <h4 className="font-bold text-gray-900 truncate text-base mb-1">
+                                {feature.nome}
+                              </h4>
+                              <p className="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                                {feature.descricao}
+                              </p>
                             </div>
 
                             <div className="mt-auto pt-3 flex items-center justify-between border-t border-gray-100/50">
-                               <span className="text-[10px] font-black uppercase text-gray-300 tracking-tighter">{feature.categoria}</span>
-                               <div className="text-right">
-                                  <div className="flex items-center gap-1.5 text-brand font-bold text-sm">
-                                     <Clock className="w-3.5 h-3.5 opacity-60" />
-                                     <span>{hours}h</span>
-                                  </div>
-                                  {hasCustomHours && (
-                                    <p className="text-[9px] text-gray-300 font-bold uppercase tracking-tighter">
-                                      {profile?.replace('_', ' ')}
-                                    </p>
-                                  )}
-                               </div>
+                              <span className="text-[10px] font-black uppercase text-gray-300 tracking-tighter">
+                                {feature.categoria}
+                              </span>
+                              <div className="text-right">
+                                <div className="flex items-center gap-1.5 text-brand font-bold text-sm">
+                                  <Clock className="w-3.5 h-3.5 opacity-60" />
+                                  <span>{hours}h</span>
+                                </div>
+                                {hasCustomHours && (
+                                  <p className="text-[9px] text-gray-300 font-bold uppercase tracking-tighter">
+                                    {profile ? profile.replace('_', ' ') : ''}
+                                  </p>
+                                )}
+                              </div>
                             </div>
                           </div>
                         )
@@ -504,9 +600,12 @@ export default function QuoteEditorPage({ params: propsParams }: { params?: { id
                     <div className="hidden sm:flex items-center gap-3">
                       <div className="flex -space-x-3">
                         {selectedFeatureIds.slice(0, 4).map((id) => (
-                           <div key={id} className="w-10 h-10 rounded-full bg-brand border-4 border-white flex items-center justify-center text-white shadow-sm">
-                              <Check className="w-4 h-4" />
-                           </div>
+                          <div
+                            key={id}
+                            className="w-10 h-10 rounded-full bg-brand border-4 border-white flex items-center justify-center text-white shadow-sm"
+                          >
+                            <Check className="w-4 h-4" />
+                          </div>
                         ))}
                       </div>
                       {selectedFeatureIds.length > 0 && (
@@ -515,13 +614,13 @@ export default function QuoteEditorPage({ params: propsParams }: { params?: { id
                         </p>
                       )}
                     </div>
-                    
+
                     <div className="flex gap-4 w-full sm:w-auto">
                       <Button
                         variant="ghost"
                         onClick={() => {
-                          setIsModalOpen(false);
-                          setSelectedFeatureIds([]);
+                          setIsModalOpen(false)
+                          setSelectedFeatureIds([])
                         }}
                         className="flex-1 sm:flex-none rounded-2xl h-12 px-8 font-semibold text-gray-500"
                       >
@@ -546,8 +645,12 @@ export default function QuoteEditorPage({ params: propsParams }: { params?: { id
                   <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm mb-4">
                     <Zap className="w-8 h-8 text-gray-200" />
                   </div>
-                  <p className="text-gray-400 font-medium">Nenhuma funcionalidade no escopo</p>
-                  <p className="text-xs text-gray-300 mt-1">Clique em adicionar para começar a construir o projeto.</p>
+                  <p className="text-gray-400 font-medium">
+                    Nenhuma funcionalidade no escopo
+                  </p>
+                  <p className="text-xs text-gray-300 mt-1">
+                    Clique em adicionar para começar a construir o projeto.
+                  </p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-3">
@@ -558,7 +661,7 @@ export default function QuoteEditorPage({ params: propsParams }: { params?: { id
                     >
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-brand-light group-hover:text-brand transition-colors">
-                           <Layers className="w-5 h-5" />
+                          <Layers className="w-5 h-5" />
                         </div>
                         <div>
                           <p className="text-base font-bold text-gray-900 leading-tight">
@@ -566,18 +669,25 @@ export default function QuoteEditorPage({ params: propsParams }: { params?: { id
                           </p>
                           <div className="flex items-center gap-3 mt-1">
                             <span className="flex items-center gap-1.5 text-xs text-gray-400 font-mono">
-                               <Clock className="w-3.5 h-3.5" />
-                               {item.horas}h estimadas
+                              <Clock className="w-3.5 h-3.5" />
+                              {item.horas}h estimadas
                             </span>
                           </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="text-right mr-4 hidden sm:block">
-                           <p className="text-[10px] uppercase font-bold text-gray-300 mb-0.5 tracking-wider">Valor Estimado</p>
-                           <p className="text-sm font-mono font-bold text-gray-900">
-                             {(item.horas * (quote.valorHora || 0)).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                           </p>
+                          <p className="text-[10px] uppercase font-bold text-gray-300 mb-0.5 tracking-wider">
+                            Valor Estimado
+                          </p>
+                          <p className="text-sm font-mono font-bold text-gray-900">
+                            {(
+                              item.horas * (quote.valorHora || 0)
+                            ).toLocaleString('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL',
+                            })}
+                          </p>
                         </div>
                         <Button
                           variant="ghost"
@@ -598,56 +708,81 @@ export default function QuoteEditorPage({ params: propsParams }: { params?: { id
           <Card className="p-8 bg-white border border-gray-100 rounded-[24px] shadow-sm">
             <div className="flex items-center gap-2 mb-8">
               <div className="w-1 h-6 bg-brand rounded-full" />
-              <h3 className="text-sm font-bold uppercase tracking-[0.1em] text-gray-400">Ajustes & Condições</h3>
+              <h3 className="text-sm font-bold uppercase tracking-[0.1em] text-gray-400">
+                Ajustes & Condições
+              </h3>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-500 uppercase ml-1">Desconto (%)</label>
+                  <label className="text-xs font-bold text-gray-500 uppercase ml-1">
+                    Desconto (%)
+                  </label>
                   <Input
                     type="number"
                     value={quote.desconto}
-                    onChange={(e) => setQuote({ ...quote, desconto: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setQuote({ ...quote, desconto: Number(e.target.value) })
+                    }
                     className="h-12 bg-gray-50/50 border-gray-100 rounded-xl focus:bg-white transition-all font-mono text-base"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-500 uppercase ml-1">Urgência (%)</label>
+                  <label className="text-xs font-bold text-gray-500 uppercase ml-1">
+                    Urgência (%)
+                  </label>
                   <Input
                     type="number"
                     value={quote.acrescimoUrgencia}
-                    onChange={(e) => setQuote({ ...quote, acrescimoUrgencia: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setQuote({
+                        ...quote,
+                        acrescimoUrgencia: Number(e.target.value),
+                      })
+                    }
                     className="h-12 bg-gray-50/50 border-gray-100 rounded-xl focus:bg-white transition-all font-mono text-base"
                   />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-500 uppercase ml-1">Entrada (R$)</label>
+                  <label className="text-xs font-bold text-gray-500 uppercase ml-1">
+                    Entrada (R$)
+                  </label>
                   <Input
                     type="number"
                     value={quote.entrada}
-                    onChange={(e) => setQuote({ ...quote, entrada: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setQuote({ ...quote, entrada: Number(e.target.value) })
+                    }
                     className="h-12 bg-gray-50/50 border-gray-100 rounded-xl focus:bg-white transition-all font-mono text-base"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-500 uppercase ml-1">Parcelas</label>
+                  <label className="text-xs font-bold text-gray-500 uppercase ml-1">
+                    Parcelas
+                  </label>
                   <Input
                     type="number"
                     value={quote.parcelas}
-                    onChange={(e) => setQuote({ ...quote, parcelas: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setQuote({ ...quote, parcelas: Number(e.target.value) })
+                    }
                     className="h-12 bg-gray-50/50 border-gray-100 rounded-xl focus:bg-white transition-all font-mono text-base"
                   />
                 </div>
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-bold text-gray-500 uppercase ml-1">Notas Internas</label>
+              <label className="text-xs font-bold text-gray-500 uppercase ml-1">
+                Notas Internas
+              </label>
               <Textarea
                 value={quote.notasInternas}
-                onChange={(e) => setQuote({ ...quote, notasInternas: e.target.value })}
+                onChange={(e) =>
+                  setQuote({ ...quote, notasInternas: e.target.value })
+                }
                 placeholder="Observações que não aparecem na proposta..."
                 className="min-h-[120px] bg-gray-50/50 border-gray-100 rounded-2xl focus:bg-white transition-all p-4 resize-none"
               />
@@ -679,38 +814,63 @@ export default function QuoteEditorPage({ params: propsParams }: { params?: { id
               <div className="p-8 border-b border-white/5">
                 <div className="flex items-center gap-2 mb-8">
                   <div className="w-1 h-4 bg-brand-mid rounded-full" />
-                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-brand-mid/80">Sumário Executivo</h3>
+                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-brand-mid/80">
+                    Sumário Executivo
+                  </h3>
                 </div>
-                
+
                 <div className="space-y-5">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-brand-light/40 font-medium">Capacidade Alocada</span>
-                    <span className="font-mono font-bold text-lg">{totals.totalHoras}h</span>
+                    <span className="text-sm text-brand-light/40 font-medium">
+                      Capacidade Alocada
+                    </span>
+                    <span className="font-mono font-bold text-lg">
+                      {totals.totalHoras}h
+                    </span>
                   </div>
                   <div className="flex justify-between items-center text-brand-light/80">
                     <span className="text-sm font-medium">Valor Base</span>
                     <span className="font-mono font-bold">
-                      {totals.valorBruto.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                      {totals.valorBruto.toLocaleString('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                      })}
                     </span>
                   </div>
-                  
+
                   {totals.valorDesconto > 0 && (
                     <div className="flex justify-between items-center text-emerald-400 bg-emerald-400/5 px-3 py-2 rounded-lg border border-emerald-400/10">
                       <div className="flex items-center gap-2">
                         <Zap className="w-3 h-3" />
-                        <span className="text-xs font-bold uppercase">Desconto Aplicado</span>
+                        <span className="text-xs font-bold uppercase">
+                          Desconto Aplicado
+                        </span>
                       </div>
-                      <span className="font-mono font-bold">-{totals.valorDesconto.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                      <span className="font-mono font-bold">
+                        -
+                        {totals.valorDesconto.toLocaleString('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL',
+                        })}
+                      </span>
                     </div>
                   )}
-                  
+
                   {totals.valorUrgencia > 0 && (
                     <div className="flex justify-between items-center text-orange-400 bg-orange-400/5 px-3 py-2 rounded-lg border border-orange-400/10">
                       <div className="flex items-center gap-2">
                         <Clock className="w-3 h-3" />
-                        <span className="text-xs font-bold uppercase">Taxa de Urgência</span>
+                        <span className="text-xs font-bold uppercase">
+                          Taxa de Urgência
+                        </span>
                       </div>
-                      <span className="font-mono font-bold">+{totals.valorUrgencia.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                      <span className="font-mono font-bold">
+                        +
+                        {totals.valorUrgencia.toLocaleString('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL',
+                        })}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -718,10 +878,15 @@ export default function QuoteEditorPage({ params: propsParams }: { params?: { id
 
               <div className="p-8 bg-black/20">
                 <div className="mb-8">
-                  <p className="text-[10px] font-black uppercase text-brand-mid tracking-[0.2em] mb-2 opacity-60">Investimento Total</p>
+                  <p className="text-[10px] font-black uppercase text-brand-mid tracking-[0.2em] mb-2 opacity-60">
+                    Investimento Total
+                  </p>
                   <div className="flex items-baseline gap-1">
                     <span className="text-4xl font-mono font-black tracking-tighter">
-                      {totals.totalValor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                      {totals.totalValor.toLocaleString('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                      })}
                     </span>
                   </div>
                 </div>
@@ -730,32 +895,50 @@ export default function QuoteEditorPage({ params: propsParams }: { params?: { id
                   <div className="p-4 bg-white/5 rounded-2xl border border-white/5 group hover:bg-white/10 transition-all">
                     <div className="flex items-center gap-2 text-brand-mid mb-2">
                       <Calendar className="w-4 h-4" />
-                      <span className="text-[10px] uppercase font-black tracking-widest">Entrega</span>
+                      <span className="text-[10px] uppercase font-black tracking-widest">
+                        Entrega
+                      </span>
                     </div>
-                    <p className="text-base font-bold">{totals.prazoSemanas} Semanas</p>
+                    <p className="text-base font-bold">
+                      {totals.prazoSemanas} Semanas
+                    </p>
                   </div>
                   <div className="p-4 bg-white/5 rounded-2xl border border-white/5 group hover:bg-white/10 transition-all">
                     <div className="flex items-center gap-2 text-brand-mid mb-2">
                       <Layers className="w-4 h-4" />
-                      <span className="text-[10px] uppercase font-black tracking-widest">Escopo</span>
+                      <span className="text-[10px] uppercase font-black tracking-widest">
+                        Escopo
+                      </span>
                     </div>
-                    <p className="text-base font-bold">{totals.modulos} Módulos</p>
+                    <p className="text-base font-bold">
+                      {totals.modulos} Módulos
+                    </p>
                   </div>
                 </div>
 
                 <div className="space-y-4 p-5 bg-brand-dark/20 rounded-3xl border border-white/5">
-                   <div className="flex justify-between items-center">
-                      <span className="text-xs text-brand-light/40 font-bold uppercase tracking-widest">Entrada</span>
-                      <span className="font-mono font-bold text-sm">
-                        {quote.entrada?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                      </span>
-                   </div>
-                   <div className="flex justify-between items-center">
-                      <span className="text-xs text-brand-light/40 font-bold uppercase tracking-widest">{quote.parcelas}x Parcelas</span>
-                      <span className="font-mono font-bold text-sm">
-                        {totals.valorParcela.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                      </span>
-                   </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-brand-light/40 font-bold uppercase tracking-widest">
+                      Entrada
+                    </span>
+                    <span className="font-mono font-bold text-sm">
+                      {quote.entrada?.toLocaleString('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                      })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-brand-light/40 font-bold uppercase tracking-widest">
+                      {quote.parcelas}x Parcelas
+                    </span>
+                    <span className="font-mono font-bold text-sm">
+                      {totals.valorParcela.toLocaleString('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                      })}
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -763,7 +946,10 @@ export default function QuoteEditorPage({ params: propsParams }: { params?: { id
                 <div className="flex items-center justify-center gap-2">
                   <Info className="w-3.5 h-3.5 opacity-60" />
                   <p className="text-[10px] text-white uppercase font-bold tracking-widest">
-                    Proposta expira em {new Date(quote.validoAte || '').toLocaleDateString('pt-BR')}
+                    Proposta expira em{' '}
+                    {new Date(quote.validoAte || '').toLocaleDateString(
+                      'pt-BR',
+                    )}
                   </p>
                 </div>
               </div>

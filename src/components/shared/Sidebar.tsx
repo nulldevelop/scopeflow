@@ -1,19 +1,26 @@
 'use client'
 
-import React from 'react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 import {
-  LayoutDashboard,
   FileText,
+  LayoutDashboard,
   Library,
-  Users,
-  Settings,
   Menu,
+  Settings,
+  Users,
   X,
 } from 'lucide-react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import React from 'react'
 import { cn } from '@/lib/utils'
-import { useScopeFlow } from '@/context/ScopeFlowContext'
+
+interface SidebarProps {
+  user: {
+    name: string
+    email: string
+    image: string | null | undefined
+  } | null
+}
 
 const menuItems = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -23,9 +30,8 @@ const menuItems = [
   { label: 'Configurações', href: '/configuracoes', icon: Settings },
 ]
 
-export function Sidebar() {
+export function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname()
-  const { user } = useScopeFlow()
   const [isOpen, setIsOpen] = React.useState(false)
 
   const Logo = () => (
@@ -128,7 +134,7 @@ export function Sidebar() {
 
           <div className="pt-6 border-t border-gray-100 flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-brand-light flex items-center justify-center overflow-hidden">
-              {user.image ? (
+              {user?.image ? (
                 <img
                   src={user.image}
                   alt={user.name}
@@ -136,15 +142,15 @@ export function Sidebar() {
                 />
               ) : (
                 <span className="text-brand font-semibold text-xs">
-                  {user.name.charAt(0).toUpperCase()}
+                  {user?.name?.charAt(0).toUpperCase() || '?'}
                 </span>
               )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">
-                {user.name}
+                {user?.name || 'Usuário'}
               </p>
-              <p className="text-xs text-gray-400 truncate">{user.email}</p>
+              <p className="text-xs text-gray-400 truncate">{user?.email}</p>
             </div>
           </div>
         </div>

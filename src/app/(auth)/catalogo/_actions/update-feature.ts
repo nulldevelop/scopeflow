@@ -1,36 +1,26 @@
 'use server'
 
-import { auth } from '@/lib/auth'
+import { withPermission } from '@/lib/permissions/with-permission'
 import { prisma } from '@/lib/prisma'
-import { revalidatePath } from 'next/cache'
-import { headers } from 'next/headers'
-import { z } from 'zod'
 
-const featureSchema = z.object({
-  name: z.string().min(1, 'Nome é obrigatório'),
-  description: z.string().optional(),
-  baseHours: z.coerce.number().min(0),
-  complexity: z.string().default('media'),
-  categoryId: z.string().optional().nullable(),
-})
-
-export async function updateFeature(id: string, data: z.infer<typeof featureSchema>) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  })
-
-  if (!session?.session.activeOrganizationId) {
-    throw new Error('Sessão expirada.')
-  }
-
-  const result = await prisma.feature.update({
-    where: {
-      id,
-      organizationId: session.session.activeOrganizationId,
+export const updateFeatureAction = withPermission(
+  'update',
+  async (
+    ctx,
+    id: string,
+    data: {
+      name?: string
+      description?: string
+      baseHours?: number
+      complexity?: string
+      categoryId?: string | null
     },
-    data,
-  })
-
-  revalidatePath('/catalogo')
-  return result
-}
+  ) => {
+    const result = await prisma.feature.update({
+      where: { id },
+      data,
+    })
+    return { success: true, data: result }
+  },
+  { module: 'features' },
+)

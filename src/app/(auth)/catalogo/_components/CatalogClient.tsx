@@ -1,4 +1,4 @@
-﻿"use client"
+﻿'use client'
 
 import {
   CreditCard,
@@ -12,19 +12,32 @@ import {
   Share2,
   Upload,
   Zap,
-} from "lucide-react"
-import React, { useState, useTransition } from "react"
-import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { createFeature } from "../_actions/create-feature"
-import { deleteFeature } from "../_actions/delete-feature"
-import { updateFeature } from "../_actions/update-feature"
+} from 'lucide-react'
+import type React from 'react'
+import { useState, useTransition } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
+import { createFeatureAction } from '../_actions/create-feature'
+import { deleteFeatureAction } from '../_actions/delete-feature'
+import { updateFeatureAction } from '../_actions/update-feature'
 
 export interface CatalogCategory {
   id: string
@@ -50,7 +63,7 @@ const categoryIcons: Record<string, React.ElementType> = {
   Autenticacao: Lock,
   Dashboard: Layout,
   Pagamentos: CreditCard,
-  "E-mail": Mail,
+  'E-mail': Mail,
   Upload: Upload,
   CMS: Database,
   API: Globe,
@@ -58,19 +71,26 @@ const categoryIcons: Record<string, React.ElementType> = {
   Outro: Zap,
 }
 
-export default function CatalogClient({ initialFeatures, categories }: CatalogClientProps) {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [categoryFilter, setCategoryFilter] = useState("Todos")
+export default function CatalogClient({
+  initialFeatures,
+  categories,
+}: CatalogClientProps) {
+  const [searchTerm, setSearchTerm] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('Todos')
   const [isPending, startTransition] = useTransition()
   const [open, setOpen] = useState(false)
-  const [editingFeature, setEditingFeature] = useState<CatalogFeature | null>(null)
+  const [editingFeature, setEditingFeature] = useState<CatalogFeature | null>(
+    null,
+  )
 
   const filteredFeatures = initialFeatures.filter((feature) => {
     const matchesSearch =
       feature.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (feature.description?.toLowerCase() || "").includes(searchTerm.toLowerCase())
+      (feature.description?.toLowerCase() || '').includes(
+        searchTerm.toLowerCase(),
+      )
     const matchesCategory =
-      categoryFilter === "Todos" || feature.category?.name === categoryFilter
+      categoryFilter === 'Todos' || feature.category?.name === categoryFilter
     return matchesSearch && matchesCategory
   })
 
@@ -78,19 +98,19 @@ export default function CatalogClient({ initialFeatures, categories }: CatalogCl
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
     const data = {
-      name: formData.get("name") as string,
-      description: formData.get("description") as string,
-      baseHours: Number(formData.get("baseHours")),
-      complexity: formData.get("complexity") as string,
-      categoryId: (formData.get("categoryId") as string) || null,
+      name: formData.get('name') as string,
+      description: formData.get('description') as string,
+      baseHours: Number(formData.get('baseHours')),
+      complexity: formData.get('complexity') as string,
+      categoryId: (formData.get('categoryId') as string) || null,
     }
 
     startTransition(async () => {
       try {
         if (editingFeature) {
-          await updateFeature(editingFeature.id, data)
+          await updateFeatureAction(editingFeature.id, data)
         } else {
-          await createFeature(data)
+          await createFeatureAction(data)
         }
         setOpen(false)
         setEditingFeature(null)
@@ -101,10 +121,10 @@ export default function CatalogClient({ initialFeatures, categories }: CatalogCl
   }
 
   const handleDelete = async (id: string) => {
-    if (confirm("Tem certeza que deseja excluir esta funcionalidade?")) {
+    if (confirm('Tem certeza que deseja excluir esta funcionalidade?')) {
       startTransition(async () => {
         try {
-          await deleteFeature(id)
+          await deleteFeatureAction(id)
         } catch (error) {
           console.error(error)
         }
@@ -118,10 +138,13 @@ export default function CatalogClient({ initialFeatures, categories }: CatalogCl
         <h1 className="text-xl font-semibold text-gray-900">
           Catalogo de funcionalidades
         </h1>
-        <Dialog open={open} onOpenChange={(val) => {
-          setOpen(val)
-          if (!val) setEditingFeature(null)
-        }}>
+        <Dialog
+          open={open}
+          onOpenChange={(val) => {
+            setOpen(val)
+            if (!val) setEditingFeature(null)
+          }}
+        >
           <DialogTrigger asChild>
             <Button className="bg-brand text-white hover:bg-brand-dark rounded-lg flex items-center gap-2">
               <Plus className="w-4 h-4" />
@@ -130,25 +153,46 @@ export default function CatalogClient({ initialFeatures, categories }: CatalogCl
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{editingFeature ? "Editar" : "Nova"} Funcionalidade</DialogTitle>
+              <DialogTitle>
+                {editingFeature ? 'Editar' : 'Nova'} Funcionalidade
+              </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Nome</Label>
-                <Input id="name" name="name" defaultValue={editingFeature?.name} required />
+                <Input
+                  id="name"
+                  name="name"
+                  defaultValue={editingFeature?.name}
+                  required
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="description">Descricao</Label>
-                <Textarea id="description" name="description" defaultValue={editingFeature?.description || ""} />
+                <Textarea
+                  id="description"
+                  name="description"
+                  defaultValue={editingFeature?.description || ''}
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="baseHours">Horas Base</Label>
-                  <Input id="baseHours" name="baseHours" type="number" step="0.5" defaultValue={editingFeature?.baseHours?.toString()} required />
+                  <Input
+                    id="baseHours"
+                    name="baseHours"
+                    type="number"
+                    step="0.5"
+                    defaultValue={editingFeature?.baseHours?.toString()}
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="complexity">Complexidade</Label>
-                  <Select name="complexity" defaultValue={editingFeature?.complexity || "media"}>
+                  <Select
+                    name="complexity"
+                    defaultValue={editingFeature?.complexity || 'media'}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
@@ -162,19 +206,28 @@ export default function CatalogClient({ initialFeatures, categories }: CatalogCl
               </div>
               <div className="space-y-2">
                 <Label htmlFor="categoryId">Categoria</Label>
-                <Select name="categoryId" defaultValue={editingFeature?.categoryId || ""}>
+                <Select
+                  name="categoryId"
+                  defaultValue={editingFeature?.categoryId || ''}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione uma categoria" />
                   </SelectTrigger>
                   <SelectContent>
                     {categories.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-              <Button type="submit" className="w-full bg-brand hover:bg-brand-dark" disabled={isPending}>
-                {isPending ? "Salvando..." : "Salvar"}
+              <Button
+                type="submit"
+                className="w-full bg-brand hover:bg-brand-dark"
+                disabled={isPending}
+              >
+                {isPending ? 'Salvando...' : 'Salvar'}
               </Button>
             </form>
           </DialogContent>
@@ -194,16 +247,16 @@ export default function CatalogClient({ initialFeatures, categories }: CatalogCl
         </div>
 
         <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
-          {["Todos", ...categories.map(c => c.name)].map((cat) => (
+          {['Todos', ...categories.map((c) => c.name)].map((cat) => (
             <button
               key={cat}
               type="button"
               onClick={() => setCategoryFilter(cat)}
               className={cn(
-                "px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap",
+                'px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap',
                 categoryFilter === cat
-                  ? "bg-brand text-white"
-                  : "bg-white text-gray-600 border border-gray-200 hover:border-gray-300",
+                  ? 'bg-brand text-white'
+                  : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300',
               )}
             >
               {cat}
@@ -215,7 +268,7 @@ export default function CatalogClient({ initialFeatures, categories }: CatalogCl
       {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredFeatures.map((feature) => {
-          const Icon = categoryIcons[feature.category?.name || ""] || Zap
+          const Icon = categoryIcons[feature.category?.name || ''] || Zap
           return (
             <Card
               key={feature.id}
@@ -230,7 +283,7 @@ export default function CatalogClient({ initialFeatures, categories }: CatalogCl
                   {feature.name}
                 </h3>
                 <p className="text-[10px] uppercase font-bold text-brand-mid tracking-wider mb-3">
-                  {feature.category?.name || "Sem Categoria"}
+                  {feature.category?.name || 'Sem Categoria'}
                 </p>
                 <p className="text-sm text-gray-500 mb-6 line-clamp-2">
                   {feature.description}

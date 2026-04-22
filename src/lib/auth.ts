@@ -1,13 +1,12 @@
 import { betterAuth } from 'better-auth'
 import { prismaAdapter } from 'better-auth/adapters/prisma'
 import { organization } from 'better-auth/plugins'
-import { env } from './env'
 import { prisma } from './prisma'
 
 // 🔹 Configuração principal
 export const auth = betterAuth({
   // 🔐 Secret
-  secret: env.AUTH_SECRET,
+  secret: process.env.AUTH_SECRET,
 
   // 🗄️ Banco
   database: prismaAdapter(prisma, {
@@ -16,19 +15,40 @@ export const auth = betterAuth({
 
   // 🔹 Sessão
   session: {
-    expiresIn: 60 * 60 * 24 * 7, // 7 dias
+    strategy: 'jwt',
+    maxAge: 60 * 60 * 24 * 7, // 7 dias
     updateAge: 60 * 60 * 24, // 1 dia
-    additionalFields: {
-      activeOrganizationId: {
-        type: 'string',
-        required: false,
-        input: false,
+  },
+
+  // 🔹 JWT
+  jwt: {
+    secret: process.env.AUTH_SECRET,
+  },
+
+  // 🍪 Cookies
+  cookies: {
+    sessionToken: {
+      name: 'auth_token',
+      options: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
       },
+    },
+  },
+
+  // 🌐 OAuth
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    },
+    github: {
+      clientId: process.env.GITHUB_CLIENT_ID as string,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
     },
   },
 
   plugins: [organization()],
 })
-
-// 🔹 Tipos inferidos
-export type Session = typeof auth.$Infer.Session

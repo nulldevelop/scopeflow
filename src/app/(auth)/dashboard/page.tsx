@@ -1,11 +1,9 @@
-'use client'
-
 import {
   ArrowRight,
-  Plus,
   CheckCircle2,
   DollarSign,
   FileText,
+  Plus,
   TrendingUp,
 } from 'lucide-react'
 import Link from 'next/link'
@@ -20,7 +18,9 @@ import {
 } from 'recharts'
 import { Header } from '@/components/shared/Header'
 import { MetricCard } from '@/components/shared/MetricCard'
+import { ProfileSelector } from '@/components/shared/ProfileSelector'
 import { StatusBadge } from '@/components/shared/StatusBadge'
+import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import {
   Table,
@@ -30,10 +30,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Button } from '@/components/ui/button'
-import { useRouter } from 'next/navigation'
-import { ProfileSelector } from '@/components/shared/ProfileSelector'
-import { useScopeFlow } from '@/context/ScopeFlowContext'
+import { getSessionQuotes } from './_data-access/get-quotes'
 
 const chartData = [
   { name: 'Jan', value: 4 },
@@ -44,43 +41,39 @@ const chartData = [
   { name: 'Jun', value: 8 },
 ]
 
-export default function DashboardPage() {
-  const { quotes } = useScopeFlow()
-  const router = useRouter()
+export default async function DashboardPage() {
+  const quotes = await getSessionQuotes()
 
   const totalQuotes = quotes.length
   const approvedQuotes = quotes.filter((q) => q.status === 'aprovada').length
-  const conversionRate = totalQuotes > 0 ? ((approvedQuotes / totalQuotes) * 100).toFixed(1) : '0'
+  const conversionRate =
+    totalQuotes > 0 ? ((approvedQuotes / totalQuotes) * 100).toFixed(1) : '0'
   const avgTicket =
     quotes.length > 0
       ? (
-          quotes.reduce((acc, curr) => acc + curr.totalValor, 0) / quotes.length
+          quotes.reduce((acc, curr) => acc + Number(curr.totalValue), 0) /
+          quotes.length
         ).toLocaleString('pt-BR', {
           style: 'currency',
           currency: 'BRL',
         })
       : 'R$ 0,00'
 
-  const recentQuotes = [...quotes]
-    .sort(
-      (a, b) => new Date(b.criadoEm).getTime() - new Date(a.criadoEm).getTime(),
-    )
-    .slice(0, 5)
+  const recentQuotes = [...quotes].slice(0, 5)
 
   return (
     <div className="px-8 pb-12">
       <ProfileSelector />
-      <Header title="Bom dia, [nome] 👋">
-        <Button
-          onClick={() => router.push('/orcamentos/novo')}
-          className="bg-brand text-white hover:bg-brand-dark rounded-lg flex items-center gap-2"
+      <Header title="Dashboard">
+        <Link
+          href="/orcamentos/novo"
+          className="bg-brand text-white hover:bg-brand-dark rounded-lg flex items-center gap-2 px-4 py-2"
         >
           <Plus className="w-4 h-4" />
           Novo orçamento
-        </Button>
+        </Link>
       </Header>
 
-      {/* Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <MetricCard
           label="Total de orçamentos"
@@ -108,7 +101,6 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Chart Section */}
         <Card className="lg:col-span-2 p-6 bg-white border border-gray-200 rounded-[14px]">
           <div className="flex items-center justify-between mb-8">
             <h3 className="text-sm font-semibold text-gray-900">
@@ -161,7 +153,6 @@ export default function DashboardPage() {
           </div>
         </Card>
 
-        {/* Recent Quotes List */}
         <Card className="p-6 bg-white border border-gray-200 rounded-[14px] flex flex-col">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-sm font-semibold text-gray-900">Recentes</h3>
@@ -178,13 +169,15 @@ export default function DashboardPage() {
               <div key={quote.id} className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-900 truncate max-w-[150px]">
-                    {quote.titulo}
+                    {quote.title}
                   </p>
-                  <p className="text-xs text-gray-400">{quote.clienteNome}</p>
+                  <p className="text-xs text-gray-400">
+                    {quote.client?.name || '-'}
+                  </p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-mono font-medium text-gray-900">
-                    {quote.totalValor.toLocaleString('pt-BR', {
+                    {Number(quote.totalValue).toLocaleString('pt-BR', {
                       style: 'currency',
                       currency: 'BRL',
                     })}
@@ -226,13 +219,13 @@ export default function DashboardPage() {
                   className="border-b border-gray-50 hover:bg-gray-50/30 transition-colors"
                 >
                   <TableCell className="font-medium text-gray-900">
-                    {quote.titulo}
+                    {quote.title}
                   </TableCell>
                   <TableCell className="text-gray-600">
-                    {quote.clienteNome}
+                    {quote.client?.name || '-'}
                   </TableCell>
                   <TableCell className="font-mono text-gray-900">
-                    {quote.totalValor.toLocaleString('pt-BR', {
+                    {Number(quote.totalValue).toLocaleString('pt-BR', {
                       style: 'currency',
                       currency: 'BRL',
                     })}
@@ -241,7 +234,7 @@ export default function DashboardPage() {
                     <StatusBadge status={quote.status} />
                   </TableCell>
                   <TableCell className="text-right text-gray-400 text-sm">
-                    {new Date(quote.criadoEm).toLocaleDateString('pt-BR')}
+                    {new Date(quote.createdAt).toLocaleDateString('pt-BR')}
                   </TableCell>
                 </TableRow>
               ))}

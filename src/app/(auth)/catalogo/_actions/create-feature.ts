@@ -1,40 +1,63 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
-import { headers } from 'next/headers'
-import { z } from 'zod'
-import { auth } from '@/lib/auth'
+import { withPermission } from '@/lib/permissions/with-permission'
 import { prisma } from '@/lib/prisma'
 
-const featureSchema = z.object({
-  name: z.string().min(1, 'Nome é obrigatório'),
-  description: z.string().optional(),
-  baseHours: z.coerce.number().min(0),
-  complexity: z.string().default('media'),
-  categoryId: z.string().optional().nullable(),
-})
 
-export async function createFeature(data: z.infer<typeof featureSchema>) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  })
-
-  const organizationId = (session?.session as { activeOrganizationId?: string })
-    ?.activeOrganizationId
-
-  if (!organizationId) {
-    throw new Error(
-      'Você deve estar em uma organização para criar uma funcionalidade.',
-    )
-  }
-
-  const result = await prisma.feature.create({
+export const createFeatureAction = withPermission(
+  'create',
+  async (
+    ctx,
     data: {
-      ...data,
-      organizationId,
+      name: string
+      description?: string
+      baseHours: number
+      complexity?: string
+      categoryId?: string | null
     },
-  })
+  ) => {
+    const result = await prisma.feature.create({
+      data: {
+        name: data.name,
+        description: data.description,
+        baseHours: data.baseHours,
+        complexity: data.complexity || 'media',
+        categoryId: data.categoryId || null,
+        organizationId: ctx.organizationId,
+      },
+    })
+    return { success: true, data: result }
+  },
+  { module: 'features' },
+)
 
-  revalidatePath('/catalogo')
-  return result
-}
+export const updateFeatureAction = withPermission(
+  'update',
+  async (
+    ctx,
+    id: string,
+    data: {
+      name?: string
+      description?: string
+      baseHours?: number
+      complexity?: string
+      categoryId?: string | null
+    },
+  ) => {
+    const result = await prisma.feature.update({
+      where: { id },
+      data,
+    })
+    return { success: true, data: result }
+  },
+  { module: 'features' },
+)
+
+export const deleteFeatureAction = withPermission(
+  'delete',
+  async (ctx, id: string) => {
+    await prisma.feature.delete({ where: { id } })
+    return { success: true, data: undefined }
+  },
+  { module: 'features' },
+)

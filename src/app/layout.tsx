@@ -1,9 +1,7 @@
 import type { Metadata } from 'next'
-import { Sora, IBM_Plex_Mono } from 'next/font/google'
+import { IBM_Plex_Mono, Sora } from 'next/font/google'
 import '@/styles/globals.css'
 import { cn } from '@/lib/utils'
-import { ScopeFlowProvider } from '@/context/ScopeFlowContext'
-import { ProfileSelector } from '@/components/shared/ProfileSelector'
 
 const sora = Sora({
   subsets: ['latin'],
@@ -41,11 +39,7 @@ export default function RootLayout({
         'font-sans antialiased',
       )}
     >
-      <body className="font-sans">
-        <ScopeFlowProvider>
-          {children}
-        </ScopeFlowProvider>
-      </body>
+      <body className="font-sans">{children}</body>
     </html>
   )
 }

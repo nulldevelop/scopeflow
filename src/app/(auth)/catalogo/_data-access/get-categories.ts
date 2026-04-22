@@ -1,19 +1,15 @@
+import { checkPermission } from '@/lib/permissions/check-permission'
 import { prisma } from '@/lib/prisma'
-import { seedDefaultCategories } from './seed-default-categories'
 
-export async function getCategories(organizationId: string) {
-  const categories = await prisma.category.findMany({
-    where: {
-      organizationId,
-    },
-    orderBy: {
-      name: 'asc',
-    },
+export async function getAllCategories(organizationId: string) {
+  return prisma.category.findMany({
+    where: { organizationId },
+    orderBy: { name: 'asc' },
   })
+}
 
-  if (categories.length === 0) {
-    return await seedDefaultCategories(organizationId)
-  }
-
-  return categories
+export async function getCategoriesByOrganization() {
+  const session = await checkPermission('read', 'categories')
+  if (!session.allowed) return []
+  return getAllCategories(session.organizationId)
 }

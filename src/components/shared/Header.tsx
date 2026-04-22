@@ -1,17 +1,11 @@
-'use client'
-
-import type React from 'react'
-import { useScopeFlow } from '@/context/ScopeFlowContext'
-
 interface HeaderProps {
   title: string
+  userName?: string
   children?: React.ReactNode
 }
 
-export function Header({ title = '', children }: HeaderProps) {
-  const { user } = useScopeFlow()
-
-  const firstName = user?.name ? user.name.split(' ')[0] : 'Usuário'
+export function Header({ title = '', userName, children }: HeaderProps) {
+  const firstName = userName ? userName.split(' ')[0] : 'Usuário'
 
   const displayTitle = title?.includes('[nome]')
     ? title?.replace('[nome]', firstName)

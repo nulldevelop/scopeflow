@@ -1,33 +1,23 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
-import { headers } from 'next/headers'
-import { auth } from '@/lib/auth'
+import type { ActionResponse } from '@/lib/permissions/types'
+import { withPermission } from '@/lib/permissions/with-permission'
 import { prisma } from '@/lib/prisma'
 
-export async function createCategory(name: string) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  })
-
-  if (!session?.session) {
-    throw new Error('Sessão expirada.')
-  }
-
-  const organizationId = (session.session as { activeOrganizationId?: string })
-    .activeOrganizationId
-
-  if (!organizationId) {
-    throw new Error('Sessão expirada.')
-  }
-
-  const result = await prisma.category.create({
-    data: {
-      name,
-      organizationId,
-    },
-  })
-
-  revalidatePath('/catalogo')
-  return result
-}
+export const createCategoryAction = withPermission(
+  'create',
+  async (ctx, name: string): Promise<ActionResponse<unknown>> => {
+    try {
+      const result = await prisma.category.create({
+        data: {
+          name,
+          organizationId: ctx.organizationId,
+        },
+      })
+      return { success: true, data: result }
+    } catch (error) {
+      return { success: false, error: 'Erro ao criar categoria.' }
+    }
+  },
+  { module: 'categories' },
+)

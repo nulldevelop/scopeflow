@@ -1,356 +1,610 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
   Building2,
-  Rocket,
-  Settings2,
-  ChevronRight,
+  Check,
   ChevronLeft,
-  CheckCircle2,
-  Users,
+  ChevronRight,
   Code2,
+  Crown,
   Layout,
-  Globe,
+  Mail,
+  Plus,
+  Rocket,
+  Sparkles,
+  Star,
+  Users,
+  Zap,
 } from 'lucide-react'
-import { organization, useSession } from '@/lib/auth-client'
+import { useRouter as useNavigation, useRouter } from 'next/navigation'
+import { useState } from 'react'
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxTrigger,
+} from '@/components/kibo-ui/combobox'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { organization, useSession } from '@/lib/auth-client'
 import { cn } from '@/lib/utils'
 import { completeOnboardingAction } from './_actions/complete-onboarding'
+
+const techOptions = [
+  'React',
+  'Next.js',
+  'Vue.js',
+  'Angular',
+  'Node.js',
+  'Python',
+  'Java',
+  'C#',
+  'Go',
+  'Rust',
+  'PHP',
+  'Laravel',
+  'Django',
+  'Spring Boot',
+  'PostgreSQL',
+  'MongoDB',
+  'Redis',
+  'Firebase',
+  'AWS',
+  'Azure',
+  'Google Cloud',
+  'Docker',
+  'Kubernetes',
+  'Figma',
+]
+
+const steps = [
+  { id: 1, title: 'Identidade' },
+  { id: 2, title: 'Perfil' },
+  { id: 3, title: 'Configuração' },
+  { id: 4, title: 'Plano' },
+]
+
+const plans = [
+  {
+    id: 'free',
+    title: 'Free',
+    price: 'R$ 0',
+    period: '/mês',
+    description: 'Para começar',
+    icon: Star,
+    color: 'bg-gray-100',
+    textColor: 'text-gray-600',
+  },
+  {
+    id: 'basic',
+    title: 'Basic',
+    price: 'R$ 97',
+    period: '/mês',
+    description: 'Para freelancers',
+    icon: Zap,
+    color: 'bg-blue-50',
+    textColor: 'text-blue-600',
+    popular: true,
+  },
+  {
+    id: 'pro',
+    title: 'Pro',
+    price: 'R$ 197',
+    period: '/mês',
+    description: 'Para empresas',
+    icon: Crown,
+    color: 'bg-brand-light',
+    textColor: 'text-brand',
+  },
+]
 
 const profiles = [
   {
     id: 'freelancer',
     title: 'Freelancer',
-    description: 'Trabalho de forma independente em projetos sob demanda.',
+    description: 'Trabalho independente.',
     icon: Code2,
-    color: 'bg-blue-50 text-blue-600',
+    questions: [
+      { id: 'hourlyRate', label: 'Valor da hora (R$)', placeholder: '150' },
+      { id: 'techStack', label: 'Stack tecnológica', isTags: true },
+      {
+        id: 'workModel',
+        label: 'Modelo',
+        options: ['Remoto', 'Presencial', 'Híbrido'],
+      },
+    ],
   },
   {
     id: 'software_house',
     title: 'Software House',
-    description: 'Empresa focada em desenvolvimento de software por contrato.',
+    description: 'Empresa de desenvolvimento.',
     icon: Building2,
-    color: 'bg-brand-light text-brand',
+    questions: [
+      { id: 'hourlyRate', label: 'Valor hora (R$)', placeholder: '200' },
+      {
+        id: 'teamSize',
+        label: 'Equipe',
+        options: ['1-5', '6-15', '15-30', '30+'],
+      },
+      {
+        id: 'segment',
+        label: 'Segmento',
+        options: ['E-commerce', 'Fintech', 'SaaS', 'Enterprise'],
+      },
+      { id: 'invites', label: 'Membros', allowInvites: true },
+    ],
   },
   {
     id: 'agencia',
     title: 'Agência Digital',
-    description: 'Prestação de diversos serviços digitais e desenvolvimento.',
+    description: 'Serviços digitais.',
     icon: Layout,
-    color: 'bg-amber-50 text-amber-600',
+    questions: [
+      { id: 'hourlyRate', label: 'Valor hora (R$)', placeholder: '180' },
+      { id: 'teamSize', label: 'Equipe', options: ['1-5', '6-15', '15+'] },
+      {
+        id: 'services',
+        label: 'Serviços',
+        options: ['Web', 'Mobile', 'UI/UX', 'Marketing'],
+      },
+      { id: 'invites', label: 'Membros', allowInvites: true },
+    ],
   },
   {
     id: 'saas_startup',
     title: 'SaaS / Startup',
-    description: 'Construindo e escalando meu próprio produto digital.',
+    description: 'Meu produto.',
     icon: Rocket,
-    color: 'bg-purple-50 text-purple-600',
+    questions: [
+      { id: 'productName', label: 'Nome do produto', placeholder: 'Meu SaaS' },
+      {
+        id: 'stage',
+        label: 'Estágio',
+        options: ['Ideação', 'MVP', 'Mercado', 'Escala'],
+      },
+      {
+        id: 'teamSize',
+        label: 'Time',
+        options: ['Eu só', '2-5', '5-10', '10+'],
+      },
+      { id: 'invites', label: 'Membros', allowInvites: true },
+    ],
   },
 ]
 
-export default function OnboardingPage() {
-  const router = useRouter()
+export default function OnboardingModal() {
+  const router = useNavigation()
   const { data: session, isPending: sessionPending } = useSession()
+  const [open, setOpen] = useState(true)
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
 
-  // Form states
   const [orgName, setOrgName] = useState('')
   const [slug, setSlug] = useState('')
   const [selectedProfile, setSelectedProfile] = useState<string | null>(null)
-  const [details, setDetails] = useState({
-    hourlyRate: '',
-    teamSize: '',
-    mainTech: '',
-  })
+  const [answers, setAnswers] = useState<Record<string, string>>({})
+  const [invites, setInvites] = useState<string[]>([])
+  const [selectedPlan, setSelectedPlan] = useState<string | null>('basic')
 
-  // Auto-generate slug
-  useEffect(() => {
-    if (orgName && !slug) {
-      setSlug(orgName.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, ''))
-    }
-  }, [orgName, slug])
+  const currentProfile = profiles.find((p) => p.id === selectedProfile)
 
   const nextStep = () => setStep((s) => s + 1)
   const prevStep = () => setStep((s) => s - 1)
 
   const handleComplete = async () => {
+    if (!orgName || !slug || !selectedProfile) return
     setLoading(true)
     try {
-      const { data, error } = await organization.create({
-        name: orgName,
-        slug: slug,
-      })
-
+      const { data, error } = await organization.create({ name: orgName, slug })
       if (error) {
-        console.error('Error creating organization:', error)
         alert('Erro ao criar organização. Tente outro slug.')
         setLoading(false)
         return
       }
-
-      // Salva os dados extras e sincroniza
       await completeOnboardingAction({
-        profile: selectedProfile!,
-        details: {
-          hourlyRate: details.hourlyRate,
-          teamSize: details.teamSize,
-          mainTech: details.mainTech,
-        }
+        profile: selectedProfile,
+        details: { ...answers, plan: selectedPlan },
       })
-      
+      setOpen(false)
       router.push('/dashboard')
-      router.refresh()
     } catch (err) {
       console.error(err)
+      alert('Erro ao criar organização.')
+    } finally {
       setLoading(false)
     }
   }
 
-  if (sessionPending) return null
-
-  const steps = [
-    { id: 1, label: 'Identidade', icon: Building2 },
-    { id: 2, label: 'Perfil', icon: Users },
-    { id: 3, label: 'Personalização', icon: Settings2 },
-  ]
+  if (sessionPending) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Carregando...
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 sm:p-12">
-      <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-4 gap-8">
-        
-        {/* Progress Sidebar */}
-        <aside className="lg:col-span-1 space-y-4">
-          <div className="mb-8">
-            <h2 className="text-xl font-bold text-gray-900">Configurando seu Workspace</h2>
-            <p className="text-sm text-gray-500">Estamos preparando sua experiência no ScopeFlow.</p>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (isOpen || (step === 4 && orgName && slug && selectedProfile)) {
+          setOpen(isOpen)
+        }
+      }}
+    >
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto [&>button]:hidden">
+        <DialogHeader className="text-center">
+          <div className="mx-auto mb-3 w-10 h-10 bg-brand rounded-xl flex items-center justify-center">
+            <Sparkles className="w-5 h-5 text-white" />
           </div>
-          
-          <nav className="space-y-2">
-            {steps.map((s) => (
+          <DialogTitle className="text-xl">
+            Configurando seu Workspace
+          </DialogTitle>
+          <DialogDescription>
+            Vamos configurar sua experiência no ScopeFlow
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* Progress */}
+        <div className="flex items-center justify-center gap-2 py-2">
+          {steps.map((s, i) => (
+            <div key={s.id} className="flex items-center">
               <div
-                key={s.id}
                 className={cn(
-                  'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all',
-                  step === s.id
-                    ? 'bg-brand text-white shadow-md shadow-brand/20'
-                    : step > s.id 
-                    ? 'text-brand bg-brand-light'
-                    : 'text-gray-400'
+                  'w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium',
+                  step >= s.id
+                    ? 'bg-brand text-white'
+                    : 'bg-gray-100 text-gray-400',
                 )}
               >
-                {step > s.id ? (
-                  <CheckCircle2 className="w-5 h-5" />
-                ) : (
-                  <s.icon className="w-5 h-5" />
-                )}
-                <span>{s.label}</span>
+                {step > s.id ? <Check className="w-3 h-3" /> : s.id}
               </div>
-            ))}
-          </nav>
-        </aside>
-
-        {/* Form Main Area */}
-        <main className="lg:col-span-3">
-          <Card className="p-8 sm:p-12 bg-white border border-gray-200 rounded-[24px] shadow-sm relative overflow-hidden min-h-[500px] flex flex-col">
-            <AnimatePresence mode="wait">
-              {step === 1 && (
-                <motion.div
-                  key="step1"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="space-y-8 flex-1"
-                >
-                  <header>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Primeiro, como devemos chamar seu Workspace?</h3>
-                    <p className="text-gray-500">Pode ser o nome da sua empresa ou sua marca pessoal.</p>
-                  </header>
-
-                  <div className="space-y-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="orgName">Nome da Organização</Label>
-                      <Input
-                        id="orgName"
-                        placeholder="Ex: Scope Digital"
-                        value={orgName}
-                        onChange={(e) => setOrgName(e.target.value)}
-                        className="h-12 rounded-xl text-lg"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="slug">Slug (URL personalizada)</Label>
-                      <div className="relative">
-                        <Input
-                          id="slug"
-                          placeholder="scope-digital"
-                          value={slug}
-                          onChange={(e) => setSlug(e.target.value)}
-                          className="h-12 rounded-xl text-lg pl-36"
-                        />
-                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-medium">
-                          scopeflow.com/
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {step === 2 && (
-                <motion.div
-                  key="step2"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="space-y-8 flex-1"
-                >
-                  <header>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Qual seu perfil de atuação?</h3>
-                    <p className="text-gray-500">Isso nos ajuda a personalizar o cálculo de precificação e o catálogo.</p>
-                  </header>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {profiles.map((p) => (
-                      <button
-                        key={p.id}
-                        onClick={() => setSelectedProfile(p.id)}
-                        className={cn(
-                          'p-6 rounded-2xl border-2 transition-all text-left flex flex-col gap-4',
-                          selectedProfile === p.id
-                            ? 'border-brand bg-brand-light/20 shadow-sm'
-                            : 'border-gray-100 hover:border-gray-200 bg-white'
-                        )}
-                      >
-                        <div className={cn('size-12 rounded-xl flex items-center justify-center', p.color)}>
-                          <p.icon className="size-6" />
-                        </div>
-                        <div>
-                          <p className="font-bold text-gray-900">{p.title}</p>
-                          <p className="text-sm text-gray-500">{p.description}</p>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-
-              {step === 3 && (
-                <motion.div
-                  key="step3"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="space-y-8 flex-1"
-                >
-                  <header>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Quase lá! Alguns detalhes finais.</h3>
-                    <p className="text-gray-500">Personalize sua experiência para obter melhores resultados.</p>
-                  </header>
-
-                  <div className="space-y-6">
-                    {selectedProfile === 'freelancer' && (
-                      <>
-                        <div className="space-y-2">
-                          <Label htmlFor="hourlyRate">Qual o valor médio da sua hora? (R$)</Label>
-                          <Input
-                            id="hourlyRate"
-                            type="number"
-                            placeholder="Ex: 80"
-                            value={details.hourlyRate}
-                            onChange={(e) => setDetails({...details, hourlyRate: e.target.value})}
-                            className="h-12 rounded-xl"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="mainTech">Principal tecnologia/stack</Label>
-                          <Input
-                            id="mainTech"
-                            placeholder="Ex: React + Node.js"
-                            value={details.mainTech}
-                            onChange={(e) => setDetails({...details, mainTech: e.target.value})}
-                            className="h-12 rounded-xl"
-                          />
-                        </div>
-                      </>
-                    )}
-
-                    {selectedProfile === 'software_house' && (
-                      <>
-                        <div className="space-y-2">
-                          <Label htmlFor="teamSize">Qual o tamanho da sua equipe?</Label>
-                          <select 
-                            className="w-full h-12 rounded-xl border border-gray-200 px-4 text-sm"
-                            value={details.teamSize}
-                            onChange={(e) => setDetails({...details, teamSize: e.target.value})}
-                          >
-                            <option value="">Selecione...</option>
-                            <option value="1-5">1 a 5 pessoas</option>
-                            <option value="6-20">6 a 20 pessoas</option>
-                            <option value="21+">Mais de 20 pessoas</option>
-                          </select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="mainTech">Principais serviços</Label>
-                          <Input
-                            id="mainTech"
-                            placeholder="Ex: Web, Mobile, Cloud"
-                            value={details.mainTech}
-                            onChange={(e) => setDetails({...details, mainTech: e.target.value})}
-                            className="h-12 rounded-xl"
-                          />
-                        </div>
-                      </>
-                    )}
-
-                    {(!selectedProfile || (selectedProfile !== 'freelancer' && selectedProfile !== 'software_house')) && (
-                      <div className="py-12 text-center text-gray-400 italic">
-                        Não são necessários detalhes adicionais para este perfil.
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Footer Navigation */}
-            <div className="mt-auto pt-8 flex items-center justify-between border-t border-gray-100">
-              <Button
-                variant="ghost"
-                onClick={prevStep}
-                disabled={step === 1 || loading}
-                className={cn('gap-2', step === 1 && 'invisible')}
-              >
-                <ChevronLeft className="w-4 h-4" /> Voltar
-              </Button>
-
-              {step < 3 ? (
-                <Button
-                  onClick={nextStep}
-                  disabled={step === 1 ? !orgName : !selectedProfile}
-                  className="bg-brand hover:bg-brand-dark text-white rounded-xl h-11 px-8 gap-2"
-                >
-                  Continuar <ChevronRight className="w-4 h-4" />
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleComplete}
-                  disabled={loading}
-                  className="bg-brand hover:bg-brand-dark text-white rounded-xl h-11 px-8 gap-2"
-                >
-                  {loading ? 'Finalizando...' : 'Finalizar Setup'} <CheckCircle2 className="w-4 h-4" />
-                </Button>
+              {i < steps.length - 1 && (
+                <div
+                  className={cn(
+                    'w-6 h-0.5 mx-1',
+                    step > s.id ? 'bg-brand' : 'bg-gray-100',
+                  )}
+                />
               )}
             </div>
-          </Card>
-        </main>
-      </div>
-    </div>
+          ))}
+        </div>
+
+        <AnimatePresence mode="wait">
+          {step === 1 && (
+            <motion.div
+              key="step1"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="space-y-4"
+            >
+              <div className="space-y-2">
+                <Label>Nome da Organização</Label>
+                <Input
+                  placeholder="Ex: Scope Digital"
+                  value={orgName}
+                  onChange={(e) => {
+                    setOrgName(e.target.value)
+                    setSlug(
+                      e.target.value
+                        .toLowerCase()
+                        .trim()
+                        .replace(/\s+/g, '-')
+                        .replace(/[^a-z0-9-]/g, ''),
+                    )
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Slug (URL)</Label>
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-400 text-sm shrink-0">
+                    scopeflow.com/
+                  </span>
+                  <Input
+                    placeholder="sua-empresa"
+                    value={slug}
+                    onChange={(e) =>
+                      setSlug(
+                        e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''),
+                      )
+                    }
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button variant="outline" disabled className="opacity-50">
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  Voltar
+                </Button>
+                <Button
+                  className="flex-1"
+                  onClick={nextStep}
+                  disabled={!orgName || !slug}
+                >
+                  Próximo
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
+          {step === 2 && (
+            <motion.div
+              key="step2"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="space-y-4"
+            >
+              <Label>Como você trabalha?</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {profiles.map((profile) => {
+                  const Icon = profile.icon
+                  return (
+                    <button
+                      key={profile.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedProfile(profile.id)
+                        setAnswers({})
+                      }}
+                      className={cn(
+                        'p-3 rounded-lg border-2 text-left transition-all',
+                        selectedProfile === profile.id
+                          ? 'border-brand bg-brand/5'
+                          : 'border-gray-100',
+                      )}
+                    >
+                      <Icon
+                        className={cn(
+                          'w-4 h-4 mb-1.5',
+                          selectedProfile === profile.id
+                            ? 'text-brand'
+                            : 'text-gray-400',
+                        )}
+                      />
+                      <div className="font-medium text-sm">{profile.title}</div>
+                      <div className="text-xs text-gray-400">
+                        {profile.description}
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button variant="outline" onClick={prevStep}>
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  Voltar
+                </Button>
+                <Button
+                  className="flex-1"
+                  onClick={nextStep}
+                  disabled={!selectedProfile}
+                >
+                  Próximo
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
+          {step === 3 && currentProfile && (
+            <motion.div
+              key="step3"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="space-y-4"
+            >
+              {currentProfile.questions.map((question) => (
+                <div key={question.id} className="space-y-2">
+                  {question.isTags ? (
+                    <div className="space-y-2">
+                      <Label>{question.label}</Label>
+                      <div className="flex flex-wrap gap-1">
+                        {techOptions.map((tech) => {
+                          const isSelected = (answers[question.id] || '')
+                            .split(',')
+                            .includes(tech)
+                          return (
+                            <button
+                              key={tech}
+                              type="button"
+                              onClick={() => {
+                                const current = (answers[question.id] || '')
+                                  .split(',')
+                                  .filter(Boolean)
+                                setAnswers({
+                                  ...answers,
+                                  [question.id]: isSelected
+                                    ? current
+                                        .filter((t) => t !== tech)
+                                        .join(',')
+                                    : [...current, tech].join(','),
+                                })
+                              }}
+                              className={cn(
+                                'px-2 py-1 text-xs rounded-full border',
+                                isSelected
+                                  ? 'bg-brand text-white border-brand'
+                                  : 'bg-white text-gray-600 border-gray-200',
+                              )}
+                            >
+                              {tech}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  ) : question.allowInvites ? (
+                    <div className="space-y-2">
+                      <Label>Convidar membros</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="email@exemplo.com"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              const v = (e.target as HTMLInputElement).value
+                              if (v.includes('@')) {
+                                setInvites([...invites, v])
+                                ;(e.target as HTMLInputElement).value = ''
+                              }
+                            }
+                          }}
+                        />
+                        <Button type="button" variant="outline" size="icon">
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      {invites.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {invites.map((e) => (
+                            <span
+                              key={e}
+                              className="bg-gray-100 text-xs px-2 py-1 rounded-full"
+                            >
+                              {e}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : question.options ? (
+                    <div className="space-y-2">
+                      <Label>{question.label}</Label>
+                      <Combobox
+                        data={question.options.map((o) => ({
+                          label: o,
+                          value: o,
+                        }))}
+                        type="item"
+                        value={answers[question.id] || ''}
+                        onValueChange={(v) =>
+                          setAnswers({ ...answers, [question.id]: v })
+                        }
+                      >
+                        <ComboboxTrigger className="w-full justify-between bg-white">
+                          <span className="text-muted-foreground">
+                            {answers[question.id] || 'Selecione...'}
+                          </span>
+                        </ComboboxTrigger>
+                        <ComboboxContent>
+                          <ComboboxInput placeholder="Buscar..." />
+                          <ComboboxList>
+                            <ComboboxEmpty>Nenhum resultado</ComboboxEmpty>
+                            {question.options.map((o) => (
+                              <ComboboxItem key={o} value={o}>
+                                {o}
+                              </ComboboxItem>
+                            ))}
+                          </ComboboxList>
+                        </ComboboxContent>
+                      </Combobox>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <Label>{question.label}</Label>
+                      <Input
+                        id={question.id}
+                        type={question.id.includes('Rate') ? 'number' : 'text'}
+                        placeholder={question.placeholder}
+                        value={answers[question.id] || ''}
+                        onChange={(e) =>
+                          setAnswers({
+                            ...answers,
+                            [question.id]: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                  )}
+                </div>
+              ))}
+              <div className="flex gap-2 pt-2">
+                <Button variant="outline" onClick={prevStep}>
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  Voltar
+                </Button>
+                <Button className="flex-1" onClick={nextStep}>
+                  Próximo
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
+          {step === 4 && (
+            <motion.div
+              key="step4"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="space-y-4"
+            >
+              <Label>Escolha seu plano</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {plans.map((plan) => {
+                  const Icon = plan.icon
+                  return (
+                    <button
+                      key={plan.id}
+                      type="button"
+                      onClick={() => setSelectedPlan(plan.id)}
+                      className={cn(
+                        'p-3 rounded-lg border-2 text-left relative',
+                        selectedPlan === plan.id
+                          ? 'border-brand bg-brand/5'
+                          : 'border-gray-100',
+                        plan.popular && 'border-brand',
+                      )}
+                    >
+                      {plan.popular && (
+                        <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-brand text-white text-xs px-2 py-0.5 rounded-full">
+                          Popular
+                        </span>
+                      )}
+                      <Icon className={cn('w-4 h-4 mb-1.5', plan.textColor)} />
+                      <div className="font-semibold text-sm">{plan.title}</div>
+                      <div className="text-xs text-gray-400">
+                        {plan.description}
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button variant="outline" onClick={prevStep}>
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  Voltar
+                </Button>
+                <Button
+                  className="flex-1"
+                  onClick={handleComplete}
+                  disabled={loading}
+                >
+                  {loading ? 'Criando...' : 'Finalizar'}
+                  <Check className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </DialogContent>
+    </Dialog>
   )
 }

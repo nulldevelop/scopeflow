@@ -1,4 +1,7 @@
 import { toNextJsHandler } from 'better-auth/next-js'
-import { auth } from '@/lib/auth'
 
-export const { POST, GET } = toNextJsHandler(auth)
+export const dynamic = 'force-dynamic'
+
+const { GET, POST } = toNextJsHandler((await import('@/lib/auth')).auth)
+
+export { GET, POST }
