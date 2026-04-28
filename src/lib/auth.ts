@@ -1,3 +1,4 @@
+import { dash } from '@better-auth/infra'
 import { betterAuth } from 'better-auth'
 import { prismaAdapter } from 'better-auth/adapters/prisma'
 import { organization } from 'better-auth/plugins'
@@ -5,15 +6,11 @@ import { prisma } from './prisma'
 
 // 🔹 Configuração principal
 export const auth = betterAuth({
-  // 🔐 Secret
   secret: process.env.AUTH_SECRET,
-
-  // 🗄️ Banco
   database: prismaAdapter(prisma, {
     provider: 'mysql',
   }),
 
-  // 🔹 Sessão
   session: {
     strategy: 'jwt',
     maxAge: 60 * 60 * 24 * 7, // 7 dias
@@ -50,5 +47,5 @@ export const auth = betterAuth({
     },
   },
 
-  plugins: [organization()],
+  plugins: [organization(), dash()],
 })
