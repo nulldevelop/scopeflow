@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Meteors } from '@/components/magicui/meteors'
 import { motion } from 'framer-motion'
 import { ArrowRight, PlayCircle } from 'lucide-react'
+import { HeroVideoDialog } from '@/components/magicui/hero-video-dialog'
 
 export function Hero() {
   const containerVariants = {
@@ -72,18 +73,24 @@ export function Hero() {
           variants={itemVariants}
           className="flex flex-col sm:flex-row items-center justify-center gap-5"
         >
-          <Button size="lg" className="bg-[#2A6B5C] hover:bg-[#1f5045] text-white px-10 py-7 text-base font-semibold rounded-2xl shadow-2xl shadow-[#2A6B5C]/20 group transition-all">
+          <Button size="lg" className="bg-[#2A6B5C] hover:bg-[#1f5045] text-white hover:text-white px-10 py-7 text-base font-semibold rounded-2xl shadow-2xl shadow-[#2A6B5C]/20 group transition-all">
             Criar orçamento grátis
             <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Button>
-          <Button
-            variant="ghost"
-            size="lg"
-            className="text-white hover:bg-white/5 px-10 py-7 text-base font-medium rounded-2xl gap-2"
+
+          <HeroVideoDialog
+            animationStyle="from-center"
+            videoSrc="https://www.youtube.com/embed/qh3NGpYIdh4?si=W8f8j-vXG0l4lFqX" // URL de exemplo
           >
-            <PlayCircle className="w-6 h-6 text-[#9BBFB8]" />
-            Ver demonstração
-          </Button>
+            <Button
+              variant="ghost"
+              size="lg"
+              className="text-white hover:bg-white/5 hover:text-white px-10 py-7 text-base font-medium rounded-2xl gap-2"
+            >
+              <PlayCircle className="w-6 h-6 text-[#9BBFB8]" />
+              Ver demonstração
+            </Button>
+          </HeroVideoDialog>
         </motion.div>
 
         <motion.div 

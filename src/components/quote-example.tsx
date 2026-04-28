@@ -96,10 +96,10 @@ export function QuoteExample() {
                   </p>
                 </div>
                 <div className="flex gap-4 w-full md:w-auto">
-                  <button className="flex-1 md:flex-none px-8 py-4 text-sm font-bold rounded-2xl border border-[#D3D1C7] text-[#5F5E5A] hover:bg-[#F5F4F0] transition-all active:scale-95">
+                  <button className="flex-1 md:flex-none px-8 py-4 text-sm font-bold rounded-2xl border border-[#D3D1C7] text-[#5F5E5A] hover:bg-[#F5F4F0] hover:text-[#1C1C1A] transition-all active:scale-95">
                     Revisar Escopo
                   </button>
-                  <button className="flex-1 md:flex-none px-8 py-4 text-sm font-bold rounded-2xl bg-[#2A6B5C] text-white hover:bg-[#1f5045] shadow-lg shadow-[#2A6B5C]/20 transition-all flex items-center justify-center gap-2 group active:scale-95">
+                  <button className="flex-1 md:flex-none px-8 py-4 text-sm font-bold rounded-2xl bg-[#2A6B5C] text-white hover:bg-[#1f5045] hover:text-white shadow-lg shadow-[#2A6B5C]/20 transition-all flex items-center justify-center gap-2 group active:scale-95">
                     Aprovar Proposta
                     <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </button>

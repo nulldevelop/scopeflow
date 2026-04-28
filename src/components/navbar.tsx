@@ -115,7 +115,7 @@ export function Navbar() {
             Entrar
           </Link>
           <Link href="/signin">
-            <Button className="bg-[#2A6B5C] hover:bg-[#1A4A3E] text-white px-6 rounded-full shadow-lg shadow-[#2A6B5C]/20 hover:shadow-xl hover:shadow-[#2A6B5C]/30 transition-all active:scale-95">
+            <Button className="bg-[#2A6B5C] hover:bg-[#1A4A3E] text-white hover:text-white px-6 rounded-full shadow-lg shadow-[#2A6B5C]/20 hover:shadow-xl hover:shadow-[#2A6B5C]/30 transition-all active:scale-95">
               Começar grátis
             </Button>
           </Link>

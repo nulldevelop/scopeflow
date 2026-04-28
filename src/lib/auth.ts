@@ -5,10 +5,16 @@ import { organization } from 'better-auth/plugins'
 import { prisma } from './prisma'
 
 export const auth = betterAuth({
+  baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
   secret: process.env.AUTH_SECRET,
   database: prismaAdapter(prisma, {
     provider: 'mysql',
   }),
+
+  // Garante que o state do OAuth seja mantido corretamente em dev
+  advanced: {
+    useSecureCookies: process.env.NODE_ENV === 'production',
+  },
 
   session: {
     strategy: 'jwt',
@@ -19,9 +25,6 @@ export const auth = betterAuth({
       maxAge: 5 * 60, // 5 minutos de cache local
     },
   },
-
-  // O Better-Auth já gerencia o JWT internamente com a strategy 'jwt'
-  // Mas podemos customizar o payload se necessário no futuro
 
   cookies: {
     sessionToken: {
@@ -38,19 +41,16 @@ export const auth = betterAuth({
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
     },
     github: {
       clientId: process.env.GITHUB_CLIENT_ID as string,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
     },
   },
 
   plugins: [
-    organization({
-      // Garante que a organização ativa seja persistida e acessível
-      persistActiveOrganization: true,
-    }),
+    organization(),
     dash(),
   ],
 })
