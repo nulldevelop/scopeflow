@@ -1,11 +1,25 @@
 import { organizationClient } from 'better-auth/client/plugins'
 import { createAuthClient } from 'better-auth/react'
 
-const authConfig = {
+export const authClient = createAuthClient({
   baseURL: process.env.NEXT_PUBLIC_AUTH_URL || 'http://localhost:3000',
-  plugins: [organizationClient()],
-}
+  session: {
+    // Mantém a sessão sincronizada entre abas
+    activeSessionsLimit: 1,
+  },
+  plugins: [
+    organizationClient({
+      // Facilita a gestão de membros e convites no frontend
+    }),
+  ],
+})
 
-export const authClient = createAuthClient(authConfig)
-
-export const { signIn, signUp, signOut, useSession, organization } = authClient
+export const {
+  signIn,
+  signUp,
+  signOut,
+  useSession,
+  organization,
+  listOrganizations,
+  setActiveOrganization,
+} = authClient

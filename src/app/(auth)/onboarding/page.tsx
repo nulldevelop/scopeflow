@@ -8,16 +8,12 @@ import {
   ChevronRight,
   Code2,
   Crown,
-  Layout,
-  Mail,
-  Plus,
+  Layout, Plus,
   Rocket,
   Sparkles,
-  Star,
-  Users,
-  Zap,
+  Star, Zap
 } from 'lucide-react'
-import { useRouter as useNavigation, useRouter } from 'next/navigation'
+import { useRouter as useNavigation } from 'next/navigation'
 import { useState } from 'react'
 import {
   Combobox,

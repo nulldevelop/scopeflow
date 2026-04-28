@@ -1,59 +1,42 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { auth } from './lib/auth'
 
 const publicRoutes = ['/', '/signin']
-
-export const runtime = 'nodejs'
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
+  // 1. Ignorar arquivos estáticos e API
   if (
     pathname.startsWith('/_next') ||
-    pathname.startsWith('/api') ||
+    pathname.startsWith('/api/auth') ||
     pathname.includes('.')
   ) {
     return NextResponse.next()
   }
 
-  const sessionToken = req.cookies.get('better-auth.session_token')?.value
-
+  // 2. Verificar token de sessão (usando o nome customizado)
+  const sessionToken = req.cookies.get('scopeflow.session_token')?.value
   const isPublic = publicRoutes.includes(pathname)
 
   if (!sessionToken) {
-    if (isPublic) {
-      return NextResponse.next()
-    }
+    if (isPublic) return NextResponse.next()
     return NextResponse.redirect(new URL('/signin', req.url))
   }
 
-  const session = await auth.api.getSession({
-    headers: req.headers,
-  })
+  // 3. Buscar sessão e organização ativa via cookie (mais rápido que chamar API no middleware)
+  const activeOrgId = req.cookies.get('better-auth.active_organization_id')?.value
 
-  if (!session) {
-    if (isPublic) {
-      return NextResponse.next()
-    }
-    return NextResponse.redirect(new URL('/signin', req.url))
-  }
-
-  const activeOrgId = (session.session as { activeOrganizationId?: string })
-    .activeOrganizationId
-
+  // Lógica de Redirecionamento
   if (pathname === '/signin') {
-    const hasOrg = !!activeOrgId
-    return NextResponse.redirect(
-      new URL(hasOrg ? '/dashboard' : '/onboarding', req.url),
-    )
+    return NextResponse.redirect(new URL(activeOrgId ? '/dashboard' : '/onboarding', req.url))
   }
 
-  if (!activeOrgId && pathname !== '/onboarding') {
-    if (!isPublic) {
-      return NextResponse.redirect(new URL('/onboarding', req.url))
-    }
+  // Se logado mas sem organização, força onboarding (exceto se já estiver lá ou em rota pública)
+  if (!activeOrgId && pathname !== '/onboarding' && !isPublic) {
+    return NextResponse.redirect(new URL('/onboarding', req.url))
   }
 
+  // Se já tem organização, não precisa ir para o onboarding
   if (activeOrgId && pathname === '/onboarding') {
     return NextResponse.redirect(new URL('/dashboard', req.url))
   }
@@ -61,7 +44,6 @@ export async function middleware(req: NextRequest) {
   return NextResponse.next()
 }
 
-//! 🔹 Define onde o middleware roda
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 }

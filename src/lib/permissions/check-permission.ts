@@ -1,12 +1,14 @@
 import { headers } from 'next/headers'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { hasPermission } from './rules'
 import type { Action, Module, PermissionResult } from './types'
 
 export async function checkPermission(
   action: Action,
   module: Module,
 ): Promise<PermissionResult> {
+  // 1. Validar Sessão
   const session = await auth.api.getSession({
     headers: await headers(),
   })
@@ -15,13 +17,14 @@ export async function checkPermission(
     return { allowed: false, error: 'Usuário não autenticado' }
   }
 
-  const organizationId = (session.session as { activeOrganizationId?: string })
-    .activeOrganizationId
+  // 2. Validar Organização Ativa
+  const organizationId = session.session.activeOrganizationId
 
   if (!organizationId) {
-    return { allowed: false, error: 'Nenhuma organização ativa' }
+    return { allowed: false, error: 'Selecione uma organização para continuar' }
   }
 
+  // 3. Buscar Vínculo com a Organização (Cacheado ou Singleton do Prisma)
   const member = await prisma.member.findFirst({
     where: {
       userId: session.user.id,
@@ -33,21 +36,22 @@ export async function checkPermission(
   })
 
   if (!member) {
-    return { allowed: false, error: 'Usuário não é membro desta organização' }
+    return { allowed: false, error: 'Você não tem acesso a esta organização' }
   }
 
-  const role = member.role.toLowerCase()
+  // 4. Validar Regra na Matriz
+  const allowed = hasPermission(member.role, module, action)
 
-  if (role === 'owner' || role === 'admin') {
-    return {
-      allowed: true,
-      userId: session.user.id,
-      organizationId,
-      role: member.role,
-      userName: session.user.name,
-      userEmail: session.user.email,
-    }
+  if (!allowed) {
+    return { allowed: false, error: `Você não tem permissão para ${action} em ${module}` }
   }
 
-  return { allowed: false, error: 'Sem permissão para esta ação' }
+  return {
+    allowed: true,
+    userId: session.user.id,
+    organizationId,
+    role: member.role,
+    userName: session.user.name,
+    userEmail: session.user.email,
+  }
 }
