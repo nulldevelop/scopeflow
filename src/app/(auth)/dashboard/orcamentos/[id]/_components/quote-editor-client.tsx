@@ -106,9 +106,8 @@ const categories = [
 
 export function QuoteEditorClient({ initialQuote, clients: initialClients }: { initialQuote?: any; clients: any[] }) {
   const router = useRouter()
-  // Usa o context apenas para features por enquanto, se ainda não estiver no Prisma
   const { features, user } = useScopeFlow()
-  const { profile, setProfile, isRelevant, getHours } = useDevProfile()
+  const { profile, getHours } = useDevProfile()
 
   const isNew = !initialQuote
 
@@ -117,7 +116,10 @@ export function QuoteEditorClient({ initialQuote, clients: initialClients }: { i
     clientId: initialQuote?.clientId || '',
     status: initialQuote?.status || 'rascunho',
     hourlyRate: initialQuote?.hourlyRate ? Number(initialQuote.hourlyRate) : (user?.valorHora || 150),
-    items: initialQuote?.items || [],
+    items: (initialQuote?.items || []).map((item: any, index: number) => ({
+      ...item,
+      order: item.order ?? index
+    })),
     discount: initialQuote?.discount ? Number(initialQuote.discount) : 0,
     urgencyFee: initialQuote?.urgencyFee ? Number(initialQuote.urgencyFee) : 0,
     entryAmount: initialQuote?.entryAmount ? Number(initialQuote.entryAmount) : 0,
@@ -132,7 +134,6 @@ export function QuoteEditorClient({ initialQuote, clients: initialClients }: { i
   const [featureSearch, setFeatureSearch] = useState('')
   const [activeCategory, setActiveCategory] = useState('Todos')
   const [selectedFeatureIds, setSelectedFeatureIds] = useState<string[]>([])
-  const [showProfileMenu, setShowProfileMenu] = useState(false)
   const [loading, setLoading] = useState(false)
 
   const totals = useMemo(() => {
@@ -147,7 +148,7 @@ export function QuoteEditorClient({ initialQuote, clients: initialClients }: { i
     const prazoSemanas = Math.ceil(totalHoras / 20)
     const modulos = (quote.items || []).length
     const valorParcela =
-      quote.installments && quote.installments > 0
+      quote.installments && quote.installments > 1
         ? (totalValor - (quote.entryAmount || 0)) / quote.installments
         : 0
 
@@ -166,13 +167,14 @@ export function QuoteEditorClient({ initialQuote, clients: initialClients }: { i
   const handleAddFeatures = () => {
     const newItems = features
       .filter((f) => selectedFeatureIds.includes(f.id))
-      .map((f) => ({
-        id: `temp-${Date.now()}-${f.id}`,
+      .map((f, index) => ({
+        id: `temp-${Date.now()}-${f.id}-${index}`,
         name: f.nome,
         description: f.descricao,
         hours: getHours(f),
         unitValue: getHours(f) * (quote.hourlyRate || 0),
         featureId: f.id,
+        order: quote.items.length + index
       }))
 
     setQuote((prev: any) => ({
@@ -181,6 +183,30 @@ export function QuoteEditorClient({ initialQuote, clients: initialClients }: { i
     }))
     setIsModalOpen(false)
     setSelectedFeatureIds([])
+  }
+
+  const updateItem = (itemId: string, updates: any) => {
+    setQuote((prev: any) => ({
+      ...prev,
+      items: prev.items.map((item: any) => 
+        item.id === itemId ? { ...item, ...updates } : item
+      )
+    }))
+  }
+
+  const moveItem = (index: number, direction: 'up' | 'down') => {
+    const newItems = [...quote.items]
+    const targetIndex = direction === 'up' ? index - 1 : index + 1
+    
+    if (targetIndex < 0 || targetIndex >= newItems.length) return
+
+    const temp = newItems[index]
+    newItems[index] = newItems[targetIndex]
+    newItems[targetIndex] = temp
+
+    // Update orders
+    const finalItems = newItems.map((item, i) => ({ ...item, order: i }))
+    setQuote((prev: any) => ({ ...prev, items: finalItems }))
   }
 
   const removeItem = (itemId: string) => {
@@ -235,8 +261,6 @@ export function QuoteEditorClient({ initialQuote, clients: initialClients }: { i
     return matchesSearch && matchesCategory
   })
 
-  const ActiveProfileIcon = profile ? profileInfo[profile]?.icon || ZapIcon : ZapIcon
-
   return (
     <div className="px-8 pb-20 max-w-[1600px] mx-auto">
       <ClientModal 
@@ -248,22 +272,40 @@ export function QuoteEditorClient({ initialQuote, clients: initialClients }: { i
         }} 
       />
 
-      <div className="flex items-center gap-4 mb-8">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => router.back()}
-          className="text-gray-400 hover:text-gray-900 transition-transform hover:-translate-x-1"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 leading-none mb-1">
-            {isNew ? 'Criar Novo Orçamento' : 'Editar Orçamento'}
-          </h1>
-          <p className="text-sm text-gray-400">
-            Preencha os detalhes para gerar sua proposta comercial.
-          </p>
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.back()}
+            className="text-gray-400 hover:text-gray-900 transition-transform hover:-translate-x-1"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 leading-none mb-1">
+              {isNew ? 'Criar Novo Orçamento' : 'Editar Orçamento'}
+            </h1>
+            <p className="text-sm text-gray-400">
+              Personalize o escopo e as condições comerciais.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <select 
+            value={quote.status}
+            onChange={(e) => setQuote({ ...quote, status: e.target.value })}
+            className="h-10 px-4 bg-white border border-gray-200 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-brand"
+          >
+            <option value="rascunho">Rascunho</option>
+            <option value="enviada">Enviada</option>
+            <option value="aprovada">Aprovada</option>
+            <option value="recusada">Recusada</option>
+          </select>
+          <Button variant="outline" className="gap-2 rounded-xl">
+            <Share2 className="w-4 h-4" /> Compartilhar
+          </Button>
         </div>
       </div>
 
@@ -377,6 +419,15 @@ export function QuoteEditorClient({ initialQuote, clients: initialClients }: { i
                           onChange={(e) => setFeatureSearch(e.target.value)}
                         />
                       </div>
+                      <select 
+                        value={activeCategory}
+                        onChange={(e) => setActiveCategory(e.target.value)}
+                        className="h-14 px-4 bg-gray-50 border-none rounded-2xl text-sm font-medium outline-none focus:ring-2 focus:ring-brand min-w-[200px]"
+                      >
+                        {categories.map(cat => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                      </select>
                     </div>
                   </div>
 
@@ -426,7 +477,7 @@ export function QuoteEditorClient({ initialQuote, clients: initialClients }: { i
                   <div className="p-8 bg-gray-50/80 border-t border-gray-100 flex justify-end gap-4">
                     <Button variant="ghost" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
                     <Button className="bg-brand text-white hover:bg-brand-dark" onClick={handleAddFeatures} disabled={selectedFeatureIds.length === 0}>
-                      Confirmar
+                      Adicionar {selectedFeatureIds.length} {selectedFeatureIds.length === 1 ? 'item' : 'itens'}
                     </Button>
                   </div>
                 </DialogContent>
@@ -436,19 +487,49 @@ export function QuoteEditorClient({ initialQuote, clients: initialClients }: { i
             <div className="space-y-4">
               {(quote.items || []).length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 border-2 border-dashed border-gray-100 rounded-[24px] bg-gray-50/30">
-                  <p className="text-gray-400 font-medium">Nenhuma funcionalidade no escopo</p>
+                  <Layers className="w-12 h-12 text-gray-200 mb-4" />
+                  <p className="text-gray-400 font-medium text-center max-w-[200px]">Adicione funcionalidades do seu catálogo para começar</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 gap-3">
-                  {(quote.items || []).map((item: any) => (
-                    <div key={item.id} className="flex items-center justify-between p-5 bg-white border border-gray-100 rounded-2xl">
-                      <div>
-                        <p className="font-bold text-gray-900">{item.name}</p>
-                        <span className="text-xs text-gray-400">{item.hours}h estimadas</span>
+                <div className="space-y-3">
+                  {(quote.items || []).map((item: any, index: number) => (
+                    <div key={item.id} className="group flex items-center gap-4 p-5 bg-white border border-gray-100 rounded-2xl hover:border-brand/30 hover:shadow-md hover:shadow-brand/5 transition-all">
+                      <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => moveItem(index, 'up')} disabled={index === 0} className="p-1 text-gray-300 hover:text-brand disabled:opacity-0">
+                          <ChevronUp className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => moveItem(index, 'down')} disabled={index === quote.items.length - 1} className="p-1 text-gray-300 hover:text-brand disabled:opacity-0">
+                          <ChevronDown className="w-4 h-4" />
+                        </button>
                       </div>
-                      <Button variant="ghost" size="icon" onClick={() => removeItem(item.id)} className="text-red-500 hover:bg-red-50">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                        <div className="md:col-span-8">
+                          <input 
+                            value={item.name}
+                            onChange={(e) => updateItem(item.id, { name: e.target.value })}
+                            className="w-full font-bold text-gray-900 bg-transparent border-none outline-none focus:text-brand"
+                          />
+                          <p className="text-xs text-gray-400 truncate">{item.description || 'Sem descrição'}</p>
+                        </div>
+                        <div className="md:col-span-3 flex items-center gap-2">
+                          <div className="relative w-24">
+                            <input 
+                              type="number"
+                              value={item.hours}
+                              onChange={(e) => updateItem(item.id, { hours: Number(e.target.value) })}
+                              className="w-full h-9 pl-3 pr-7 bg-gray-50 border-none rounded-lg text-sm font-mono font-bold text-gray-700 outline-none focus:ring-1 focus:ring-brand"
+                            />
+                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold">h</span>
+                          </div>
+                          <span className="text-xs text-gray-300">x R$ {quote.hourlyRate}</span>
+                        </div>
+                        <div className="md:col-span-1 flex justify-end">
+                          <Button variant="ghost" size="icon" onClick={() => removeItem(item.id)} className="text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -463,59 +544,118 @@ export function QuoteEditorClient({ initialQuote, clients: initialClients }: { i
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 p-6 bg-gray-50/50 rounded-[20px]">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-gray-500 uppercase ml-1">Desconto (%)</label>
-                  <Input type="number" value={quote.discount} onChange={(e) => setQuote({ ...quote, discount: Number(e.target.value) })} className="h-12 bg-gray-50/50" />
+                  <Input type="number" value={quote.discount} onChange={(e) => setQuote({ ...quote, discount: Number(e.target.value) })} className="h-12 bg-white border-gray-100" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-gray-500 uppercase ml-1">Urgência (%)</label>
-                  <Input type="number" value={quote.urgencyFee} onChange={(e) => setQuote({ ...quote, urgencyFee: Number(e.target.value) })} className="h-12 bg-gray-50/50" />
+                  <Input type="number" value={quote.urgencyFee} onChange={(e) => setQuote({ ...quote, urgencyFee: Number(e.target.value) })} className="h-12 bg-white border-gray-100" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 p-6 bg-brand/5 rounded-[20px]">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-500 uppercase ml-1">Entrada (R$)</label>
-                  <Input type="number" value={quote.entryAmount} onChange={(e) => setQuote({ ...quote, entryAmount: Number(e.target.value) })} className="h-12 bg-gray-50/50" />
+                  <label className="text-xs font-bold text-brand-dark uppercase ml-1">Entrada (R$)</label>
+                  <Input type="number" value={quote.entryAmount} onChange={(e) => setQuote({ ...quote, entryAmount: Number(e.target.value) })} className="h-12 bg-white border-brand/10" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-500 uppercase ml-1">Parcelas</label>
-                  <Input type="number" value={quote.installments} onChange={(e) => setQuote({ ...quote, installments: Number(e.target.value) })} className="h-12 bg-gray-50/50" />
+                  <label className="text-xs font-bold text-brand-dark uppercase ml-1">Parcelas</label>
+                  <Input type="number" value={quote.installments} onChange={(e) => setQuote({ ...quote, installments: Number(e.target.value) })} className="h-12 bg-white border-brand/10" />
                 </div>
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-bold text-gray-500 uppercase ml-1">Notas Internas</label>
-              <Textarea value={quote.description} onChange={(e) => setQuote({ ...quote, description: e.target.value })} className="min-h-[120px] bg-gray-50/50" />
+              <label className="text-xs font-bold text-gray-500 uppercase ml-1">Notas Internas / Observações</label>
+              <Textarea value={quote.description} onChange={(e) => setQuote({ ...quote, description: e.target.value })} placeholder="Detalhes que não aparecem na proposta..." className="min-h-[120px] bg-gray-50/50 border-gray-100 rounded-xl" />
             </div>
           </Card>
 
           <div className="flex justify-end gap-4 pb-12">
             <Button variant="ghost" onClick={() => router.push('/dashboard/orcamentos')} className="h-14 px-10 text-gray-400">Descartar</Button>
-            <Button disabled={loading} onClick={handleSave} className="bg-brand text-white hover:bg-brand-dark h-14 px-12 rounded-2xl">
-              {loading ? 'Salvando...' : 'Gerar Orçamento'} <ArrowRight className="w-5 h-5 ml-2" />
+            <Button disabled={loading || quote.items.length === 0} onClick={handleSave} className="bg-brand text-white hover:bg-brand-dark h-14 px-12 rounded-2xl shadow-xl shadow-brand/20 transition-all hover:scale-[1.02]">
+              {loading ? 'Salvando...' : 'Finalizar Orçamento'} <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           </div>
         </div>
 
         <div className="lg:col-span-4">
-          <div className="sticky top-8">
-            <Card className="bg-brand-deep text-white border-none rounded-[32px] overflow-hidden">
+          <div className="sticky top-8 space-y-4">
+            <Card className="bg-gray-900 text-white border-none rounded-[32px] overflow-hidden shadow-2xl">
               <div className="p-8 border-b border-white/5">
-                <h3 className="text-xs font-black uppercase text-brand-mid mb-8">Sumário Executivo</h3>
+                <div className="flex items-center gap-2 mb-8">
+                  <Calculator className="w-4 h-4 text-brand" />
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-500">Resumo Financeiro</h3>
+                </div>
+                
                 <div className="space-y-5">
-                  <div className="flex justify-between font-mono font-bold">
-                    <span>Horas</span>
-                    <span>{totals.totalHoras}h</span>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-400">Subtotal de Horas</span>
+                    <span className="font-mono font-bold">{totals.totalHoras}h</span>
                   </div>
-                  <div className="flex justify-between font-mono font-bold">
-                    <span>Base</span>
-                    <span>{totals.valorBruto.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-400">Valor Bruto</span>
+                    <span className="font-mono">{totals.valorBruto.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                  </div>
+                  
+                  {quote.discount > 0 && (
+                    <div className="flex justify-between items-center text-sm text-red-400">
+                      <span>Desconto ({quote.discount}%)</span>
+                      <span className="font-mono">- {totals.valorDesconto.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                    </div>
+                  )}
+                  
+                  {quote.urgencyFee > 0 && (
+                    <div className="flex justify-between items-center text-sm text-brand">
+                      <span>Taxa de Urgência ({quote.urgencyFee}%)</span>
+                      <span className="font-mono">+ {totals.valorUrgencia.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="p-8 bg-black/40">
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-brand uppercase tracking-wider">Investimento Total</span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-4xl font-mono font-black">{totals.totalValor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
                   </div>
                 </div>
               </div>
-              <div className="p-8 bg-black/20">
-                <span className="text-4xl font-mono font-black">{totals.totalValor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+
+              {quote.installments > 1 && (
+                <div className="px-8 py-6 bg-brand/10 border-t border-brand/10">
+                  <div className="flex justify-between items-center">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-bold text-brand uppercase">Condição de Pagamento</span>
+                      <span className="text-xs text-gray-400">Entrada + {quote.installments}x de</span>
+                    </div>
+                    <span className="text-lg font-mono font-bold text-brand">{totals.valorParcela.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                  </div>
+                </div>
+              )}
+            </Card>
+
+            <Card className="p-6 bg-white border border-gray-100 rounded-[24px]">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center">
+                    <Calendar className="w-4 h-4 text-gray-400" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase">Prazo Estimado</p>
+                    <p className="text-sm font-bold text-gray-900">{totals.prazoSemanas} {totals.prazoSemanas === 1 ? 'semana' : 'semanas'}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center">
+                    <Clock className="w-4 h-4 text-gray-400" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase">Validade</p>
+                    <p className="text-sm font-bold text-gray-900">{new Date(quote.expirationDate).toLocaleDateString('pt-BR')}</p>
+                  </div>
+                </div>
               </div>
             </Card>
           </div>

@@ -10,6 +10,7 @@ export type Module =
   | 'quotes'
   | 'clients'
   | 'organizations'
+  | 'users'
 
 export type WithPermissionOptions = {
   module: Module

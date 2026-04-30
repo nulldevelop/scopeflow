@@ -8,9 +8,9 @@ datasource db {
 }
 
 enum ROLES {
-  OWNER
-  ADMIN
-  MEMBER
+  owner
+  admin
+  member
 }
 
 // --- Autenticação & Multi-tenancy (Better-Auth) ---
@@ -27,7 +27,8 @@ model User {
   accounts      Account[]
   member        Member?
   invitations   Invitation[]
-  role          ROLES        @default(MEMBER)
+  role             ROLES        @default(member)
+  developerProfile String?      @db.VarChar(255)
 
   @@unique([email])
   @@map("user")
@@ -107,7 +108,7 @@ model Member {
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userId         String       @unique
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role           ROLES        @default(MEMBER)
+  role           ROLES        @default(member)
   createdAt      DateTime     @default(now())
 
   @@index([organizationId])

@@ -19,5 +19,16 @@ export const auth = betterAuth({
     },
   },
 
-  plugins: [organization(),],
+  plugins: [organization()],
+  advanced: {
+    cookiePrefix: 'scopeflow',
+  },
+  user: {
+    additionalFields: {
+      developerProfile: {
+        type: 'string',
+        required: false,
+      },
+    },
+  },
 })

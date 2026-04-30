@@ -1,12 +1,23 @@
-import { auth } from '@/lib/auth'
+import type { auth } from '@/lib/auth'
 
 declare module 'better-auth' {
+  interface User {
+    developerProfile?: string | null
+  }
   interface Session {
     activeOrganizationId?: string | null
   }
+}
 
+declare module 'better-auth/react' {
   interface User {
-    // Campos adicionais do usuário se houver (ex: role global)
+    developerProfile?: string | null
+  }
+}
+
+declare module 'better-auth/client' {
+  interface User {
+    developerProfile?: string | null
   }
 }
 

@@ -23,7 +23,7 @@ export function usePermission() {
 
   // O Better-Auth coloca a role do membro na sessão quando há uma org ativa
   // Se não estiver lá, você pode precisar ajustar a tipagem ou o mapeamento
-  const userRole = (session as any).member?.role || 'MEMBER'
+  const userRole = (session as any).member?.role || 'member'
 
   return {
     /**
