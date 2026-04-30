@@ -18,7 +18,7 @@ interface SidebarProps {
   user: {
     name: string
     email: string
-    image: string | null | undefined
+    image?: string | null | undefined
   } | null
 }
 

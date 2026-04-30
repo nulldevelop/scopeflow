@@ -1,27 +1,19 @@
-import { cookies } from 'next/headers'
-import { getAuth } from '@/lib/auth'
+import { getSessionClient } from '@/lib/getSession'
 import { prisma } from '@/lib/prisma'
 
 export async function getSessionQuotes() {
-  const cookieStore = await cookies()
-  const auth = getAuth()
+  const sessionResponse = await getSessionClient()
 
-  const session = await auth.api.getSession({
-    headers: {
-      cookie: cookieStore.toString(),
-    },
-  })
+  if (!sessionResponse.success) return []
 
-  if (!session) return []
-
-  const activeOrgId = (session.session as { activeOrganizationId?: string })
-    .activeOrganizationId
+  const { session } = sessionResponse
+  const activeOrgId = session.activeOrganizationId
 
   if (!activeOrgId) return []
 
   return prisma.quote.findMany({
     where: { organizationId: activeOrgId },
-    include: { client: true },
+    include: { client: true, items: true },
     orderBy: { createdAt: 'desc' },
     take: 10,
   })

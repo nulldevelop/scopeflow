@@ -1,5 +1,4 @@
-import { cookies } from 'next/headers'
-import { getAuth } from '@/lib/auth'
+import { getSessionClient } from '@/lib/getSession'
 import { prisma } from '@/lib/prisma'
 
 interface ClientData {
@@ -12,19 +11,12 @@ interface ClientData {
 export async function getSessionClients(
   _search: string,
 ): Promise<ClientData[]> {
-  const cookieStore = await cookies()
-  const auth = getAuth()
+  const sessionResponse = await getSessionClient()
 
-  const session = await auth.api.getSession({
-    headers: {
-      cookie: cookieStore.toString(),
-    },
-  })
+  if (!sessionResponse.success) return []
 
-  if (!session) return []
-
-  const activeOrgId = (session.session as { activeOrganizationId?: string })
-    .activeOrganizationId
+  const { session } = sessionResponse
+  const activeOrgId = session.activeOrganizationId
 
   if (!activeOrgId) return []
 
@@ -62,4 +54,41 @@ export async function getSessionClients(
   }
 
   return Array.from(clientMap.values())
+}
+
+export async function getClients(organizationId: string) {
+  try {
+    const clients = await prisma.client.findMany({
+      where: {
+        organizationId,
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    })
+    return { success: true as const, clients }
+  } catch (error) {
+    console.error('[getClients Error]', error)
+    return { success: false as const, error: 'Erro ao buscar clientes' }
+  }
+}
+
+export async function getClientById(organizationId: string, id: string) {
+  try {
+    const client = await prisma.client.findUnique({
+      where: {
+        id,
+        organizationId,
+      },
+    })
+
+    if (!client) {
+      return { success: false as const, error: 'Cliente não encontrado' }
+    }
+
+    return { success: true as const, client }
+  } catch (error) {
+    console.error('[getClientById Error]', error)
+    return { success: false as const, error: 'Erro ao buscar cliente' }
+  }
 }

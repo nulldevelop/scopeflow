@@ -1,7 +1,5 @@
-'use client'
-
-import { useParams, useRouter } from 'next/navigation'
-import { useScopeFlow } from '@/context/ScopeFlowContext'
+import { Check, Download, Share2, X } from 'lucide-react'
+import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import {
@@ -12,33 +10,57 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Check, X, Download, Share2 } from 'lucide-react'
+import { getSessionClient } from '@/lib/getSession'
+import { getQuoteById } from '../../_data-access/get-quotes'
 
-export default function ProposalPreviewPage() {
-  const params = useParams()
-  const router = useRouter()
-  const { quotes } = useScopeFlow()
+export default async function ProposalPreviewPage({
+  params,
+}: {
+  params: { id: string }
+}) {
+  const sessionResponse = await getSessionClient()
 
-  const id = params.id as string
-  const quote = quotes.find((q) => q.id === id)
+  if (!sessionResponse.success) {
+    redirect('/sign-in')
+  }
 
-  if (!quote) {
+  const { session } = sessionResponse
+  const activeOrgId = session.activeOrganizationId
+
+  if (!activeOrgId) {
+    return (
+      <div className="p-8 text-center text-gray-500">
+        Nenhuma organização selecionada.
+      </div>
+    )
+  }
+
+  const { quote, success } = await getQuoteById(activeOrgId, params.id)
+
+  if (!success || !quote) {
     return (
       <div className="min-h-screen flex items-center justify-center p-8 text-center">
         <div>
           <h2 className="text-xl font-semibold mb-4">
             Orçamento não encontrado
           </h2>
-          <Button onClick={() => router.push('/orcamentos')}>
+          {/* Note: O ideal seria ter um Client Component aqui para o router.push ou usar Link */}
+          <a
+            href="/dashboard/orcamentos"
+            className="inline-flex h-10 items-center justify-center rounded-md bg-brand px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-brand-dark"
+          >
             Voltar para lista
-          </Button>
+          </a>
         </div>
       </div>
     )
   }
 
   const valorParcela =
-    quote.parcelas > 0 ? (quote.totalValor - quote.entrada) / quote.parcelas : 0
+    quote.installments > 0
+      ? (Number(quote.totalValue) - Number(quote.entryAmount)) /
+        quote.installments
+      : 0
 
   return (
     <div className="min-h-screen bg-white pb-32">
@@ -80,16 +102,16 @@ export default function ProposalPreviewPage() {
             </svg>
           </div>
           <h1 className="text-3xl md:text-4xl font-semibold mb-2">
-            {quote.titulo}
+            {quote.title}
           </h1>
           <p className="text-brand-mid text-lg mb-4">
-            Proposta comercial para {quote.clienteNome}
+            Proposta comercial para {quote.client?.name || 'Cliente'}
           </p>
           <div className="inline-flex items-center gap-4 text-sm text-brand-light/50 font-mono">
-            <span>Ref: #{quote.id}</span>
+            <span>Ref: #{quote.id.substring(0, 8)}</span>
             <span>•</span>
             <span>
-              Emitido em {new Date(quote.criadoEm).toLocaleDateString('pt-BR')}
+              Emitido em {new Date(quote.createdAt).toLocaleDateString('pt-BR')}
             </span>
           </div>
         </div>
@@ -115,19 +137,19 @@ export default function ProposalPreviewPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {quote.itens.map((item) => (
+                {quote.items?.map((item: any) => (
                   <TableRow
                     key={item.id}
                     className="border-b border-gray-50 hover:bg-transparent"
                   >
                     <TableCell className="py-5 font-medium text-gray-900">
-                      {item.nome}
+                      {item.name}
                     </TableCell>
                     <TableCell className="py-5 text-center font-mono text-sm text-gray-500">
-                      {item.horas}h
+                      {Number(item.hours)}h
                     </TableCell>
                     <TableCell className="py-5 text-right font-mono text-gray-900">
-                      {item.valorUnitario.toLocaleString('pt-BR', {
+                      {Number(item.unitValue).toLocaleString('pt-BR', {
                         style: 'currency',
                         currency: 'BRL',
                       })}
@@ -147,7 +169,7 @@ export default function ProposalPreviewPage() {
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                       <span className="text-sm text-gray-500">Entrada</span>
                       <span className="font-mono font-bold text-gray-900">
-                        {quote.entrada.toLocaleString('pt-BR', {
+                        {Number(quote.entryAmount).toLocaleString('pt-BR', {
                           style: 'currency',
                           currency: 'BRL',
                         })}
@@ -155,7 +177,7 @@ export default function ProposalPreviewPage() {
                     </div>
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                       <span className="text-sm text-gray-500">
-                        {quote.parcelas}× Mensais
+                        {quote.installments}× Mensais
                       </span>
                       <span className="font-mono font-bold text-gray-900">
                         {valorParcela.toLocaleString('pt-BR', {
@@ -175,7 +197,7 @@ export default function ProposalPreviewPage() {
                         Execução
                       </p>
                       <p className="text-sm font-semibold text-gray-900">
-                        {quote.prazoSemanas} semanas
+                        {Math.ceil(Number(quote.totalHours) / 20)} semanas
                       </p>
                     </div>
                     <div className="p-3 border border-gray-100 rounded-lg">
@@ -183,26 +205,28 @@ export default function ProposalPreviewPage() {
                         Válido até
                       </p>
                       <p className="text-sm font-semibold text-gray-900">
-                        {new Date(quote.validoAte).toLocaleDateString('pt-BR')}
+                        {quote.expirationDate
+                          ? new Date(quote.expirationDate).toLocaleDateString('pt-BR')
+                          : 'Sem validade'}
                       </p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-gray-50 p-8 rounded-[14px] flex flex-col justify-center text-center md:text-right">
+              <div className="bg-gray-50 p-8 rounded-lg flex flex-col justify-center text-center md:text-right">
                 <p className="text-xs uppercase font-bold text-gray-400 mb-2 tracking-widest">
                   Investimento Total
                 </p>
                 <p className="text-5xl font-mono font-bold text-brand mb-2 tracking-tighter">
-                  {quote.totalValor.toLocaleString('pt-BR', {
+                  {Number(quote.totalValue).toLocaleString('pt-BR', {
                     style: 'currency',
                     currency: 'BRL',
                     maximumFractionDigits: 0,
                   })}
                 </p>
                 <p className="text-sm text-gray-400">
-                  Parcelamento em até {quote.parcelas + 1} meses sem juros.
+                  Parcelamento em até {quote.installments + 1} meses sem juros.
                 </p>
               </div>
             </div>

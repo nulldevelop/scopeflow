@@ -5,17 +5,22 @@ import CatalogClient, { type CatalogFeature } from './_components/CatalogClient'
 import { getAllCategories } from './_data-access/get-categories'
 import { getAllFeatures } from './_data-access/get-features'
 
-export default async function CatalogoContainer() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  })
+import { getSessionClient } from '@/lib/getSession'
 
-  if (!session?.session.activeOrganizationId) {
+export default async function CatalogoContainer() {
+  const sessionResponse = await getSessionClient()
+
+  if (!sessionResponse.success) {
     redirect('/signin')
   }
 
-  const organizationId = (session.session as { activeOrganizationId?: string })
-    .activeOrganizationId!
+  const { session } = sessionResponse
+  
+  if (!session?.activeOrganizationId) {
+    redirect('/signin')
+  }
+
+  const organizationId = session.activeOrganizationId
 
   const [featuresData, categories] = await Promise.all([
     getAllFeatures(organizationId),

@@ -23,6 +23,10 @@ const statusConfig = {
     label: 'Recusada',
     className: 'bg-danger-bg text-danger',
   },
+  expirada: {
+    label: 'Expirada',
+    className: 'bg-gray-100 text-gray-500',
+  },
 }
 
 export function StatusBadge({ status, className }: StatusBadgeProps) {
