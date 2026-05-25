@@ -128,12 +128,13 @@ export async function completeOnboardingAction(values: OnboardingInput) {
           const product = products.find((p) => p.id === abacateProductId)
 
           if (product) {
+            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_AUTH_URL || 'http://localhost:3000'
             const checkout = await abacatePay.checkouts.create({
               customerId: abacateCustomerId,
               externalId: `checkout_${org.id}_${Date.now()}`,
               items: [{ id: product.id, quantity: 1 }],
-              returnUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
-              completionUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true`,
+              returnUrl: `${baseUrl}/dashboard`,
+              completionUrl: `${baseUrl}/dashboard?success=true`,
             })
             checkoutUrl = checkout.url
           }
