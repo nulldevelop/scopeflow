@@ -1,7 +1,9 @@
-﻿'use client'
+'use client'
 
 import {
   Check,
+  ChevronLeft,
+  ChevronRight,
   CreditCard,
   Database,
   Edit2,
@@ -9,9 +11,12 @@ import {
   Layout,
   Lock,
   Mail,
+  Monitor,
   Plus,
+  Rocket,
   Search,
   Settings2,
+  Smartphone,
   Share2,
   Trash2,
   Upload,
@@ -27,6 +32,7 @@ import { Card } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -46,8 +52,10 @@ import { createCategoryAction } from '../_actions/create-category'
 import { createFeatureAction } from '../_actions/create-feature'
 import { deleteCategoryAction } from '../_actions/delete-category'
 import { deleteFeatureAction } from '../_actions/delete-feature'
+import { initializeDefaultsAction } from '../_actions/initialize-defaults'
 import { updateCategoryAction } from '../_actions/update-category'
 import { updateFeatureAction } from '../_actions/update-feature'
+import { defaultFeatures } from '../../../../../../prisma/seed-data'
 
 export interface CatalogCategory {
   id: string
@@ -74,12 +82,23 @@ interface CatalogClientProps {
 const categoryIcons: Record<string, React.ElementType> = {
   'Autenticação': Lock,
   'Dashboard': Layout,
+  'Dashboard & Interface': Layout,
   'Pagamentos': CreditCard,
+  'Pagamentos & Assinaturas': CreditCard,
   'E-mail': Mail,
+  'E-mail & Notificações': Mail,
   'Upload': Upload,
+  'Arquivos & Upload': Upload,
   'CMS': Database,
+  'CMS & Conteúdo': Database,
   'API': Globe,
+  'API & Integrações': Globe,
   'Integrações': Share2,
+  'Sites & Landing Pages': Monitor,
+  'Marketing & SEO': Rocket,
+  'Segurança & Auditoria': Lock,
+  'Mobile & PWA': Smartphone,
+  'Infraestrutura & DevOps': Database,
   'Outro': Zap,
 }
 
@@ -106,6 +125,73 @@ export default function CatalogClient({
   )
   const [editingCategoryName, setEditingCategoryName] = useState('')
   const [quickCreateCategory, setQuickCreateCategory] = useState(false)
+
+  // Initialize Defaults States
+  const [initializeModalOpen, setInitializeModalOpen] = useState(false)
+  const [initStep, setInitStep] = useState(1)
+  const [selectedProfiles, setSelectedProfiles] = useState<string[]>([])
+  const [selectedInitFeatures, setSelectedInitFeatures] = useState<string[]>([])
+  const [hourMultiplier, setHourMultiplier] = useState(1)
+
+  const profileToCategories: Record<string, string[]> = {
+    frontend: ['Sites & Landing Pages', 'Marketing & SEO', 'Dashboard & Interface', 'CMS & Conteúdo'],
+    backend: ['API & Integrações', 'Autenticação', 'Segurança & Auditoria', 'Infraestrutura & DevOps'],
+    saas: [
+      'Autenticação',
+      'Dashboard & Interface',
+      'Pagamentos & Assinaturas',
+      'E-mail & Notificações',
+      'Arquivos & Upload',
+      'API & Integrações',
+      'CMS & Conteúdo',
+      'Segurança & Auditoria',
+      'Infraestrutura & DevOps',
+      'Sites & Landing Pages',
+      'Marketing & SEO'
+    ],
+    mobile: ['Mobile & PWA', 'API & Integrações', 'Autenticação', 'E-mail & Notificações'],
+  }
+
+  const handleProfileToggle = (profileId: string) => {
+    setSelectedProfiles(prev => {
+      const isSelected = prev.includes(profileId)
+      const next = isSelected ? prev.filter(id => id !== profileId) : [...prev, profileId]
+
+      // Update selected features based on new profiles
+      const activeCats = new Set<string>()
+      next.forEach(p => profileToCategories[p].forEach(cat => activeCats.add(cat)))
+
+      const newFeatures = defaultFeatures
+        .filter(f => activeCats.has(f.categoryName))
+        .map(f => f.name)
+
+      setSelectedInitFeatures(newFeatures)
+      return next
+    })
+  }
+
+  const handleInitializeDefaults = async () => {
+    if (selectedInitFeatures.length === 0) return
+    startTransition(async () => {
+      try {
+        const res = await initializeDefaultsAction({
+          selectedFeatures: selectedInitFeatures,
+          hourMultiplier
+        })
+        if (res.success) {
+          toast.success('Catálogo personalizado inicializado!')
+          setInitializeModalOpen(false)
+          setInitStep(1)
+          setSelectedProfiles([])
+          setSelectedInitFeatures([])
+        } else {
+          toast.error(res.error)
+        }
+      } catch (_error) {
+        toast.error('Erro ao inicializar padrões.')
+      }
+    })
+  }
 
   const filteredFeatures = initialFeatures.filter((feature) => {
     const matchesSearch =
@@ -214,12 +300,181 @@ export default function CatalogClient({
   }
 
   return (
-    <div className="px-8 pb-12">
+    <div className="px-8 pb-12 max-w-[1600px] mx-auto">
       <header className="flex items-center justify-between h-16 mb-8">
         <h1 className="text-xl font-semibold text-gray-900">
           Catálogo de funcionalidades
         </h1>
         <div className="flex items-center gap-3">
+          <Dialog
+            open={initializeModalOpen}
+            onOpenChange={(val) => {
+              setInitializeModalOpen(val)
+              if (!val) {
+                setInitStep(1)
+                setSelectedProfiles([])
+              }
+            }}
+          >
+            <DialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="rounded-lg flex items-center gap-2 border-brand/20 text-brand hover:bg-brand/5"
+              >
+                <Zap className="w-4 h-4" />
+                Inicializar Padrões
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden">
+              <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                <div>
+                  <DialogTitle className="text-xl font-bold">Personalizar Catálogo</DialogTitle>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Passo {initStep} de 2: {initStep === 1 ? 'Escolha seus perfis' : 'Refine as funcionalidades'}
+                  </p>
+                </div>
+                <div className="flex gap-1">
+                  <div className={cn("w-8 h-1.5 rounded-full transition-colors", initStep >= 1 ? "bg-brand" : "bg-gray-200")} />
+                  <div className={cn("w-8 h-1.5 rounded-full transition-colors", initStep >= 2 ? "bg-brand" : "bg-gray-200")} />
+                </div>
+              </div>
+
+              <div className="p-6 max-h-[60vh] overflow-y-auto no-scrollbar">
+                {initStep === 1 ? (
+                  <div className="grid grid-cols-2 gap-4">
+                    {[
+                      { id: 'frontend', name: 'Frontend', desc: 'Interfaces, Dashboards e CMS', icon: Monitor, color: 'text-blue-500', bg: 'bg-blue-50' },
+                      { id: 'backend', name: 'Backend', desc: 'APIs, Segurança e Infra', icon: Database, color: 'text-orange-500', bg: 'bg-orange-50' },
+                      { id: 'saas', name: 'SaaS / Full Stack', desc: 'Tudo incluso: Pagamentos, S3, etc', icon: Rocket, color: 'text-brand', bg: 'bg-brand/10' },
+                      { id: 'mobile', name: 'Mobile', desc: 'Apps, PWA e Sincronização', icon: Smartphone, color: 'text-purple-500', bg: 'bg-purple-50' },
+                    ].map((profile) => {
+                      const isSelected = selectedProfiles.includes(profile.id)
+                      const Icon = profile.icon
+                      return (
+                        <button
+                          key={profile.id}
+                          type="button"
+                          onClick={() => handleProfileToggle(profile.id)}
+                          className={cn(
+                            "flex flex-col items-start gap-3 p-5 rounded-2xl border-2 transition-all text-left group",
+                            isSelected
+                              ? "border-brand bg-brand/5 shadow-sm ring-1 ring-brand/20"
+                              : "border-gray-100 hover:border-gray-200 bg-white"
+                          )}
+                        >
+                          <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-active:scale-95", profile.bg)}>
+                            <Icon className={cn("w-6 h-6", profile.color)} />
+                          </div>
+                          <div>
+                            <span className={cn("text-sm font-bold block", isSelected ? "text-brand" : "text-gray-900")}>
+                              {profile.name}
+                            </span>
+                            <span className="text-[10px] text-gray-400 font-medium leading-tight block mt-0.5">
+                              {profile.desc}
+                            </span>
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    <div className="bg-brand/5 p-4 rounded-2xl border border-brand/10">
+                      <div className="flex items-center justify-between mb-2">
+                        <Label className="text-xs font-bold uppercase text-brand tracking-wider">Ajuste de Experiência</Label>
+                        <span className="text-[10px] font-bold bg-brand text-white px-2 py-0.5 rounded-full">
+                          {hourMultiplier === 1 ? 'Média' : hourMultiplier < 1 ? 'Sênior (-' + Math.round((1-hourMultiplier)*100) + '%)' : 'Júnior (+' + Math.round((hourMultiplier-1)*100) + '%)'}
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0.5"
+                        max="1.5"
+                        step="0.1"
+                        value={hourMultiplier}
+                        onChange={(e) => setHourMultiplier(Number(e.target.value))}
+                        className="w-full h-1.5 bg-brand/20 rounded-lg appearance-none cursor-pointer accent-brand"
+                      />
+                      <p className="text-[10px] text-brand-dark/60 mt-2">Ajuste as horas base de acordo com sua senioridade ou velocidade de entrega.</p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label className="text-xs font-bold uppercase text-gray-400 tracking-wider">Funcionalidades Incluídas</Label>
+                      <div className="grid grid-cols-1 gap-2">
+                        {defaultFeatures
+                          .filter(f => {
+                            const activeCats = new Set<string>()
+                            selectedProfiles.forEach(p => profileToCategories[p].forEach(cat => activeCats.add(cat)))
+                            return activeCats.has(f.categoryName)
+                          })
+                          .map(f => (
+                            <div
+                              key={f.name}
+                              className="flex items-center justify-between p-3 rounded-xl border border-gray-100 bg-white hover:bg-gray-50 transition-colors"
+                            >
+                              <div className="flex flex-col">
+                                <span className="text-sm font-bold text-gray-700">{f.name}</span>
+                                <span className="text-[10px] text-gray-400">{f.categoryName} • {Math.round(f.baseHours * hourMultiplier * 10) / 10}h</span>
+                              </div>
+                              <input
+                                type="checkbox"
+                                checked={selectedInitFeatures.includes(f.name)}
+                                onChange={() => {
+                                  setSelectedInitFeatures(prev =>
+                                    prev.includes(f.name) ? prev.filter(n => n !== f.name) : [...prev, f.name]
+                                  )
+                                }}
+                                className="w-4 h-4 rounded border-gray-300 text-brand focus:ring-brand"
+                              />
+                            </div>
+                          ))
+                        }
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <DialogFooter className="p-6 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between">
+                {initStep === 1 ? (
+                  <Button
+                    variant="ghost"
+                    onClick={() => setInitializeModalOpen(false)}
+                    className="rounded-xl"
+                  >
+                    Cancelar
+                  </Button>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    onClick={() => setInitStep(1)}
+                    className="rounded-xl flex items-center gap-2"
+                  >
+                    <ChevronLeft className="w-4 h-4" /> Voltar
+                  </Button>
+                )}
+
+                {initStep === 1 ? (
+                  <Button
+                    onClick={() => setInitStep(2)}
+                    disabled={selectedProfiles.length === 0}
+                    className="bg-brand text-white hover:bg-brand-dark rounded-xl px-8 flex items-center gap-2"
+                  >
+                    Avançar <ChevronRight className="w-4 h-4" />
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleInitializeDefaults}
+                    disabled={selectedInitFeatures.length === 0 || isPending}
+                    className="bg-brand text-white hover:bg-brand-dark rounded-xl px-8"
+                  >
+                    {isPending ? 'Carregando...' : 'Finalizar Configuração'}
+                  </Button>
+                )}
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
           <Dialog
             open={categoryDialogOpen}
             onOpenChange={setCategoryDialogOpen}

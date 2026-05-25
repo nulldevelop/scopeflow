@@ -26,6 +26,11 @@ export default async function AuthLayout({
     redirect('/onboarding')
   }
 
+  // Se já tiver organização ativa e tentar acessar o onboarding, manda para o dashboard
+  if (activeOrgId && pathname.includes('/onboarding')) {
+    redirect('/dashboard')
+  }
+
   if (pathname.includes('/onboarding')) {
     return (
       <div className="flex min-h-screen w-full bg-background overflow-x-hidden">

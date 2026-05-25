@@ -3,7 +3,7 @@
 ## Prisma Configuration
 - **Version:** Prisma 7
 - **Generator Provider:** `prisma-client` (Custom/Specific for this project context).
-- **Database:** MariaDB using `@prisma/adapter-mariadb`.
+- **Database:** PostgreSQL using `@prisma/adapter-pg`.
 - **Output Path:** Client generated at `src/generated/prisma`.
 
 ## Engineering Mandates

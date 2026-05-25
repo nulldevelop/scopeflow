@@ -23,26 +23,16 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL('/signin', req.url))
   }
 
-  // 3. Buscar organização ativa via cookie
-  const activeOrgId =
-    req.cookies.get('scopeflow.active_organization_id')?.value ||
-    req.cookies.get('better-auth.active_organization_id')?.value
-
   // Lógica de Redirecionamento Simples para o Middleware
   if (pathname === '/signin' && sessionToken) {
-    return NextResponse.redirect(
-      new URL(activeOrgId ? '/dashboard' : '/onboarding', req.url),
-    )
-  }
-
-  // Se já tem organização, não precisa ir para o onboarding
-  if (activeOrgId && pathname === '/onboarding') {
+    // Redireciona sempre para o dashboard, o AuthLayout cuidará de mandar para o onboarding se necessário.
+    // Isso evita loops se o cookie de organização estiver presente mas a sessão não a tiver ativa.
     return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 
-  // NOTA: Não forçamos o redirecionamento para /onboarding aqui se o cookie estiver faltando.
+  // NOTA: Não forçamos o redirecionamento para /onboarding nem para /dashboard aqui.
   // Deixamos o AuthLayout (Server Component) fazer essa verificação no banco de dados,
-  // o que evita erros de Edge Runtime e lida melhor com cookies atrasados.
+  // o que evita loops e lida melhor com o estado da sessão.
 
   // Adiciona o pathname nos headers para os Server Components
   const requestHeaders = new Headers(req.headers)

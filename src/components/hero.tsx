@@ -109,53 +109,6 @@ export function Hero() {
           </Button>
         </motion.div>
 
-        {/* Hero Illustration / Dashboard Preview */}
-        <motion.div
-          variants={itemVariants}
-          className="mt-20 relative px-4"
-        >
-          <div className="relative rounded-[32px] border border-white/10 bg-white/5 p-4 backdrop-blur-sm group overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0E2E26] via-transparent to-transparent z-10" />
-            <img
-              src="https://framerusercontent.com/images/3KqIAnvH0GZ9v6C0K3G8N6I1g.png"
-              alt="ScopeFlow Dashboard"
-              className="rounded-2xl shadow-2xl opacity-80 group-hover:opacity-100 transition-opacity duration-700"
-            />
-
-            {/* Floating UI Badges */}
-            <div className="absolute top-1/4 -left-6 md:-left-12 p-4 rounded-2xl bg-white shadow-2xl animate-float hidden lg:block z-20">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center text-brand">
-                  <Sparkles className="w-5 h-5" />
-                </div>
-                <div className="text-left">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase">
-                    Status
-                  </p>
-                  <p className="text-sm font-bold text-gray-900">
-                    Proposta Aprovada
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="absolute bottom-1/3 -right-6 md:-right-12 p-4 rounded-2xl bg-gray-900 text-white shadow-2xl animate-float-delayed hidden lg:block z-20">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-[#9BBFB8]">
-                  <ChevronRight className="w-5 h-5" />
-                </div>
-                <div className="text-left">
-                  <p className="text-[10px] font-bold text-white/40 uppercase">
-                    Total
-                  </p>
-                  <p className="text-sm font-mono font-bold text-[#9BBFB8]">
-                    R$ 14.500,00
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
       </motion.div>
     </section>
   )

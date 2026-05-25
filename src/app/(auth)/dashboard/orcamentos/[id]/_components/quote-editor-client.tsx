@@ -10,6 +10,7 @@ import {
   Clock,
   CreditCard,
   Database,
+  FileText,
   Globe,
   Layers,
   Layout,
@@ -19,9 +20,11 @@ import {
   Plus,
   Rocket,
   Search,
+  Settings,
   Share2,
   Trash2,
   Upload,
+  User as UserIcon,
   Users as UsersIcon,
   Zap,
   Zap as ZapIcon,
@@ -42,6 +45,13 @@ import {
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import type { Client } from '@/generated/prisma/client'
 import { useDevProfile } from '@/hooks/useDevProfile'
@@ -60,6 +70,23 @@ const _profileInfo: Record<string, { name: string; icon: ElementType }> = {
   fullstack: { name: 'Full Stack Solo', icon: ZapIcon },
   software_house: { name: 'Software House', icon: UsersIcon },
   saas: { name: 'Dev de SaaS', icon: Rocket },
+}
+
+const _recommendedCategories: Record<string, string[]> = {
+  landing_page: ['Landing Page', 'E-mail'],
+  frontend: ['Dashboard', 'CMS', 'Landing Page'],
+  backend: ['API', 'Autenticação', 'Pagamentos', 'Integrações'],
+  fullstack: ['Autenticação', 'Pagamentos', 'Dashboard', 'CMS', 'API'],
+  saas: ['Autenticação', 'Pagamentos', 'Dashboard', 'CMS', 'API', 'Upload'],
+  software_house: [
+    'Autenticação',
+    'Pagamentos',
+    'Dashboard',
+    'CMS',
+    'API',
+    'Integrações',
+    'Upload',
+  ],
 }
 
 const categoryIcons: Record<string, ElementType> = {
@@ -180,14 +207,16 @@ export function QuoteEditorClient({
           description: initialFeature.descricao,
           hours: hours,
           unitValue: hours * (quote.hourlyRate || 0),
-          monthlyFee: initialFeature.monthlyFee,
-          monthlyDuration: initialFeature.monthlyDuration,
+          monthlyFee: 0,
+          monthlyDuration: 0,
           featureId: initialFeature.id,
           order: 0,
         }
         setQuote((prev) => ({
           ...prev,
           items: [newItem],
+          // Se o recurso inicial tiver uma mensalidade sugerida, podemos usar como valor global inicial
+          monthlyTotal: prev.monthlyTotal || initialFeature.monthlyFee || 0,
         }))
       }
     }
@@ -198,15 +227,15 @@ export function QuoteEditorClient({
       (acc: number, item) => acc + Number(item.hours),
       0,
     )
-    const valorBruto = totalHoras * (quote.hourlyRate || 0)
+    const valorBruto = (quote.items || []).reduce(
+      (acc: number, item) => acc + Number(item.unitValue || 0),
+      0,
+    )
     const valorDesconto = (valorBruto * (quote.discount || 0)) / 100
     const valorUrgencia = (valorBruto * (quote.urgencyFee || 0)) / 100
     const totalValor = valorBruto - valorDesconto + valorUrgencia
 
-    const monthlyTotal = (quote.items || []).reduce(
-      (acc: number, item) => acc + Number(item.monthlyFee || 0),
-      0,
-    )
+    const monthlyTotal = quote.monthlyTotal || 0
 
     const prazoSemanas = Math.ceil(totalHoras / 20)
     const modulos = (quote.items || []).length
@@ -231,17 +260,20 @@ export function QuoteEditorClient({
   const handleAddFeatures = () => {
     const newItems: EditorQuoteItem[] = features
       .filter((f) => selectedFeatureIds.includes(f.id))
-      .map((f, index) => ({
-        id: `temp-${Date.now()}-${f.id}-${index}`,
-        name: f.nome,
-        description: f.descricao,
-        hours: getHours(f),
-        unitValue: getHours(f) * (quote.hourlyRate || 0),
-        monthlyFee: f.monthlyFee,
-        monthlyDuration: f.monthlyDuration,
-        featureId: f.id,
-        order: quote.items.length + index,
-      }))
+      .map((f, index) => {
+        const hours = getHours(f)
+        return {
+          id: `temp-${Date.now()}-${f.id}-${index}`,
+          name: f.nome,
+          description: f.descricao,
+          hours: hours,
+          unitValue: hours * (quote.hourlyRate || 0),
+          monthlyFee: 0,
+          monthlyDuration: 0,
+          featureId: f.id,
+          order: quote.items.length + index,
+        }
+      })
 
     setQuote((prev) => ({
       ...prev,
@@ -254,9 +286,17 @@ export function QuoteEditorClient({
   const updateItem = (itemId: string, updates: Partial<EditorQuoteItem>) => {
     setQuote((prev) => ({
       ...prev,
-      items: prev.items.map((item) =>
-        item.id === itemId ? { ...item, ...updates } : item,
-      ),
+      items: prev.items.map((item) => {
+        if (item.id === itemId) {
+          const updatedItem = { ...item, ...updates }
+          // If hours changed, recalculate unitValue based on current hourlyRate
+          if (updates.hours !== undefined) {
+            updatedItem.unitValue = updatedItem.hours * (prev.hourlyRate || 0)
+          }
+          return updatedItem
+        }
+        return item
+      }),
     }))
   }
 
@@ -330,23 +370,21 @@ export function QuoteEditorClient({
   return (
     <div className="min-h-screen bg-[#F8F7F3] pb-20">
       <div className="px-8 pt-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <div className="flex items-center gap-2 text-gray-400 mb-2">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => router.back()}
-                className="h-auto p-0 hover:bg-transparent hover:text-gray-600 transition-colors"
-              >
-                Orçamentos
-              </Button>
-              <ChevronLeft className="w-4 h-4 rotate-180" />
-              <span className="text-gray-900 font-medium">
-                {isNew ? 'Novo Orçamento' : 'Editar Orçamento'}
-              </span>
-            </div>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-2 text-gray-400">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => router.back()}
+              className="h-auto p-0 hover:bg-transparent hover:text-gray-600 transition-colors"
+            >
+              Orçamentos
+            </Button>
+            <ChevronLeft className="w-4 h-4 rotate-180" />
+            <span className="text-gray-900 font-medium">
+              {isNew ? 'Novo Orçamento' : 'Editar Orçamento'}
+            </span>
           </div>
 
           <div className="flex items-center gap-3">
@@ -367,10 +405,166 @@ export function QuoteEditorClient({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Main Editor */}
           <div className="lg:col-span-8 space-y-6">
-            <Card className="p-8 bg-white border-gray-100 rounded-3xl shadow-sm">
+            {/* Project Information Card */}
+            <Card className="p-8 bg-white border-gray-100 rounded-[32px] shadow-sm space-y-10">
+              {/* Basic Info: Title & Client */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <Field>
+                  <FieldLabel className="text-[10px] font-bold uppercase text-gray-400 tracking-wider mb-2 px-1">
+                    Título do Projeto
+                  </FieldLabel>
+                  <Input
+                    value={quote.title}
+                    onChange={(e) => setQuote({ ...quote, title: e.target.value })}
+                    placeholder="Ex: Desenvolvimento de App Mobile"
+                    className="h-12 bg-gray-50 border-none rounded-xl font-bold text-gray-900 focus-visible:ring-1 focus-visible:ring-brand"
+                  />
+                </Field>
+
+                <Field>
+                  <div className="flex items-center justify-between mb-2 px-1">
+                    <FieldLabel className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
+                      Cliente
+                    </FieldLabel>
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="h-auto p-0 text-brand text-[10px] font-bold uppercase tracking-wider hover:no-underline"
+                      onClick={() => setIsClientModalOpen(true)}
+                    >
+                      + Novo Cliente
+                    </Button>
+                  </div>
+                  <Select
+                    value={quote.clientId}
+                    onValueChange={(val) => setQuote({ ...quote, clientId: val })}
+                  >
+                    <SelectTrigger className="h-12 bg-gray-50 border-none rounded-xl text-gray-900 font-medium">
+                      <SelectValue placeholder="Selecione um cliente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {initialClients.map((client) => (
+                        <SelectItem key={client.id} value={client.id}>
+                          {client.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              </div>
+
+              {/* Financial Configs */}
+              <div className="pt-10 border-t border-gray-100 space-y-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center">
+                    <Settings className="w-5 h-5 text-orange-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900">Configurações Financeiras</h3>
+                    <p className="text-xs text-gray-400">Taxas, mensalidade e prazos</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <Field>
+                    <FieldLabel className="text-[10px] font-bold uppercase text-gray-400 tracking-wider mb-2 px-1">Valor da Hora</FieldLabel>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">R$</span>
+                      <Input
+                        type="number"
+                        value={quote.hourlyRate}
+                        onChange={(e) => {
+                          const newRate = Number(e.target.value)
+                          setQuote((prev) => ({
+                            ...prev,
+                            hourlyRate: newRate,
+                            items: prev.items.map((item) => ({
+                              ...item,
+                              unitValue: item.hours * newRate,
+                            })),
+                          }))
+                        }}
+                        className="pl-9 h-12 bg-gray-50 border-none rounded-xl font-mono font-bold text-gray-900 focus-visible:ring-1 focus-visible:ring-brand"
+                      />
+                    </div>
+                  </Field>
+
+                  <Field>
+                    <FieldLabel className="text-[10px] font-bold uppercase text-gray-400 tracking-wider mb-2 px-1">Mensalidade Recurrente</FieldLabel>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-brand text-sm font-bold">R$</span>
+                      <Input
+                        type="number"
+                        value={quote.monthlyTotal}
+                        onChange={(e) => setQuote({ ...quote, monthlyTotal: Number(e.target.value) })}
+                        className="pl-9 h-12 bg-gray-50 border-none rounded-xl font-mono font-bold text-brand focus-visible:ring-1 focus-visible:ring-brand"
+                      />
+                    </div>
+                  </Field>
+
+                  <Field>
+                    <FieldLabel className="text-[10px] font-bold uppercase text-gray-400 tracking-wider mb-2 px-1">Validade da Proposta</FieldLabel>
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4" />
+                      <Input
+                        type="date"
+                        value={quote.expirationDate}
+                        onChange={(e) => setQuote({ ...quote, expirationDate: e.target.value })}
+                        className="pl-10 h-12 bg-gray-50 border-none rounded-xl font-bold text-gray-700 focus-visible:ring-1 focus-visible:ring-brand"
+                      />
+                    </div>
+                  </Field>
+
+                  <Field>
+                    <FieldLabel className="text-[10px] font-bold uppercase text-gray-400 tracking-wider mb-2 px-1">Entrada (Setup)</FieldLabel>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">R$</span>
+                      <Input
+                        type="number"
+                        value={quote.entryAmount}
+                        onChange={(e) => setQuote({ ...quote, entryAmount: Number(e.target.value) })}
+                        className="pl-9 h-12 bg-gray-50 border-none rounded-xl font-bold text-gray-700 focus-visible:ring-1 focus-visible:ring-brand"
+                      />
+                    </div>
+                  </Field>
+
+                  <Field>
+                    <FieldLabel className="text-[10px] font-bold uppercase text-gray-400 tracking-wider mb-2 px-1">Parcelas</FieldLabel>
+                    <div className="relative">
+                      <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4" />
+                      <Input
+                        type="number"
+                        min="1"
+                        value={quote.installments}
+                        onChange={(e) => setQuote({ ...quote, installments: Number(e.target.value) })}
+                        className="pl-10 h-12 bg-gray-50 border-none rounded-xl font-bold text-gray-700 focus-visible:ring-1 focus-visible:ring-brand"
+                      />
+                    </div>
+                  </Field>
+                </div>
+              </div>
+
+              {/* Scope Description */}
+              <div className="pt-10 border-t border-gray-100">
+                <Field>
+                  <FieldLabel className="text-[10px] font-bold uppercase text-gray-400 tracking-wider mb-2 px-1">
+                    Descrição do Escopo (visível na proposta)
+                  </FieldLabel>
+                  <Textarea
+                    value={quote.description}
+                    onChange={(e) => setQuote({ ...quote, description: e.target.value })}
+                    placeholder="Descreva detalhes gerais do projeto que aparecerão para o cliente..."
+                    className="min-h-[100px] bg-gray-50 border-none rounded-2xl resize-none focus-visible:ring-1 focus-visible:ring-brand text-sm leading-relaxed"
+                  />
+                </Field>
+              </div>
+            </Card>
+
+            {/* Project Scope Card */}
+            <Card className="p-8 bg-white border-gray-100 rounded-[24px] shadow-sm">
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center">
@@ -388,44 +582,49 @@ export function QuoteEditorClient({
 
                 <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                   <DialogTrigger asChild>
-                    <Button className="bg-gray-900 text-white hover:bg-black rounded-xl gap-2">
+                    <Button className="bg-gray-900 text-white hover:bg-black rounded-xl gap-2 shadow-lg shadow-black/10 ">
                       <Plus className="w-4 h-4" /> Adicionar Módulo
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-5xl p-0 overflow-hidden rounded-3xl border-none max-h-[90vh] flex flex-col">
+                  <DialogContent className="max-w-4xl p-0 overflow-hidden rounded-3xl border-none max-h-[90vh] flex flex-col">
                     <DialogHeader className="p-6 border-b border-gray-100 shrink-0">
                       <DialogTitle className="text-2xl font-bold flex items-center gap-2">
                         Catálogo de Funcionalidades
-                        {profile && (
-                          <span className="text-xs font-medium bg-brand/10 text-brand px-2 py-1 rounded-full">
-                            Perfil: {_profileInfo[profile]?.name}
-                          </span>
-                        )}
                       </DialogTitle>
-                      <div className="mt-4 flex flex-col md:flex-row gap-3">
-                        <div className="relative flex-1">
-                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <div className="mt-4 flex flex-col gap-4">
+                        <div className="relative w-full group">
+                          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-brand transition-colors" />
                           <Input
                             placeholder="Buscar funcionalidade..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-10 h-11 bg-gray-50 border-none rounded-xl"
+                            className="pl-10 h-11 bg-gray-50 border-none rounded-xl focus-visible:ring-1 focus-visible:ring-brand/50 transition-all w-full"
                           />
+                          {searchTerm && (
+                            <Button
+                              variant="ghost"
+                              size="icon-xs"
+                              onClick={() => setSearchTerm('')}
+                              className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-gray-200 text-gray-400 hover:text-gray-600"
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          )}
                         </div>
-                        <div className="flex gap-1 overflow-x-auto no-scrollbar pb-1">
+                        <div className="flex flex-wrap gap-1.5 pb-1">
                           {dbCategories.map((cat) => (
                             <Button
                               key={cat}
                               variant={
                                 selectedCategory === cat ? 'default' : 'ghost'
                               }
-                              size="sm"
+                              size="xs"
                               onClick={() => setSelectedCategory(cat)}
                               className={cn(
-                                'rounded-full h-8 px-4',
+                                'rounded-full px-3 text-[10px] font-bold uppercase tracking-wider',
                                 selectedCategory === cat
                                   ? 'bg-brand text-white hover:bg-brand-dark'
-                                  : 'text-gray-500 hover:bg-gray-100',
+                                  : 'text-gray-400 bg-gray-50 hover:bg-gray-100',
                               )}
                             >
                               {cat}
@@ -574,8 +773,8 @@ export function QuoteEditorClient({
                               {item.description || 'Sem descrição'}
                             </p>
                           </div>
-                          <div className="md:col-span-5 flex items-center gap-4">
-                            <div className="relative w-20">
+                          <div className="md:col-span-5 flex items-center justify-end gap-4">
+                            <div className="relative w-24">
                               <Input
                                 type="number"
                                 value={item.hours}
@@ -584,31 +783,10 @@ export function QuoteEditorClient({
                                     hours: Number(e.target.value),
                                   })
                                 }
-                                className="w-full h-9 pl-2 pr-5 bg-gray-50 border-none rounded-lg text-sm font-mono font-bold text-gray-700 outline-none focus-visible:ring-1 focus-visible:ring-brand"
+                                className="w-full h-9 pl-3 pr-7 bg-gray-50 border-none rounded-lg text-sm font-mono font-bold text-gray-700 outline-none focus-visible:ring-1 focus-visible:ring-brand"
                               />
-                              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold">
-                                h
-                              </span>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                              <div className="relative w-24">
-                                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold">
-                                  R$
-                                </span>
-                                <Input
-                                  type="number"
-                                  value={item.monthlyFee}
-                                  onChange={(e) =>
-                                    updateItem(item.id, {
-                                      monthlyFee: Number(e.target.value),
-                                    })
-                                  }
-                                  className="w-full h-9 pl-6 pr-2 bg-brand/5 border-none rounded-lg text-sm font-mono font-bold text-brand outline-none focus-visible:ring-1 focus-visible:ring-brand"
-                                />
-                              </div>
-                              <span className="text-[10px] text-brand font-bold">
-                                /mês
+                              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold">
+                                horas
                               </span>
                             </div>
                           </div>
@@ -629,41 +807,11 @@ export function QuoteEditorClient({
                 )}
               </div>
             </Card>
-
-            <Card className="p-8 bg-white border-gray-100 rounded-3xl shadow-sm">
-              <div className="flex items-center gap-3 mb-8">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
-                  <Calculator className="w-5 h-5 text-blue-500" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-900 leading-tight">
-                    Detalhamento Adicional
-                  </h3>
-                  <p className="text-xs text-gray-400">
-                    Notas internas e descrição da proposta
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <Label className="text-xs font-bold uppercase text-gray-400 tracking-wider">
-                  Descrição do Escopo (visível na proposta)
-                </Label>
-                <Textarea
-                  value={quote.description}
-                  onChange={(e) =>
-                    setQuote({ ...quote, description: e.target.value })
-                  }
-                  placeholder="Descreva detalhes gerais do projeto que aparecerão para o cliente..."
-                  className="min-h-[150px] bg-gray-50 border-none rounded-2xl resize-none focus-visible:ring-1 focus-visible:ring-brand"
-                />
-              </div>
-            </Card>
           </div>
 
-          {/* Sidebar Config */}
+          {/* Sidebar Summary */}
           <div className="lg:col-span-4 space-y-6">
-            <Card className="overflow-hidden border-none rounded-3xl shadow-xl bg-gray-900 text-white">
+            <Card className="overflow-hidden border-none rounded-[32px] shadow-xl bg-gray-900 text-white sticky top-8">
               <div className="p-8 border-b border-white/5">
                 <div className="flex items-center justify-between mb-8">
                   <h3 className="text-sm font-bold uppercase tracking-widest text-brand-light">
@@ -817,168 +965,6 @@ export function QuoteEditorClient({
                   </div>
                 </div>
               )}
-            </Card>
-
-            <Card className="p-8 bg-white border-gray-100 rounded-3xl shadow-sm space-y-8">
-              <div className="space-y-4">
-                <Label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
-                  Identificação do Orçamento
-                </Label>
-                <Field>
-                  <FieldLabel className="text-xs text-gray-500 font-normal normal-case tracking-normal mb-1">
-                    Título do Projeto
-                  </FieldLabel>
-                  <Input
-                    value={quote.title}
-                    onChange={(e) =>
-                      setQuote({ ...quote, title: e.target.value })
-                    }
-                    placeholder="Ex: Desenvolvimento de App Mobile"
-                    className="h-11 bg-gray-50 border-none rounded-xl font-bold focus-visible:ring-1 focus-visible:ring-brand"
-                  />
-                </Field>
-              </div>
-
-              <div className="space-y-4 pt-6 border-t border-gray-50">
-                <div className="flex items-center justify-between">
-                  <Label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
-                    Cliente do Projeto
-                  </Label>
-                  <Button
-                    variant="link"
-                    size="sm"
-                    className="h-auto p-0 text-brand text-[10px] font-bold uppercase"
-                    onClick={() => setIsClientModalOpen(true)}
-                  >
-                    + Novo Cliente
-                  </Button>
-                </div>
-
-                <div className="grid grid-cols-1 gap-2 max-h-[200px] overflow-y-auto no-scrollbar pr-1">
-                  {initialClients.map((client) => (
-                    <Button
-                      key={client.id}
-                      variant="ghost"
-                      onClick={() =>
-                        setQuote({ ...quote, clientId: client.id })
-                      }
-                      className={cn(
-                        'flex items-center gap-3 p-3 rounded-xl border transition-all text-left h-auto whitespace-normal font-normal',
-                        quote.clientId === client.id
-                          ? 'border-brand bg-brand/5 ring-1 ring-brand hover:bg-brand/5'
-                          : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50',
-                      )}
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center font-bold text-gray-400 text-xs shrink-0">
-                        {client.name.substring(0, 2).toUpperCase()}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold text-gray-900 truncate">
-                          {client.name}
-                        </p>
-                        <p className="text-[10px] text-gray-400 truncate">
-                          {client.email || 'Sem e-mail'}
-                        </p>
-                      </div>
-                      {quote.clientId === client.id && (
-                        <Check className="w-3.5 h-3.5 text-brand" />
-                      )}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-4 pt-6 border-t border-gray-50">
-                <Label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
-                  Configurações Gerais
-                </Label>
-
-                <div className="space-y-4">
-                  <Field>
-                    <FieldLabel className="text-xs text-gray-500 font-normal normal-case tracking-normal mb-1">
-                      Valor da Hora
-                    </FieldLabel>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">
-                        R$
-                      </span>
-                      <Input
-                        type="number"
-                        value={quote.hourlyRate}
-                        onChange={(e) =>
-                          setQuote({
-                            ...quote,
-                            hourlyRate: Number(e.target.value),
-                          })
-                        }
-                        className="pl-9 h-11 bg-gray-50 border-none rounded-xl font-mono font-bold focus-visible:ring-1 focus-visible:ring-brand"
-                      />
-                    </div>
-                  </Field>
-
-                  <Field>
-                    <FieldLabel className="text-xs text-gray-500 font-normal normal-case tracking-normal mb-1">
-                      Validade
-                    </FieldLabel>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <Input
-                        type="date"
-                        value={quote.expirationDate}
-                        onChange={(e) =>
-                          setQuote({ ...quote, expirationDate: e.target.value })
-                        }
-                        className="pl-10 h-11 bg-gray-50 border-none rounded-xl focus-visible:ring-1 focus-visible:ring-brand"
-                      />
-                    </div>
-                  </Field>
-
-                  <div className="grid grid-cols-2 gap-4 pt-2">
-                    <Field>
-                      <FieldLabel className="text-xs text-gray-500 font-normal normal-case tracking-normal mb-1">
-                        Entrada
-                      </FieldLabel>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] font-bold">
-                          R$
-                        </span>
-                        <Input
-                          type="number"
-                          value={quote.entryAmount}
-                          onChange={(e) =>
-                            setQuote({
-                              ...quote,
-                              entryAmount: Number(e.target.value),
-                            })
-                          }
-                          className="pl-8 h-10 bg-gray-50 border-none rounded-xl text-sm focus-visible:ring-1 focus-visible:ring-brand"
-                        />
-                      </div>
-                    </Field>
-                    <Field>
-                      <FieldLabel className="text-xs text-gray-500 font-normal normal-case tracking-normal mb-1">
-                        Parcelas
-                      </FieldLabel>
-                      <div className="relative">
-                        <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5" />
-                        <Input
-                          type="number"
-                          min="1"
-                          max="24"
-                          value={quote.installments}
-                          onChange={(e) =>
-                            setQuote({
-                              ...quote,
-                              installments: Number(e.target.value),
-                            })
-                          }
-                          className="pl-9 h-10 bg-gray-50 border-none rounded-xl text-sm focus-visible:ring-1 focus-visible:ring-brand"
-                        />
-                      </div>
-                    </Field>
-                  </div>
-                </div>
-              </div>
             </Card>
           </div>
         </div>

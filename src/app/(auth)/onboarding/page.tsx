@@ -337,6 +337,22 @@ export default function OnboardingPage() {
 
   const prevStep = () => setStep(step - 1)
 
+  const handleOrgNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const name = e.target.value
+    setValue('orgName', name)
+
+    // Generate slug automatically
+    const generatedSlug = name
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Remove accents
+      .replace(/[^a-z0-9]/g, '-') // Replace non-alphanumeric with hyphens
+      .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+      .replace(/^-|-$/g, '') // Remove leading/trailing hyphens
+
+    setValue('slug', generatedSlug, { shouldValidate: true })
+  }
+
   const onSubmit = async (data: OnboardingInput) => {
     setLoading(true)
     try {
@@ -355,32 +371,47 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F7F3] flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-[#F8F7F3] flex flex-col items-center py-12 md:py-20 p-6">
        <div className="max-w-4xl w-full">
-         {/* Multi-step logic rendering... (kept from original) */}
-         <div className="mb-12 flex items-center justify-between px-2">
+         {/* Step Indicator */}
+         <div className="mb-20 flex items-center justify-between px-2 relative">
+            {/* Background Line */}
+            <div className="absolute top-5 left-0 w-full h-0.5 bg-gray-200 -z-10" />
+            
             {steps.map((s) => (
-              <div key={s.id} className="flex flex-col items-center gap-2 group relative">
+              <div key={s.id} className="flex flex-col items-center gap-3 relative">
                 <div
                   className={cn(
-                    "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-500",
+                    "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-500 z-10 bg-white",
                     step >= s.id
-                      ? "bg-brand border-brand text-white shadow-lg shadow-brand/20 scale-110"
-                      : "bg-white border-gray-200 text-gray-400"
+                      ? "border-brand text-brand shadow-lg shadow-brand/10 scale-110 font-bold"
+                      : "border-gray-200 text-gray-400"
                   )}
                 >
-                  {step > s.id ? <Check className="w-5 h-5" /> : <span>{s.id}</span>}
+                  {step > s.id ? (
+                    <div className="bg-brand w-full h-full rounded-full flex items-center justify-center text-white">
+                      <Check className="w-5 h-5" />
+                    </div>
+                  ) : (
+                    <span>{s.id}</span>
+                  )}
                 </div>
-                <div className="absolute top-12 whitespace-nowrap text-center opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity">
-                  <p className={cn("text-[10px] font-bold uppercase tracking-wider", step >= s.id ? "text-brand" : "text-gray-400")}>
+                <div className="absolute top-12 whitespace-nowrap text-center">
+                  <p className={cn(
+                    "text-[10px] font-bold uppercase tracking-[0.15em] transition-colors duration-500",
+                    step >= s.id ? "text-brand" : "text-gray-400"
+                  )}>
                     {s.name}
+                  </p>
+                  <p className="text-[9px] text-gray-400 font-medium hidden md:block">
+                    {s.description}
                   </p>
                 </div>
               </div>
             ))}
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 relative">
             <AnimatePresence mode="wait">
               {step === 1 && (
                 <motion.div
@@ -404,6 +435,7 @@ export default function OnboardingPage() {
                       <FieldLabel>Nome da Organização</FieldLabel>
                       <Input
                         {...register('orgName')}
+                        onChange={handleOrgNameChange}
                         placeholder="Ex: Minha Software House"
                         className="h-14 text-lg rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white transition-all"
                       />
@@ -412,12 +444,14 @@ export default function OnboardingPage() {
 
                     <Field>
                       <FieldLabel>URL Exclusiva</FieldLabel>
-                      <div className="relative">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-mono text-sm">scopeflow.io/</span>
-                        <Input
+                      <div className="flex items-center h-14 w-full rounded-2xl border border-gray-100 bg-gray-50/50 focus-within:bg-white focus-within:ring-2 focus-within:ring-brand/20 transition-all overflow-hidden px-4 gap-0">
+                        <span className="text-gray-400 font-mono text-sm whitespace-nowrap select-none pr-1">
+                          scopeflow.com.br/
+                        </span>
+                        <input
                           {...register('slug')}
                           placeholder="meu-negocio"
-                          className="h-14 pl-[105px] text-lg rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white transition-all font-mono"
+                          className="flex-1 h-full bg-transparent border-none outline-none text-lg font-mono text-gray-900 placeholder:text-gray-300 min-w-0 p-0"
                           onChange={(e) => {
                             const val = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '')
                             setValue('slug', val)
@@ -468,6 +502,17 @@ export default function OnboardingPage() {
                           type="button"
                           onClick={() => {
                             setValue('profile', p.id)
+                            // Reset answers to default for this profile to avoid calculation ghosting
+                            setValue('answers', {
+                              taxRegime: 'Simples Nacional',
+                              taxPercentage: '6',
+                              workHoursDay: '6',
+                              workDaysMonth: '22',
+                              desiredSalary: '5000',
+                              fixedCosts: '1000',
+                              contingencyReserve: '10',
+                              profitMargin: '20',
+                            })
                           }}
                           className={cn(
                             "flex items-start gap-4 p-5 rounded-3xl border-2 transition-all text-left group",
@@ -558,6 +603,15 @@ export default function OnboardingPage() {
                             )}
                           </Field>
                         ))}
+                        <Field>
+                          <FieldLabel>Dias trabalhados por mês</FieldLabel>
+                          <Input
+                            type="number"
+                            {...register('answers.workDaysMonth')}
+                            placeholder="22"
+                            className="h-12 rounded-xl bg-gray-50/50 border-gray-100 focus:bg-white"
+                          />
+                        </Field>
                         <Field>
                           <FieldLabel>Margem de Lucro Alvo (%)</FieldLabel>
                           <Input

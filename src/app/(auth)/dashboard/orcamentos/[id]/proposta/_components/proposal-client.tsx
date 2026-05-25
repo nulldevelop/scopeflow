@@ -372,20 +372,37 @@ export function ProposalClient({
               </div>
 
               <div className="bg-gray-50 p-8 rounded-lg flex flex-col justify-center text-center md:text-right print:bg-white print:border print:p-4">
-                <div className="mb-6">
-                  <p className="text-xs uppercase font-bold text-gray-400 mb-2 tracking-widest print:text-[8px]">
-                    Setup do Projeto
-                  </p>
-                  <p className="text-4xl font-mono font-bold text-gray-900 mb-1 tracking-tighter print:text-2xl">
-                    {Number(quote.totalValue).toLocaleString('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL',
-                      maximumFractionDigits: 0,
-                    })}
-                  </p>
-                  <p className="text-[10px] text-gray-400">
-                    Investimento único inicial
-                  </p>
+                <div className="mb-6 space-y-4">
+                  <div>
+                    <p className="text-xs uppercase font-bold text-gray-400 mb-2 tracking-widest print:text-[8px]">
+                      Setup do Projeto
+                    </p>
+                    
+                    {Number(quote.discount) > 0 && (
+                      <div className="mb-2 space-y-1">
+                        <p className="text-sm font-mono text-gray-400 line-through">
+                          {(Number(quote.totalValue) / (1 - Number(quote.discount) / 100)).toLocaleString('pt-BR', {
+                            style: 'currency',
+                            currency: 'BRL',
+                          })}
+                        </p>
+                        <p className="text-xs font-bold text-green-500 uppercase tracking-wider">
+                          {quote.discount}% de Desconto aplicado
+                        </p>
+                      </div>
+                    )}
+
+                    <p className="text-4xl font-mono font-bold text-gray-900 mb-1 tracking-tighter print:text-2xl">
+                      {Number(quote.totalValue).toLocaleString('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                        maximumFractionDigits: 0,
+                      })}
+                    </p>
+                    <p className="text-[10px] text-gray-400">
+                      Investimento único inicial
+                    </p>
+                  </div>
                 </div>
 
                 {Number(quote.monthlyTotal) > 0 && (
@@ -401,11 +418,7 @@ export function ProposalClient({
                       })}
                     </p>
                     <p className="text-[10px] text-brand-dark/60">
-                      Recurrente por{' '}
-                      {quote.items.find(
-                        (i: SerializedQuoteItem) => Number(i.monthlyFee) > 0,
-                      )?.monthlyDuration || 12}{' '}
-                      meses
+                      Recurrente / Mensal
                     </p>
                   </div>
                 )}

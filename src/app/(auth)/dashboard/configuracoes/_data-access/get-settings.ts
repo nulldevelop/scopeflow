@@ -1,0 +1,59 @@
+import { headers } from 'next/headers'
+import { auth } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
+
+export async function getSettings() {
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    })
+
+    if (!session?.user || !session?.session?.activeOrganizationId) {
+      return null
+    }
+
+    const [user, organization] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: session.user.id },
+      }),
+      prisma.organization.findUnique({
+        where: { id: session.session.activeOrganizationId },
+      }),
+    ])
+
+    if (!user || !organization) {
+      return null
+    }
+
+    const metadata = organization.metadata ? JSON.parse(organization.metadata) : {}
+
+    return {
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        image: user.image,
+      },
+      organization: {
+        id: organization.id,
+        name: organization.name,
+        slug: organization.slug,
+        metadata: {
+          profile: metadata.profile || 'fullstack',
+          answers: metadata.answers || {
+            taxPercentage: '6',
+            workHoursDay: '6',
+            workDaysMonth: '22',
+            desiredSalary: '5000',
+            fixedCosts: '1000',
+            profitMargin: '20',
+          },
+          plan: metadata.plan || 'free',
+        },
+      },
+    }
+  } catch (error) {
+    console.error('[Get Settings Error]', error)
+    return null
+  }
+}

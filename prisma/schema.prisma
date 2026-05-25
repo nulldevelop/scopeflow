@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
 }
 
 enum ROLES {
@@ -79,27 +79,61 @@ model Verification {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  @@index([identifier(length: 191)])
+
   @@map("verification")
 }
 
 model Organization {
-  id          String       @id @default(uuid())
-  name        String       @db.Text
-  slug        String
-  logo        String?      @db.Text
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  metadata    String?      @db.Text
-  members     Member[]
-  invitations Invitation[]
-  clients     Client[]
-  categories  Category[]
-  features    Feature[]
-  quotes      Quote[]
+  id                String       @id @default(uuid())
+  name              String       @db.Text
+  slug              String
+  logo              String?      @db.Text
+  abacateCustomerId String?      @db.Text
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  metadata          String?      @db.Text
+  members           Member[]
+  invitations       Invitation[]
+  clients           Client[]
+  categories        Category[]
+  features          Feature[]
+  quotes            Quote[]
+  subscriptions     Subscription[]
+  billingHistories  BillingHistory[]
 
   @@unique([slug])
   @@map("organization")
+}
+
+model Subscription {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  externalId     String?      @unique // ID da assinatura no AbacatePay
+  plan           String       // free, basic, pro, etc.
+  status         String       // active, cancelled, past_due, etc.
+  currentPeriodEnd DateTime?
+  cancelAtPeriodEnd Boolean   @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId])
+  @@map("subscription")
+}
+
+model BillingHistory {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  amount         Decimal      @db.Decimal(15, 2)
+  status         String       // paid, pending, failed
+  paymentMethod  String?      // pix, card
+  invoiceUrl     String?      @db.Text
+  externalId     String?      @unique // ID do checkout/transação no AbacatePay
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
+  @@map("billing_history")
 }
 
 model Member {
@@ -128,7 +162,7 @@ model Invitation {
   user           User         @relation(fields: [inviterId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
-  @@index([email(length: 191)])
+  @@index([email])
   @@map("invitation")
 }
 

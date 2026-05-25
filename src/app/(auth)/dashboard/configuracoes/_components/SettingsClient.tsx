@@ -1,0 +1,300 @@
+'use client'
+
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Bell, CreditCard, Save, Shield, User } from 'lucide-react'
+import React, { useMemo } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import { Header } from '@/components/shared/Header'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
+import { updateSettingsAction } from '../_actions/update-settings'
+import { settingsSchema, type SettingsInput } from '../_schemas/settings'
+
+interface SettingsClientProps {
+  initialData: {
+    user: {
+      id: string
+      name: string
+      email: string
+      image: string | null
+    }
+    organization: {
+      id: string
+      name: string
+      slug: string
+      metadata: {
+        profile: string
+        answers: {
+          taxPercentage: string
+          workHoursDay: string
+          workDaysMonth: string
+          desiredSalary: string
+          fixedCosts: string
+          profitMargin: string
+        }
+        plan: string
+      }
+    }
+  }
+}
+
+const tabs = [
+  { id: 'perfil', label: 'Perfil', icon: User },
+  { id: 'notificacoes', label: 'Notificações', icon: Bell },
+  { id: 'seguranca', label: 'Segurança', icon: Shield },
+  { id: 'pagamento', label: 'Pagamento', icon: CreditCard },
+]
+
+export function SettingsClient({ initialData }: SettingsClientProps) {
+  const [activeTab, setActiveTab] = React.useState('perfil')
+  const [isSaving, setIsSaving] = React.useState(false)
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isDirty },
+  } = useForm<SettingsInput>({
+    resolver: zodResolver(settingsSchema),
+    defaultValues: {
+      name: initialData.user.name,
+      email: initialData.user.email,
+      taxPercentage: initialData.organization.metadata.answers.taxPercentage,
+      workHoursDay: initialData.organization.metadata.answers.workHoursDay,
+      workDaysMonth: initialData.organization.metadata.answers.workDaysMonth,
+      desiredSalary: initialData.organization.metadata.answers.desiredSalary,
+      fixedCosts: initialData.organization.metadata.answers.fixedCosts,
+      profitMargin: initialData.organization.metadata.answers.profitMargin,
+    },
+  })
+
+  const formData = watch()
+
+  const hourlyRate = useMemo(() => {
+    const desiredSalary = Number(formData.desiredSalary) || 0
+    const fixedCosts = Number(formData.fixedCosts) || 0
+    const taxPercentage = Number(formData.taxPercentage) || 0
+    const profitMargin = Number(formData.profitMargin) || 0
+    const workHoursDay = Number(formData.workHoursDay) || 0
+    const workDaysMonth = Number(formData.workDaysMonth) || 22
+
+    const monthlyGoal = (desiredSalary + fixedCosts) / (1 - (taxPercentage + profitMargin) / 100)
+    const hoursPerMonth = workHoursDay * workDaysMonth
+
+    return hoursPerMonth > 0 ? Math.ceil(monthlyGoal / hoursPerMonth) : 0
+  }, [formData])
+
+  const onSubmit = async (data: SettingsInput) => {
+    setIsSaving(true)
+    try {
+      const result = await updateSettingsAction(data)
+      if (result.success) {
+        toast.success('Configurações salvas com sucesso!')
+      } else {
+        toast.error(result.error || 'Erro ao salvar configurações.')
+      }
+    } catch (error) {
+      toast.error('Erro de conexão.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  return (
+    <div className="px-8 pb-12">
+      <Header title="Configurações">
+        <Button 
+          onClick={handleSubmit(onSubmit)}
+          disabled={!isDirty || isSaving}
+          className="bg-brand text-white hover:bg-brand-dark rounded-lg flex items-center gap-2"
+        >
+          <Save className="w-4 h-4" />
+          {isSaving ? 'Salvando...' : 'Salvar alterações'}
+        </Button>
+      </Header>
+
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Sidebar Tabs */}
+        <aside className="w-full lg:w-64 space-y-1">
+          {tabs.map((tab) => (
+            <Button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={cn(
+                'w-full flex items-center justify-start gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all',
+                activeTab === tab.id
+                  ? 'bg-brand text-white shadow-md shadow-brand/20'
+                  : 'text-gray-600 hover:bg-white hover:text-gray-900 border border-transparent hover:border-gray-200 bg-transparent',
+              )}
+            >
+              <tab.icon
+                className={cn(
+                  'w-4 h-4',
+                  activeTab === tab.id ? 'text-white' : 'text-gray-400',
+                )}
+              />
+              {tab.label}
+            </Button>
+          ))}
+        </aside>
+
+        {/* Content Area */}
+        <main className="flex-1">
+          <Card className="p-8 bg-white border border-gray-200 rounded-[20px]">
+            <form onSubmit={handleSubmit(onSubmit)}>
+              {activeTab === 'perfil' && (
+                <div className="space-y-8">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                      Informações do Perfil
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      Atualize seus dados pessoais e profissionais.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-6">
+                    <div className="w-20 h-20 rounded-2xl bg-brand-light flex items-center justify-center overflow-hidden border-2 border-white shadow-sm">
+                      {initialData.user.image ? (
+                        <img
+                          src={initialData.user.image}
+                          alt={initialData.user.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-brand font-bold text-2xl">
+                          {initialData.user.name.charAt(0)}
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <Button type="button" variant="outline" size="sm" className="mb-2">
+                        Alterar foto
+                      </Button>
+                      <p className="text-[11px] text-gray-400">
+                        JPG, GIF ou PNG. Máximo de 2MB.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Nome completo</Label>
+                      <Input
+                        id="name"
+                        {...register('name')}
+                        className="rounded-lg h-11"
+                      />
+                      {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email">E-mail</Label>
+                      <Input
+                        id="email"
+                        {...register('email')}
+                        className="rounded-lg h-11"
+                      />
+                      {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
+                    </div>
+                  </div>
+
+                  <div className="pt-6 border-t border-gray-100">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      Calibragem Financeira
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="desiredSalary">Salário Desejado (R$)</Label>
+                        <Input
+                          id="desiredSalary"
+                          type="number"
+                          {...register('desiredSalary')}
+                          className="rounded-lg h-11"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="fixedCosts">Custos Fixos (R$)</Label>
+                        <Input
+                          id="fixedCosts"
+                          type="number"
+                          {...register('fixedCosts')}
+                          className="rounded-lg h-11"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="taxPercentage">% Imposto</Label>
+                        <Input
+                          id="taxPercentage"
+                          type="number"
+                          {...register('taxPercentage')}
+                          className="rounded-lg h-11"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="workHoursDay">Horas/dia</Label>
+                        <Input
+                          id="workHoursDay"
+                          type="number"
+                          {...register('workHoursDay')}
+                          className="rounded-lg h-11"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="workDaysMonth">Dias/mês</Label>
+                        <Input
+                          id="workDaysMonth"
+                          type="number"
+                          {...register('workDaysMonth')}
+                          className="rounded-lg h-11"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="profitMargin">% Margem de Lucro</Label>
+                        <Input
+                          id="profitMargin"
+                          type="number"
+                          {...register('profitMargin')}
+                          className="rounded-lg h-11"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-8 p-6 bg-brand/5 rounded-2xl border border-brand/10 flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-bold text-brand uppercase tracking-wider mb-1">Seu Valor Hora Sugerido</p>
+                        <p className="text-3xl font-black text-gray-900 font-mono">R$ {hourlyRate}</p>
+                      </div>
+                      <div className="text-right text-xs text-gray-500">
+                        <p>Faturamento alvo: <span className="font-bold text-gray-900">R$ {Math.ceil(((Number(formData.desiredSalary) || 0) + (Number(formData.fixedCosts) || 0)) / (1 - (Number(formData.taxPercentage) || 0 + (Number(formData.profitMargin) || 0)) / 100))}</span></p>
+                        <p>Horas mensais: <span className="font-bold text-gray-900">{(Number(formData.workHoursDay) || 0) * (Number(formData.workDaysMonth) || 0)}h</span></p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab !== 'perfil' && (
+                <div className="py-12 text-center">
+                  <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Shield className="w-8 h-8 text-gray-300" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Em desenvolvimento
+                  </h3>
+                  <p className="text-sm text-gray-500 max-w-sm mx-auto">
+                    Esta seção de configurações está sendo preparada e estará
+                    disponível em breve.
+                  </p>
+                </div>
+              )}
+            </form>
+          </Card>
+        </main>
+      </div>
+    </div>
+  )
+}

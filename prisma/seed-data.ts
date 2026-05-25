@@ -1,4 +1,5 @@
 export const defaultCategories = [
+  { name: 'Sites & Landing Pages' },
   { name: 'Autenticação' },
   { name: 'Dashboard & Interface' },
   { name: 'Pagamentos & Assinaturas' },
@@ -7,9 +8,65 @@ export const defaultCategories = [
   { name: 'API & Integrações' },
   { name: 'CMS & Conteúdo' },
   { name: 'Segurança & Auditoria' },
+  { name: 'Mobile & PWA' },
+  { name: 'Infraestrutura & DevOps' },
+  { name: 'Marketing & SEO' },
 ]
 
 export const defaultFeatures = [
+  // Sites & Landing Pages
+  {
+    name: 'Landing Page de Alta Conversão',
+    description: 'Página única focada em venda/lead com seções de hero, benefícios, prova social e CTA.',
+    baseHours: 12,
+    complexity: 'media',
+    categoryName: 'Sites & Landing Pages',
+  },
+  {
+    name: 'Site Institucional (5+ páginas)',
+    description: 'Estrutura completa com Home, Sobre, Serviços, Blog e Contato.',
+    baseHours: 24,
+    complexity: 'media',
+    categoryName: 'Sites & Landing Pages',
+  },
+  {
+    name: 'Blog Integrado',
+    description: 'Sistema de publicação de artigos com categorias, tags e busca.',
+    baseHours: 16,
+    complexity: 'media',
+    categoryName: 'Sites & Landing Pages',
+  },
+  {
+    name: 'Formulário de Contato Avançado',
+    description: 'Integração com CRM, validação de campos e proteção anti-spam (reCAPTCHA).',
+    baseHours: 6,
+    complexity: 'baixa',
+    categoryName: 'Sites & Landing Pages',
+  },
+
+  // Marketing & SEO
+  {
+    name: 'Otimização de SEO (On-page)',
+    description: 'Configuração de Meta Tags, OpenGraph, Sitemap e estruturação de dados (JSON-LD).',
+    baseHours: 8,
+    complexity: 'baixa',
+    categoryName: 'Marketing & SEO',
+  },
+  {
+    name: 'Google Analytics & Tag Manager',
+    description: 'Configuração completa de rastreamento de eventos e conversões.',
+    baseHours: 4,
+    complexity: 'baixa',
+    categoryName: 'Marketing & SEO',
+  },
+  {
+    name: 'Integração com Pixel de Conversão',
+    description: 'Implementação de Facebook Pixel e Google Ads Conversion Tracking.',
+    baseHours: 4,
+    complexity: 'baixa',
+    categoryName: 'Marketing & SEO',
+  },
+
   // Autenticação
   {
     name: 'Login Social (Google/GitHub)',
@@ -26,9 +83,9 @@ export const defaultFeatures = [
     categoryName: 'Autenticação',
   },
   {
-    name: 'Gestão de Convites',
-    description: 'Fluxo completo de convidar membros para a organização.',
-    baseHours: 6,
+    name: 'RBAC (Controle de Acesso)',
+    description: 'Gerenciamento de permissões baseado em cargos e papéis.',
+    baseHours: 10,
     complexity: 'media',
     categoryName: 'Autenticação',
   },
@@ -36,17 +93,9 @@ export const defaultFeatures = [
   // Dashboard
   {
     name: 'Dashboard Analítico',
-    description:
-      'Visualização de métricas com gráficos interativos (Recharts).',
+    description: 'Visualização de métricas com gráficos interativos (Recharts).',
     baseHours: 12,
     complexity: 'alta',
-    categoryName: 'Dashboard & Interface',
-  },
-  {
-    name: 'Filtros Dinâmicos',
-    description: 'Sistema de filtragem em tabelas e buscas avançadas.',
-    baseHours: 6,
-    complexity: 'media',
     categoryName: 'Dashboard & Interface',
   },
   {
@@ -56,6 +105,13 @@ export const defaultFeatures = [
     complexity: 'baixa',
     categoryName: 'Dashboard & Interface',
   },
+  {
+    name: 'Exportação CSV/PDF',
+    description: 'Funcionalidade para exportar dados de tabelas.',
+    baseHours: 6,
+    complexity: 'media',
+    categoryName: 'Dashboard & Interface',
+  },
 
   // Pagamentos
   {
@@ -63,7 +119,7 @@ export const defaultFeatures = [
     description: 'Integração de pagamentos únicos e recorrentes.',
     baseHours: 10,
     complexity: 'media',
-    categoryName: 'Pagamentos & Assinaturas',
+    categoryName: 'Pagamentos & Asssignatures',
   },
   {
     name: 'Gestão de Assinaturas (SaaS)',
@@ -72,42 +128,12 @@ export const defaultFeatures = [
     complexity: 'alta',
     categoryName: 'Pagamentos & Assinaturas',
   },
-  {
-    name: 'Histórico de Faturas',
-    description: 'Listagem e download de PDFs de pagamentos anteriores.',
-    baseHours: 6,
-    complexity: 'media',
-    categoryName: 'Pagamentos & Assinaturas',
-  },
-
-  // E-mail
-  {
-    name: 'E-mails Transacionais (Resend)',
-    description: 'Boas-vindas, recuperação de senha e avisos.',
-    baseHours: 4,
-    complexity: 'baixa',
-    categoryName: 'E-mail & Notificações',
-  },
-  {
-    name: 'Notificações Push',
-    description: 'Alertas em tempo real no navegador ou mobile.',
-    baseHours: 12,
-    complexity: 'alta',
-    categoryName: 'E-mail & Notificações',
-  },
 
   // Upload
   {
     name: 'Upload de Arquivos (S3/R2)',
     description: 'Armazenamento de imagens e documentos em nuvem.',
     baseHours: 8,
-    complexity: 'media',
-    categoryName: 'Arquivos & Upload',
-  },
-  {
-    name: 'Otimização de Imagens',
-    description: 'Redimensionamento e compressão automática no upload.',
-    baseHours: 6,
     complexity: 'media',
     categoryName: 'Arquivos & Upload',
   },
@@ -126,5 +152,39 @@ export const defaultFeatures = [
     baseHours: 10,
     complexity: 'alta',
     categoryName: 'API & Integrações',
+  },
+
+  // CMS
+  {
+    name: 'Editor Rich Text (TipTap)',
+    description: 'Editor visual para criação de conteúdo rico.',
+    baseHours: 8,
+    complexity: 'media',
+    categoryName: 'CMS & Conteúdo',
+  },
+
+  // Mobile
+  {
+    name: 'Sincronização Offline',
+    description: 'Persistência de dados local quando sem internet.',
+    baseHours: 14,
+    complexity: 'alta',
+    categoryName: 'Mobile & PWA',
+  },
+
+  // Infra
+  {
+    name: 'Audit Log',
+    description: 'Histórico de ações críticas realizadas por usuários.',
+    baseHours: 10,
+    complexity: 'media',
+    categoryName: 'Segurança & Auditoria',
+  },
+  {
+    name: 'Backup Automatizado',
+    description: 'Rotina de dump de banco de dados e arquivos.',
+    baseHours: 8,
+    complexity: 'media',
+    categoryName: 'Infraestrutura & DevOps',
   },
 ]
