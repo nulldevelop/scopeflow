@@ -2,6 +2,7 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { Sidebar } from '@/components/shared/Sidebar'
 import { getSessionClient } from '@/lib/getSession'
+import { prisma } from '@/lib/prisma'
 
 export default async function AuthLayout({
   children,
@@ -29,6 +30,26 @@ export default async function AuthLayout({
   // Se já tiver organização ativa e tentar acessar o onboarding, manda para o dashboard
   if (activeOrgId && pathname.includes('/onboarding')) {
     redirect('/dashboard')
+  }
+
+  // === PROTEÇÃO DE PAGAMENTO (PAYWALL) ===
+  // Se o usuário está acessando o dashboard (não o onboarding) e tem organização ativa
+  if (activeOrgId && !pathname.includes('/onboarding') && !pathname.includes('/dashboard/configuracoes')) {
+    const org = await prisma.organization.findUnique({
+      where: { id: activeOrgId },
+      include: { subscriptions: { where: { status: 'active' } } }
+    })
+
+    if (org?.metadata) {
+      const metadata = JSON.parse(org.metadata)
+      const intendedPlan = metadata.plan
+
+      // Se ele escolheu um plano pago no onboarding, mas não tem assinatura ativa
+      if ((intendedPlan === 'pro' || intendedPlan === 'equipe') && org.subscriptions.length === 0) {
+        // Bloqueia e manda para a tela de pagamento
+        redirect('/dashboard/configuracoes?tab=pagamento&payment_required=true')
+      }
+    }
   }
 
   if (pathname.includes('/onboarding')) {

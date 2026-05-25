@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Bell, CheckCircle2, CreditCard, Save, Shield, User } from 'lucide-react'
-import React, { useMemo } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { Header } from '@/components/shared/Header'
@@ -83,6 +83,17 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
       profitMargin: initialData.organization.metadata.answers.profitMargin,
     },
   })
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search)
+    if (searchParams.get('payment_required') === 'true') {
+      setActiveTab('pagamento')
+      toast.error('Você precisa finalizar o pagamento da sua assinatura para acessar o painel.', {
+        duration: 8000,
+        position: 'top-center'
+      })
+    }
+  }, [])
 
   const formData = watch()
 
@@ -379,6 +390,14 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
                             <div className="w-full h-11 bg-gray-50 rounded-xl flex items-center justify-center text-[11px] font-bold text-gray-400 border border-gray-100">
                               Plano Atual
                             </div>
+                          ) : plan.id === 'free' ? (
+                            <Button 
+                              type="button"
+                              onClick={() => toast.info('Para retornar ao plano Grátis, cancele sua assinatura atual via painel de faturas.')}
+                              className="w-full h-11 rounded-xl text-[11px] font-bold transition-all bg-gray-100 text-gray-500 hover:bg-gray-200"
+                            >
+                              Reverter para Grátis
+                            </Button>
                           ) : (
                             <Button 
                               type="button"

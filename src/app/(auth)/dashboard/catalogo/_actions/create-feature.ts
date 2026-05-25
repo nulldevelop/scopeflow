@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { checkPlanLimit } from '@/lib/billing'
 import { withPermission } from '@/lib/permissions/with-permission'
 import { prisma } from '@/lib/prisma'
 
@@ -20,6 +21,20 @@ export const createFeatureAction = withPermission(
     },
   ) => {
     try {
+      // 1. Verificação de Limite de Plano
+      const planInfo = await checkPlanLimit(ctx.organizationId)
+      
+      const currentFeaturesCount = await prisma.feature.count({
+        where: { organizationId: ctx.organizationId }
+      })
+
+      if (currentFeaturesCount >= planInfo.limits.featuresCount) {
+        return { 
+          success: false, 
+          error: `Você atingiu o limite de ${planInfo.limits.featuresCount} itens no catálogo para o plano ${planInfo.limits.name}. Faça upgrade para adicionar mais itens.` 
+        }
+      }
+
       const result = await prisma.feature.create({
         data: {
           name: data.name,
