@@ -275,6 +275,8 @@ const steps = [
   { id: 4, name: 'Plano', description: 'Escolha inicial' },
 ]
 
+export const dynamic = 'force-dynamic'
+
 export default function OnboardingPage() {
   const router = useRouter()
   const [step, setStep] = useState(1)

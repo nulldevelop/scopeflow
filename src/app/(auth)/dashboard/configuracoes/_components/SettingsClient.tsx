@@ -51,6 +51,8 @@ interface SettingsClientProps {
       }[]
     }
   }
+  initialTab?: string
+  paymentRequired?: boolean
 }
 
 const tabs = [
@@ -60,8 +62,8 @@ const tabs = [
   { id: 'pagamento', label: 'Pagamento', icon: CreditCard },
 ]
 
-export function SettingsClient({ initialData }: SettingsClientProps) {
-  const [activeTab, setActiveTab] = React.useState('perfil')
+export function SettingsClient({ initialData, initialTab = 'perfil', paymentRequired = false }: SettingsClientProps) {
+  const [activeTab, setActiveTab] = React.useState(initialTab)
   const [isSaving, setIsSaving] = React.useState(false)
   const [isRedirecting, setIsRedirecting] = React.useState(false)
 
@@ -85,15 +87,13 @@ export function SettingsClient({ initialData }: SettingsClientProps) {
   })
 
   useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search)
-    if (searchParams.get('payment_required') === 'true') {
-      setActiveTab('pagamento')
+    if (paymentRequired) {
       toast.error('Você precisa finalizar o pagamento da sua assinatura para acessar o painel.', {
         duration: 8000,
         position: 'top-center'
       })
     }
-  }, [])
+  }, [paymentRequired])
 
   const formData = watch()
 
