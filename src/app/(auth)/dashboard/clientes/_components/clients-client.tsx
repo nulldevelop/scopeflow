@@ -92,7 +92,7 @@ export function ClientsClient({
           setIsModalOpen(open)
           if (!open) setEditingClient(null)
         }}
-        initialData={editingClient}
+        initialData={editingClient || undefined}
       />
 
       <Header title="Clientes">

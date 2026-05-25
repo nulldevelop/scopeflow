@@ -34,7 +34,6 @@ export async function completeOnboardingAction(values: OnboardingInput) {
     let isNewOrg = false
     if (!org) {
       // Criar organização via API do Better-Auth para garantir consistência
-      // @ts-expect-error - createOrganization é injetado pelo plugin
       const newOrgResponse = await auth.api.createOrganization({
         headers: await headers(),
         body: {
@@ -84,7 +83,6 @@ export async function completeOnboardingAction(values: OnboardingInput) {
     })
 
     // 5. Definir a organização como ativa na sessão (Server-side)
-    // @ts-expect-error - setActiveOrganization é injetado pelo plugin
     await auth.api.setActiveOrganization({
       headers: await headers(),
       body: { organizationId: org.id },

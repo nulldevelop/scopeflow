@@ -5,7 +5,10 @@ import {
   getFeatureById,
 } from '../../catalogo/_data-access/get-features'
 import { getClients } from '../../clientes/_data-access/get-clients'
-import { QuoteEditorClient, type EditorFeature } from '../[id]/_components/quote-editor-client'
+import {
+  type EditorFeature,
+  QuoteEditorClient,
+} from '../[id]/_components/quote-editor-client'
 
 export default async function NewQuotePage({
   searchParams,

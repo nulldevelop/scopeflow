@@ -292,7 +292,6 @@ export default function OnboardingPage() {
     defaultValues: {
       orgName: '',
       slug: '',
-      // @ts-expect-error - initial undefined for enum
       profile: undefined,
       answers: {
         taxRegime: 'Simples Nacional',
@@ -468,7 +467,6 @@ export default function OnboardingPage() {
                           key={p.id}
                           type="button"
                           onClick={() => {
-                            // @ts-expect-error - enum type mismatch with string
                             setValue('profile', p.id)
                           }}
                           className={cn(
@@ -536,7 +534,6 @@ export default function OnboardingPage() {
                             {q.type === 'select' ? (
                               <Controller
                                 control={control}
-                                // @ts-expect-error - dynamic path
                                 name={`answers.${q.id}`}
                                 render={({ field }) => (
                                   <Select onValueChange={field.onChange} defaultValue={field.value}>
@@ -554,7 +551,6 @@ export default function OnboardingPage() {
                             ) : (
                               <Input
                                 type={q.type}
-                                // @ts-expect-error - dynamic path
                                 {...register(`answers.${q.id}`)}
                                 placeholder={q.placeholder}
                                 className="h-12 rounded-xl bg-gray-50/50 border-gray-100 focus:bg-white"

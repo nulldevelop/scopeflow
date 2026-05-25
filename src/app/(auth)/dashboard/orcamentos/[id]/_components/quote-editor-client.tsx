@@ -39,6 +39,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -59,23 +60,6 @@ const _profileInfo: Record<string, { name: string; icon: ElementType }> = {
   fullstack: { name: 'Full Stack Solo', icon: ZapIcon },
   software_house: { name: 'Software House', icon: UsersIcon },
   saas: { name: 'Dev de SaaS', icon: Rocket },
-}
-
-const _recommendedCategories: Record<string, string[]> = {
-  landing_page: ['Landing Page', 'E-mail'],
-  frontend: ['Dashboard', 'CMS', 'Landing Page'],
-  backend: ['API', 'Autenticação', 'Pagamentos', 'Integrações'],
-  fullstack: ['Autenticação', 'Pagamentos', 'Dashboard', 'CMS', 'API'],
-  saas: ['Autenticação', 'Pagamentos', 'Dashboard', 'CMS', 'API', 'Upload'],
-  software_house: [
-    'Autenticação',
-    'Pagamentos',
-    'Dashboard',
-    'CMS',
-    'API',
-    'Integrações',
-    'Upload',
-  ],
 }
 
 const categoryIcons: Record<string, ElementType> = {
@@ -119,6 +103,9 @@ export interface EditorQuote {
   clientId: string
   status: ProjectStatus
   hourlyRate: number
+  totalHours: number
+  totalValue: number
+  monthlyTotal: number
   discount: number
   urgencyFee: number
   entryAmount: number
@@ -140,7 +127,7 @@ export function QuoteEditorClient({
   initialFeatures?: EditorFeature[]
 }) {
   const router = useRouter()
-  const { getHours } = useDevProfile()
+  const { profile, getHours } = useDevProfile()
 
   const features = initialFeatures
 
@@ -157,15 +144,19 @@ export function QuoteEditorClient({
     clientId: initialQuote?.clientId || '',
     status: initialQuote?.status || 'rascunho',
     hourlyRate: initialQuote?.hourlyRate || 150,
+    totalHours: initialQuote?.totalHours || 0,
+    totalValue: initialQuote?.totalValue || 0,
+    monthlyTotal: initialQuote?.monthlyTotal || 0,
     items: initialQuote?.items || [],
     discount: initialQuote?.discount || 0,
     urgencyFee: initialQuote?.urgencyFee || 0,
     entryAmount: initialQuote?.entryAmount || 0,
     installments: initialQuote?.installments || 1,
-    expirationDate: initialQuote?.expirationDate || 
+    expirationDate:
+      initialQuote?.expirationDate ||
       new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-          .toISOString()
-          .split('T')[0],
+        .toISOString()
+        .split('T')[0],
     description: initialQuote?.description || '',
   })
 
@@ -200,14 +191,7 @@ export function QuoteEditorClient({
         }))
       }
     }
-  }, [
-    initialFeature,
-    isNew,
-    features,
-    getHours,
-    quote.hourlyRate,
-    quote.items.length,
-  ])
+  }, [initialFeature, isNew, features, getHours, quote.hourlyRate, quote.items])
 
   const totals = useMemo(() => {
     const totalHoras = (quote.items || []).reduce(
@@ -345,28 +329,24 @@ export function QuoteEditorClient({
 
   return (
     <div className="min-h-screen bg-[#F8F7F3] pb-20">
-      <div className="max-w-7xl mx-auto px-8 pt-8">
+      <div className="px-8 pt-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
             <div className="flex items-center gap-2 text-gray-400 mb-2">
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => router.back()}
-                className="hover:text-gray-600 transition-colors"
+                className="h-auto p-0 hover:bg-transparent hover:text-gray-600 transition-colors"
               >
                 Orçamentos
-              </button>
+              </Button>
               <ChevronLeft className="w-4 h-4 rotate-180" />
               <span className="text-gray-900 font-medium">
                 {isNew ? 'Novo Orçamento' : 'Editar Orçamento'}
               </span>
             </div>
-            <input
-              value={quote.title}
-              onChange={(e) => setQuote({ ...quote, title: e.target.value })}
-              placeholder="Título do Orçamento..."
-              className="text-3xl font-bold bg-transparent border-none outline-none focus:text-brand placeholder:text-gray-300 w-full"
-            />
           </div>
 
           <div className="flex items-center gap-3">
@@ -412,12 +392,17 @@ export function QuoteEditorClient({
                       <Plus className="w-4 h-4" /> Adicionar Módulo
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-4xl h-[80vh] flex flex-col p-0 overflow-hidden rounded-3xl border-none">
-                    <DialogHeader className="p-6 border-b border-gray-100">
+                  <DialogContent className="max-w-5xl p-0 overflow-hidden rounded-3xl border-none max-h-[90vh] flex flex-col">
+                    <DialogHeader className="p-6 border-b border-gray-100 shrink-0">
                       <DialogTitle className="text-2xl font-bold flex items-center gap-2">
                         Catálogo de Funcionalidades
+                        {profile && (
+                          <span className="text-xs font-medium bg-brand/10 text-brand px-2 py-1 rounded-full">
+                            Perfil: {_profileInfo[profile]?.name}
+                          </span>
+                        )}
                       </DialogTitle>
-                      <div className="mt-4 flex gap-3">
+                      <div className="mt-4 flex flex-col md:flex-row gap-3">
                         <div className="relative flex-1">
                           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                           <Input
@@ -450,15 +435,15 @@ export function QuoteEditorClient({
                       </div>
                     </DialogHeader>
 
-                    <div className="flex-1 overflow-y-auto p-6 bg-gray-50/50">
+                    <div className="flex-1 overflow-y-auto min-h-0 p-6 bg-gray-50/50">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {filteredFeatures.map((f) => {
                           const Icon = categoryIcons[f.categoria] || Zap
                           const isSelected = selectedFeatureIds.includes(f.id)
                           return (
-                            <button
+                            <Button
                               key={f.id}
-                              type="button"
+                              variant="ghost"
                               onClick={() => {
                                 setSelectedFeatureIds((prev) =>
                                   prev.includes(f.id)
@@ -467,10 +452,10 @@ export function QuoteEditorClient({
                                 )
                               }}
                               className={cn(
-                                'flex items-start gap-4 p-4 rounded-2xl border-2 transition-all text-left group',
+                                'flex items-start gap-4 p-4 rounded-2xl border-2 transition-all text-left h-auto whitespace-normal group',
                                 isSelected
-                                  ? 'bg-white border-brand shadow-md'
-                                  : 'bg-white border-transparent hover:border-gray-200 hover:shadow-sm',
+                                  ? 'bg-white border-brand shadow-md hover:bg-white'
+                                  : 'bg-white border-transparent hover:border-gray-200 hover:shadow-sm hover:bg-white',
                               )}
                             >
                               <div
@@ -492,7 +477,7 @@ export function QuoteEditorClient({
                                     {f.baseHours}h
                                   </span>
                                 </div>
-                                <p className="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                                <p className="text-xs text-gray-400 line-clamp-2 leading-relaxed font-normal">
                                   {f.descricao}
                                 </p>
                               </div>
@@ -506,7 +491,7 @@ export function QuoteEditorClient({
                               >
                                 {isSelected && <Check className="w-3 h-3" />}
                               </div>
-                            </button>
+                            </Button>
                           )
                         })}
                       </div>
@@ -558,30 +543,32 @@ export function QuoteEditorClient({
                         className="flex items-center gap-4 p-4 bg-white border border-gray-100 rounded-2xl hover:border-brand/20 hover:shadow-sm transition-all group"
                       >
                         <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            type="button"
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => moveItem(index, 'up')}
-                            className="p-1 hover:bg-gray-100 rounded text-gray-400"
+                            className="h-6 w-6 p-1 text-gray-400 hover:bg-gray-100"
                           >
                             <ChevronUp className="w-3 h-3" />
-                          </button>
-                          <button
-                            type="button"
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => moveItem(index, 'down')}
-                            className="p-1 hover:bg-gray-100 rounded text-gray-400"
+                            className="h-6 w-6 p-1 text-gray-400 hover:bg-gray-100"
                           >
                             <ChevronDown className="w-3 h-3" />
-                          </button>
+                          </Button>
                         </div>
 
                         <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
                           <div className="md:col-span-6">
-                            <input
+                            <Input
                               value={item.name}
                               onChange={(e) =>
                                 updateItem(item.id, { name: e.target.value })
                               }
-                              className="w-full font-bold text-gray-900 bg-transparent border-none outline-none focus:text-brand"
+                              className="w-full font-bold text-gray-900 bg-transparent border-none outline-none focus-visible:ring-0 focus:text-brand p-0 h-auto"
                             />
                             <p className="text-xs text-gray-400 truncate">
                               {item.description || 'Sem descrição'}
@@ -589,7 +576,7 @@ export function QuoteEditorClient({
                           </div>
                           <div className="md:col-span-5 flex items-center gap-4">
                             <div className="relative w-20">
-                              <input
+                              <Input
                                 type="number"
                                 value={item.hours}
                                 onChange={(e) =>
@@ -597,7 +584,7 @@ export function QuoteEditorClient({
                                     hours: Number(e.target.value),
                                   })
                                 }
-                                className="w-full h-9 pl-2 pr-5 bg-gray-50 border-none rounded-lg text-sm font-mono font-bold text-gray-700 outline-none focus:ring-1 focus:ring-brand"
+                                className="w-full h-9 pl-2 pr-5 bg-gray-50 border-none rounded-lg text-sm font-mono font-bold text-gray-700 outline-none focus-visible:ring-1 focus-visible:ring-brand"
                               />
                               <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold">
                                 h
@@ -609,7 +596,7 @@ export function QuoteEditorClient({
                                 <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold">
                                   R$
                                 </span>
-                                <input
+                                <Input
                                   type="number"
                                   value={item.monthlyFee}
                                   onChange={(e) =>
@@ -617,7 +604,7 @@ export function QuoteEditorClient({
                                       monthlyFee: Number(e.target.value),
                                     })
                                   }
-                                  className="w-full h-9 pl-6 pr-2 bg-brand/5 border-none rounded-lg text-sm font-mono font-bold text-brand outline-none focus:ring-1 focus:ring-brand"
+                                  className="w-full h-9 pl-6 pr-2 bg-brand/5 border-none rounded-lg text-sm font-mono font-bold text-brand outline-none focus-visible:ring-1 focus-visible:ring-brand"
                                 />
                               </div>
                               <span className="text-[10px] text-brand font-bold">
@@ -626,13 +613,14 @@ export function QuoteEditorClient({
                             </div>
                           </div>
                           <div className="md:col-span-1 flex justify-end">
-                            <button
-                              type="button"
+                            <Button
+                              variant="ghost"
+                              size="icon"
                               onClick={() => removeItem(item.id)}
                               className="p-2 text-gray-300 hover:text-red-500 transition-colors"
                             >
                               <Trash2 className="w-4 h-4" />
-                            </button>
+                            </Button>
                           </div>
                         </div>
                       </div>
@@ -696,7 +684,9 @@ export function QuoteEditorClient({
                   </div>
 
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-400">Prazo Estimado</span>
+                    <span className="text-sm text-gray-400">
+                      Prazo Estimado
+                    </span>
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-gray-500" />
                       <span className="font-bold text-sm">
@@ -720,7 +710,7 @@ export function QuoteEditorClient({
                       <div className="flex items-center gap-1.5">
                         <span className="text-sm text-gray-400">Desconto</span>
                         <div className="relative w-14">
-                          <input
+                          <Input
                             type="number"
                             value={quote.discount}
                             onChange={(e) =>
@@ -729,9 +719,9 @@ export function QuoteEditorClient({
                                 discount: Number(e.target.value),
                               })
                             }
-                            className="w-full bg-white/5 border-none rounded h-6 text-center text-xs font-bold text-green-400 outline-none focus:ring-1 focus:ring-green-400/50"
+                            className="w-full bg-white/5 border-none rounded h-6 text-center text-xs font-bold text-green-400 outline-none focus-visible:ring-1 focus-visible:ring-green-400/50 p-0"
                           />
-                          <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">
+                          <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-gray-500 pointer-events-none">
                             %
                           </span>
                         </div>
@@ -749,7 +739,7 @@ export function QuoteEditorClient({
                       <div className="flex items-center gap-1.5">
                         <span className="text-sm text-gray-400">Urgência</span>
                         <div className="relative w-14">
-                          <input
+                          <Input
                             type="number"
                             value={quote.urgencyFee}
                             onChange={(e) =>
@@ -758,9 +748,9 @@ export function QuoteEditorClient({
                                 urgencyFee: Number(e.target.value),
                               })
                             }
-                            className="w-full bg-white/5 border-none rounded h-6 text-center text-xs font-bold text-orange-400 outline-none focus:ring-1 focus:ring-orange-400/50"
+                            className="w-full bg-white/5 border-none rounded h-6 text-center text-xs font-bold text-orange-400 outline-none focus-visible:ring-1 focus-visible:ring-orange-400/50 p-0"
                           />
-                          <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">
+                          <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-gray-500 pointer-events-none">
                             %
                           </span>
                         </div>
@@ -831,6 +821,25 @@ export function QuoteEditorClient({
 
             <Card className="p-8 bg-white border-gray-100 rounded-3xl shadow-sm space-y-8">
               <div className="space-y-4">
+                <Label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
+                  Identificação do Orçamento
+                </Label>
+                <Field>
+                  <FieldLabel className="text-xs text-gray-500 font-normal normal-case tracking-normal mb-1">
+                    Título do Projeto
+                  </FieldLabel>
+                  <Input
+                    value={quote.title}
+                    onChange={(e) =>
+                      setQuote({ ...quote, title: e.target.value })
+                    }
+                    placeholder="Ex: Desenvolvimento de App Mobile"
+                    className="h-11 bg-gray-50 border-none rounded-xl font-bold focus-visible:ring-1 focus-visible:ring-brand"
+                  />
+                </Field>
+              </div>
+
+              <div className="space-y-4 pt-6 border-t border-gray-50">
                 <div className="flex items-center justify-between">
                   <Label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
                     Cliente do Projeto
@@ -847,15 +856,17 @@ export function QuoteEditorClient({
 
                 <div className="grid grid-cols-1 gap-2 max-h-[200px] overflow-y-auto no-scrollbar pr-1">
                   {initialClients.map((client) => (
-                    <button
+                    <Button
                       key={client.id}
-                      type="button"
-                      onClick={() => setQuote({ ...quote, clientId: client.id })}
+                      variant="ghost"
+                      onClick={() =>
+                        setQuote({ ...quote, clientId: client.id })
+                      }
                       className={cn(
-                        'flex items-center gap-3 p-3 rounded-xl border transition-all text-left',
+                        'flex items-center gap-3 p-3 rounded-xl border transition-all text-left h-auto whitespace-normal font-normal',
                         quote.clientId === client.id
-                          ? 'border-brand bg-brand/5 ring-1 ring-brand'
-                          : 'border-gray-100 hover:border-gray-200',
+                          ? 'border-brand bg-brand/5 ring-1 ring-brand hover:bg-brand/5'
+                          : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50',
                       )}
                     >
                       <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center font-bold text-gray-400 text-xs shrink-0">
@@ -872,7 +883,7 @@ export function QuoteEditorClient({
                       {quote.clientId === client.id && (
                         <Check className="w-3.5 h-3.5 text-brand" />
                       )}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -883,8 +894,10 @@ export function QuoteEditorClient({
                 </Label>
 
                 <div className="space-y-4">
-                  <div className="flex flex-col gap-2">
-                    <span className="text-xs text-gray-500">Valor da Hora</span>
+                  <Field>
+                    <FieldLabel className="text-xs text-gray-500 font-normal normal-case tracking-normal mb-1">
+                      Valor da Hora
+                    </FieldLabel>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">
                         R$
@@ -898,13 +911,15 @@ export function QuoteEditorClient({
                             hourlyRate: Number(e.target.value),
                           })
                         }
-                        className="pl-9 h-11 bg-gray-50 border-none rounded-xl font-mono font-bold"
+                        className="pl-9 h-11 bg-gray-50 border-none rounded-xl font-mono font-bold focus-visible:ring-1 focus-visible:ring-brand"
                       />
                     </div>
-                  </div>
+                  </Field>
 
-                  <div className="flex flex-col gap-2">
-                    <span className="text-xs text-gray-500">Validade</span>
+                  <Field>
+                    <FieldLabel className="text-xs text-gray-500 font-normal normal-case tracking-normal mb-1">
+                      Validade
+                    </FieldLabel>
                     <div className="relative">
                       <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                       <Input
@@ -913,14 +928,16 @@ export function QuoteEditorClient({
                         onChange={(e) =>
                           setQuote({ ...quote, expirationDate: e.target.value })
                         }
-                        className="pl-10 h-11 bg-gray-50 border-none rounded-xl"
+                        className="pl-10 h-11 bg-gray-50 border-none rounded-xl focus-visible:ring-1 focus-visible:ring-brand"
                       />
                     </div>
-                  </div>
+                  </Field>
 
                   <div className="grid grid-cols-2 gap-4 pt-2">
-                    <div className="flex flex-col gap-2">
-                      <span className="text-xs text-gray-500">Entrada</span>
+                    <Field>
+                      <FieldLabel className="text-xs text-gray-500 font-normal normal-case tracking-normal mb-1">
+                        Entrada
+                      </FieldLabel>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] font-bold">
                           R$
@@ -934,12 +951,14 @@ export function QuoteEditorClient({
                               entryAmount: Number(e.target.value),
                             })
                           }
-                          className="pl-8 h-10 bg-gray-50 border-none rounded-xl text-sm"
+                          className="pl-8 h-10 bg-gray-50 border-none rounded-xl text-sm focus-visible:ring-1 focus-visible:ring-brand"
                         />
                       </div>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <span className="text-xs text-gray-500">Parcelas</span>
+                    </Field>
+                    <Field>
+                      <FieldLabel className="text-xs text-gray-500 font-normal normal-case tracking-normal mb-1">
+                        Parcelas
+                      </FieldLabel>
                       <div className="relative">
                         <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5" />
                         <Input
@@ -953,10 +972,10 @@ export function QuoteEditorClient({
                               installments: Number(e.target.value),
                             })
                           }
-                          className="pl-9 h-10 bg-gray-50 border-none rounded-xl text-sm"
+                          className="pl-9 h-10 bg-gray-50 border-none rounded-xl text-sm focus-visible:ring-1 focus-visible:ring-brand"
                         />
                       </div>
-                    </div>
+                    </Field>
                   </div>
                 </div>
               </div>

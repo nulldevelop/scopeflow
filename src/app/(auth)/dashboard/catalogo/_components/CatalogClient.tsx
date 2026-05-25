@@ -72,15 +72,15 @@ interface CatalogClientProps {
 }
 
 const categoryIcons: Record<string, React.ElementType> = {
-  Autenticacao: Lock,
-  Dashboard: Layout,
-  Pagamentos: CreditCard,
+  'Autenticação': Lock,
+  'Dashboard': Layout,
+  'Pagamentos': CreditCard,
   'E-mail': Mail,
-  Upload: Upload,
-  CMS: Database,
-  API: Globe,
-  Integracoes: Share2,
-  Outro: Zap,
+  'Upload': Upload,
+  'CMS': Database,
+  'API': Globe,
+  'Integrações': Share2,
+  'Outro': Zap,
 }
 
 export default function CatalogClient({
@@ -233,11 +233,12 @@ export default function CatalogClient({
                 Categorias
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Gerenciar Categorias</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-6 pt-4">
+            <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden max-h-[90vh] block">
+              <div className="overflow-y-auto p-6">
+                <DialogHeader className="mb-4">
+                  <DialogTitle>Gerenciar Categorias</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-6 pt-2">
                 <div className="flex gap-2">
                   <Input
                     placeholder="Nova categoria..."
@@ -308,6 +309,7 @@ export default function CatalogClient({
                     </div>
                   ))}
                 </div>
+                </div>
               </div>
             </DialogContent>
           </Dialog>
@@ -328,13 +330,14 @@ export default function CatalogClient({
                 Nova funcionalidade
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingFeature ? 'Editar' : 'Nova'} Funcionalidade
-                </DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+            <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden max-h-[90vh] block">
+              <div className="max-h-[85vh] overflow-y-auto p-6 md:p-8">
+                <DialogHeader className="mb-6">
+                  <DialogTitle className="text-xl font-bold">
+                    {editingFeature ? 'Editar' : 'Nova'} Funcionalidade
+                  </DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleSubmit} className="space-y-6 pb-4">
                 <div className="space-y-2">
                   <Label
                     htmlFor="name"
@@ -526,6 +529,7 @@ export default function CatalogClient({
                   </Button>
                 </div>
               </form>
+              </div>
             </DialogContent>
           </Dialog>
         </div>
@@ -580,6 +584,11 @@ export default function CatalogClient({
                   <h3 className="text-base font-bold text-gray-900 line-clamp-1 group-hover:text-brand transition-colors">
                     {feature.name}
                   </h3>
+                  {Number(feature.monthlyFee) > 0 && (
+                    <span className="shrink-0 ml-2 px-1.5 py-0.5 rounded-md bg-brand/10 text-brand text-[9px] font-black uppercase tracking-widest border border-brand/20">
+                      R$ {Number(feature.monthlyFee)}/mês
+                    </span>
+                  )}
                 </div>
                 <p className="text-[10px] uppercase font-black text-gray-300 tracking-widest mb-4 group-hover:text-brand/60 transition-colors">
                   {feature.category?.name || 'Sem Categoria'}
@@ -591,58 +600,44 @@ export default function CatalogClient({
               </div>
 
               <div className="flex items-center justify-between pt-5 border-t border-gray-50">
-                <div className="flex gap-4">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-gray-300 uppercase">
-                      Esforço
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-gray-300 uppercase">
+                    Esforço
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-sm font-mono font-black text-gray-900">
+                      {feature.baseHours}h
                     </span>
-                    <div className="flex items-center gap-1">
-                      <span className="text-sm font-mono font-black text-gray-900">
-                        {feature.baseHours}h
-                      </span>
-                    </div>
                   </div>
-                  {Number(feature.monthlyFee) > 0 && (
-                    <div className="flex flex-col">
-                      <span className="text-[10px] font-bold text-brand uppercase">
-                        Mensal
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <span className="text-sm font-mono font-black text-brand">
-                          R$ {Number(feature.monthlyFee)}
-                        </span>
-                      </div>
-                    </div>
-                  )}
                 </div>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0">
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="w-8 h-8 rounded-full text-gray-400 hover:text-brand hover:bg-brand-light"
+                    className="w-8 h-8 rounded-full text-gray-400 hover:text-brand hover:bg-brand/10 transition-all"
                     onClick={() => {
                       setEditingFeature(feature)
                       setOpen(true)
                     }}
                   >
-                    <Edit2 className="w-4 h-4" />
+                    <Edit2 className="w-3.5 h-3.5" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="w-8 h-8 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50"
+                    className="w-8 h-8 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all"
                     onClick={() => {
                       if (confirm('Excluir esta funcionalidade?'))
                         handleDelete(feature.id)
                     }}
                     disabled={isPending}
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-8 rounded-lg text-[10px] font-black uppercase border-brand text-brand hover:bg-brand hover:text-white transition-all ml-1"
+                    className="h-7 px-3 rounded-full text-[9px] font-black uppercase border-brand text-brand hover:bg-brand hover:text-white transition-all ml-1 shadow-sm shadow-brand/5"
                     onClick={() =>
                       router.push(
                         `/dashboard/orcamentos/novo?featureId=${feature.id}`,
