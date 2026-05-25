@@ -34,5 +34,5 @@ export const deleteClient = withPermission(
       console.error('[deleteClient Error]', error)
       return { success: false, error: 'Erro ao remover cliente.' }
     }
-  }
+  },
 )

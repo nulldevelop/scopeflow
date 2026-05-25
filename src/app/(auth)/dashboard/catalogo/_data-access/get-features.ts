@@ -9,6 +9,19 @@ export async function getAllFeatures(organizationId: string) {
   })
 }
 
+export async function getFeatureById(organizationId: string, id: string) {
+  try {
+    const feature = await prisma.feature.findUnique({
+      where: { id, organizationId },
+      include: { category: true },
+    })
+    return { success: true, feature }
+  } catch (error) {
+    console.error('[getFeatureById Error]', error)
+    return { success: false, error: 'Erro ao buscar funcionalidade.' }
+  }
+}
+
 export async function getFeaturesByOrganization() {
   const session = await checkPermission('read', 'features')
   if (!session.allowed) return []

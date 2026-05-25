@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation'
 import { Sidebar } from '@/components/shared/Sidebar'
 import { getSessionClient } from '@/lib/getSession'
 import { headers } from 'next/headers'
@@ -8,21 +9,27 @@ export default async function AuthLayout({
   children: React.ReactNode
 }) {
   const sessionData = await getSessionClient()
-  const user = sessionData.success ? sessionData.session.user : null;
-  
-  // Verifica se estamos na rota de onboarding para remover o layout padrão do dashboard
+
+  if (!sessionData.success) {
+    redirect('/signin')
+  }
+
+  const user = sessionData.session.user
+  const activeOrgId = sessionData.session.activeOrganizationId
+
+  // Verifica se estamos na rota de onboarding
   const headersList = await headers()
   const pathname = headersList.get('x-pathname') || ''
-  
-  // Debug para garantir que o pathname está chegando (opcional em produção)
-  // console.log('AuthLayout Pathname:', pathname)
+
+  // Se não tiver organização ativa e não estiver no onboarding, redireciona para lá
+  if (!activeOrgId && !pathname.includes('/onboarding')) {
+    redirect('/onboarding')
+  }
 
   if (pathname.includes('/onboarding')) {
     return (
       <div className="flex min-h-screen w-full bg-background overflow-x-hidden">
-        <main className="flex-1 w-full">
-          {children}
-        </main>
+        <main className="flex-1 w-full">{children}</main>
       </div>
     )
   }

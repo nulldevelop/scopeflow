@@ -1,6 +1,4 @@
-import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { auth } from '@/lib/auth'
 import CatalogClient, { type CatalogFeature } from './_components/CatalogClient'
 import { getAllCategories } from './_data-access/get-categories'
 import { getAllFeatures } from './_data-access/get-features'
@@ -15,7 +13,7 @@ export default async function CatalogoContainer() {
   }
 
   const { session } = sessionResponse
-  
+
   if (!session?.activeOrganizationId) {
     redirect('/signin')
   }

@@ -13,9 +13,9 @@ export function Hero() {
       opacity: 1,
       transition: {
         staggerChildren: 0.15,
-        delayChildren: 0.3
-      }
-    }
+        delayChildren: 0.3,
+      },
+    },
   }
 
   const itemVariants = {
@@ -23,14 +23,14 @@ export function Hero() {
     visible: {
       y: 0,
       opacity: 1,
-      transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] }
-    }
+      transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] },
+    },
   }
 
   return (
     <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-[#0E2E26] px-6 py-24 md:py-32">
       <Meteors number={25} />
-      
+
       {/* Dynamic Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-[10%] -right-[10%] w-[60%] h-[60%] rounded-full bg-[#2A6B5C]/20 blur-[120px] animate-pulse" />
@@ -38,13 +38,16 @@ export function Hero() {
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
       </div>
 
-      <motion.div 
+      <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="visible"
         className="relative max-w-5xl mx-auto text-center"
       >
-        <motion.div variants={itemVariants} className="inline-flex items-center gap-2 px-4 py-2 mb-8 text-[11px] font-bold tracking-[0.2em] uppercase rounded-full border border-white/10 bg-white/5 text-[#9BBFB8] backdrop-blur-sm">
+        <motion.div
+          variants={itemVariants}
+          className="inline-flex items-center gap-2 px-4 py-2 mb-8 text-[11px] font-bold tracking-[0.2em] uppercase rounded-full border border-white/10 bg-white/5 text-[#9BBFB8] backdrop-blur-sm"
+        >
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#2A6B5C] opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-[#2A6B5C]"></span>
@@ -52,28 +55,34 @@ export function Hero() {
           Revolução na Precificação
         </motion.div>
 
-        <motion.h1 
+        <motion.h1
           variants={itemVariants}
           className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-white mb-8 leading-[1.05]"
         >
           Propostas que
           <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#9BBFB8] via-white to-[#2A6B5C]">encantam clientes.</span>
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#9BBFB8] via-white to-[#2A6B5C]">
+            encantam clientes.
+          </span>
         </motion.h1>
 
-        <motion.p 
+        <motion.p
           variants={itemVariants}
           className="text-lg md:text-xl text-white/60 mb-12 max-w-2xl mx-auto leading-relaxed font-light"
         >
-          Abandone as planilhas. Gere orçamentos técnicos e comerciais com inteligência, 
-          baseados no seu catálogo de funcionalidades e valor/hora real.
+          Abandone as planilhas. Gere orçamentos técnicos e comerciais com
+          inteligência, baseados no seu catálogo de funcionalidades e valor/hora
+          real.
         </motion.p>
 
-        <motion.div 
+        <motion.div
           variants={itemVariants}
           className="flex flex-col sm:flex-row items-center justify-center gap-5"
         >
-          <Button size="lg" className="bg-[#2A6B5C] hover:bg-[#1f5045] text-white hover:text-white px-10 py-7 text-base font-semibold rounded-2xl shadow-2xl shadow-[#2A6B5C]/20 group transition-all">
+          <Button
+            size="lg"
+            className="bg-[#2A6B5C] hover:bg-[#1f5045] text-white hover:text-white px-10 py-7 text-base font-semibold rounded-2xl shadow-2xl shadow-[#2A6B5C]/20 group transition-all"
+          >
             Criar orçamento grátis
             <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Button>
@@ -93,24 +102,30 @@ export function Hero() {
           </HeroVideoDialog>
         </motion.div>
 
-        <motion.div 
+        <motion.div
           variants={itemVariants}
           className="grid grid-cols-2 md:grid-cols-3 items-center justify-center gap-8 mt-24 pt-12 border-t border-white/5"
         >
           <div className="group cursor-default">
-            <div className="text-3xl font-bold text-white group-hover:text-[#9BBFB8] transition-colors">50%</div>
+            <div className="text-3xl font-bold text-white group-hover:text-[#9BBFB8] transition-colors">
+              50%
+            </div>
             <div className="text-xs text-white/40 mt-2 font-medium tracking-wide uppercase">
               Economia de Tempo
             </div>
           </div>
           <div className="group cursor-default">
-            <div className="text-3xl font-bold text-white group-hover:text-[#9BBFB8] transition-colors">+20%</div>
+            <div className="text-3xl font-bold text-white group-hover:text-[#9BBFB8] transition-colors">
+              +20%
+            </div>
             <div className="text-xs text-white/40 mt-2 font-medium tracking-wide uppercase">
               Taxa de Fechamento
             </div>
           </div>
           <div className="group cursor-default col-span-2 md:col-span-1">
-            <div className="text-3xl font-bold text-white group-hover:text-[#9BBFB8] transition-colors">100%</div>
+            <div className="text-3xl font-bold text-white group-hover:text-[#9BBFB8] transition-colors">
+              100%
+            </div>
             <div className="text-xs text-white/40 mt-2 font-medium tracking-wide uppercase">
               White Label Profissional
             </div>
@@ -120,4 +135,3 @@ export function Hero() {
     </section>
   )
 }
-

@@ -13,7 +13,11 @@ export const quoteItemSchema = z.object({
 export const createQuoteSchema = z.object({
   title: z.string().min(1, 'O título é obrigatório'),
   description: z.string().optional().nullable(),
-  clientId: z.string().uuid('Selecione um cliente válido').optional().nullable(),
+  clientId: z
+    .string()
+    .uuid('Selecione um cliente válido')
+    .optional()
+    .nullable(),
   totalHours: z.coerce.number().min(0),
   totalValue: z.coerce.number().min(0),
   hourlyRate: z.coerce.number().min(0),

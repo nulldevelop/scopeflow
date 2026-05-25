@@ -1,17 +1,34 @@
 'use client'
 
-import { Calendar, MoreHorizontal, Plus, Search, Users } from 'lucide-react'
+import {
+  Calendar,
+  MoreHorizontal,
+  Plus,
+  Search,
+  Users,
+  Trash2,
+  Edit,
+  FileText,
+} from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
+import { toast } from 'sonner'
 import { Header } from '@/components/shared/Header'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import type { Client, Quote, QuoteItem } from '@/generated/prisma/client'
 import { cn } from '@/lib/utils'
 import type { ProjectStatus } from '@/types'
+import { deleteQuote } from '../_actions/delete-quote'
 
 export type QuoteWithClient = Quote & {
   client: Client | null
@@ -28,6 +45,7 @@ const filterOptions: { label: string; value: ProjectStatus | 'Todos' }[] = [
 
 export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
   const router = useRouter()
+  const [isPending, startTransition] = useTransition()
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | 'Todos'>(
     'Todos',
@@ -43,6 +61,23 @@ export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
       statusFilter === 'Todos' || quote.status === statusFilter
     return matchesSearch && matchesStatus
   })
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Tem certeza que deseja excluir este orçamento?')) return
+
+    startTransition(async () => {
+      try {
+        const res = await deleteQuote(id)
+        if (res.success) {
+          toast.success('Orçamento excluído com sucesso!')
+        } else {
+          toast.error(res.error)
+        }
+      } catch (error) {
+        toast.error('Erro ao excluir orçamento.')
+      }
+    })
+  }
 
   return (
     <div className="px-8 pb-12">
@@ -96,12 +131,40 @@ export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
             <div className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <StatusBadge status={quote.status as ProjectStatus} />
-                <Button
-                  className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-                  variant="ghost"
-                >
-                  <MoreHorizontal className="w-5 h-5" />
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                      variant="ghost"
+                    >
+                      <MoreHorizontal className="w-5 h-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                      <Link
+                        href={`/dashboard/orcamentos/${quote.id}`}
+                        className="flex items-center gap-2"
+                      >
+                        <Edit className="w-4 h-4" /> Editar
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link
+                        href={`/dashboard/orcamentos/${quote.id}/proposta`}
+                        className="flex items-center gap-2"
+                      >
+                        <FileText className="w-4 h-4" /> Ver Proposta
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleDelete(quote.id)}
+                      className="flex items-center gap-2 text-red-600 focus:text-red-600"
+                    >
+                      <Trash2 className="w-4 h-4" /> Excluir
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
               <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-brand transition-colors">

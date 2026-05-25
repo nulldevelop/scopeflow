@@ -43,7 +43,10 @@ export async function checkPermission(
   const allowed = hasPermission(member.role, module, action)
 
   if (!allowed) {
-    return { allowed: false, error: `Você não tem permissão para ${action} em ${module}` }
+    return {
+      allowed: false,
+      error: `Você não tem permissão para ${action} em ${module}`,
+    }
   }
 
   return {

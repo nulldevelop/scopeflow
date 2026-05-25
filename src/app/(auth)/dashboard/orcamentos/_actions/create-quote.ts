@@ -53,5 +53,5 @@ export const createQuote = withPermission(
       console.error('[createQuote Error]', error)
       return { success: false, error: 'Erro ao criar orçamento.' }
     }
-  }
+  },
 )

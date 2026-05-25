@@ -30,7 +30,7 @@ export function Navbar() {
       <div className="flex flex-row items-center justify-between px-6 max-w-7xl mx-auto">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3 group relative z-10">
-          <motion.div 
+          <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="relative"
@@ -75,14 +75,12 @@ export function Navbar() {
           </motion.div>
 
           <div className="hidden sm:block overflow-hidden">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               className="flex flex-row gap-0.5 text-xl font-bold tracking-tight"
             >
-              <span className="text-[#1C1C1A]">
-                Scope
-              </span>
+              <span className="text-[#1C1C1A]">Scope</span>
               <span className="text-[#2A6B5C]">Flow</span>
             </motion.div>
           </div>
@@ -101,7 +99,7 @@ export function Navbar() {
               className="relative px-5 py-2 text-sm font-medium text-[#5F5E5A] hover:text-[#2A6B5C] transition-colors rounded-full group overflow-hidden"
             >
               <span className="relative z-10">{item.label}</span>
-              <motion.span 
+              <motion.span
                 className="absolute inset-0 bg-[#2A6B5C]/5 opacity-0 group-hover:opacity-100 transition-opacity"
                 layoutId="nav-hover"
               />
@@ -111,7 +109,10 @@ export function Navbar() {
 
         {/* Auth Buttons */}
         <div className="flex items-center gap-3">
-          <Link href="/signin" className="hidden sm:block text-sm font-medium text-[#5F5E5A] hover:text-[#1C1C1A] transition-colors px-4">
+          <Link
+            href="/signin"
+            className="hidden sm:block text-sm font-medium text-[#5F5E5A] hover:text-[#1C1C1A] transition-colors px-4"
+          >
             Entrar
           </Link>
           <Link href="/signin">
@@ -124,4 +125,3 @@ export function Navbar() {
     </motion.header>
   )
 }
-

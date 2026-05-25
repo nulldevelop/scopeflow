@@ -24,10 +24,10 @@ interface SidebarProps {
 
 const menuItems = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { label: 'Orçamentos', href: '/orcamentos', icon: FileText },
-  { label: 'Catálogo', href: '/catalogo', icon: Library },
-  { label: 'Clientes', href: '/clientes', icon: Users },
-  { label: 'Configurações', href: '/configuracoes', icon: Settings },
+  { label: 'Orçamentos', href: '/dashboard/orcamentos', icon: FileText },
+  { label: 'Catálogo', href: '/dashboard/catalogo', icon: Library },
+  { label: 'Clientes', href: '/dashboard/clientes', icon: Users },
+  { label: 'Configurações', href: '/dashboard/configuracoes', icon: Settings },
 ]
 
 export function Sidebar({ user }: SidebarProps) {
@@ -107,7 +107,9 @@ export function Sidebar({ user }: SidebarProps) {
           <nav className="flex-1 space-y-1">
             {menuItems.map((item) => {
               const isActive =
-                pathname === item.href || pathname.startsWith(item.href + '/')
+                item.href === '/dashboard'
+                  ? pathname === '/dashboard'
+                  : pathname.startsWith(item.href)
               return (
                 <Link
                   key={item.href}

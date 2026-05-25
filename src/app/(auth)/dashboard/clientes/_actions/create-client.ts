@@ -37,5 +37,5 @@ export const createClient = withPermission(
       console.error('[createClient Error]', error)
       return { success: false, error: 'Erro ao criar cliente.' }
     }
-  }
+  },
 )

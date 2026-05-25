@@ -7,15 +7,6 @@ import {
   TrendingUp,
 } from 'lucide-react'
 import Link from 'next/link'
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
 import { Header } from '@/components/shared/Header'
 import { MetricCard } from '@/components/shared/MetricCard'
 import { ProfileSelector } from '@/components/shared/ProfileSelector'
@@ -31,15 +22,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { getSessionQuotes } from './_data-access/get-quotes'
-
-const chartData = [
-  { name: 'Jan', value: 4 },
-  { name: 'Fev', value: 7 },
-  { name: 'Mar', value: 5 },
-  { name: 'Abr', value: 9 },
-  { name: 'Mai', value: 6 },
-  { name: 'Jun', value: 8 },
-]
+import { DashboardChart } from './_components/DashboardChart'
 
 export default async function DashboardPage() {
   const quotes = await getSessionQuotes()
@@ -60,6 +43,30 @@ export default async function DashboardPage() {
       : 'R$ 0,00'
 
   const recentQuotes = [...quotes].slice(0, 5)
+
+  // Calcular dados reais do gráfico (últimos 6 meses)
+  const last6Months = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date()
+    d.setMonth(d.getMonth() - i)
+    return {
+      name: d.toLocaleString('pt-BR', { month: 'short' }).replace('.', ''),
+      month: d.getMonth(),
+      year: d.getFullYear(),
+      value: 0,
+    }
+  }).reverse()
+
+  for (const quote of quotes) {
+    const qDate = new Date(quote.createdAt)
+    const monthData = last6Months.find(
+      (m) => m.month === qDate.getMonth() && m.year === qDate.getFullYear(),
+    )
+    if (monthData) {
+      monthData.value++
+    }
+  }
+
+  const chartData = last6Months.map(({ name, value }) => ({ name, value }))
 
   return (
     <div className="px-8 pb-12">
@@ -101,57 +108,7 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <Card className="lg:col-span-2 p-6 bg-white border border-gray-200 rounded-[14px]">
-          <div className="flex items-center justify-between mb-8">
-            <h3 className="text-sm font-semibold text-gray-900">
-              Propostas por mês
-            </h3>
-            <span className="text-xs text-gray-400 font-medium">
-              Últimos 6 meses
-            </span>
-          </div>
-          <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={chartData}
-                margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  vertical={false}
-                  stroke="#ECEAE3"
-                />
-                <XAxis
-                  dataKey="name"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: '#888780', fontSize: 12 }}
-                  dy={10}
-                />
-                <YAxis
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: '#888780', fontSize: 12 }}
-                />
-                <Tooltip
-                  cursor={{ fill: '#F5F4F0' }}
-                  contentStyle={{
-                    borderRadius: '10px',
-                    border: '1px solid #D3D1C7',
-                    boxShadow: 'none',
-                    fontSize: '12px',
-                  }}
-                />
-                <Bar
-                  dataKey="value"
-                  fill="#2A6B5C"
-                  radius={[4, 4, 0, 0]}
-                  barSize={40}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
+        <DashboardChart data={chartData} />
 
         <Card className="p-6 bg-white border border-gray-200 rounded-[14px] flex flex-col">
           <div className="flex items-center justify-between mb-6">

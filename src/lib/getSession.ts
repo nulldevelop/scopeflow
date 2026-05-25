@@ -1,18 +1,20 @@
 import { cookies } from 'next/headers'
 import { auth } from './auth'
 
-export type SessionClient = {
-  success: true
-  session: {
-    user: {
-      id: string
-      name: string
-      email: string
-      image: string
+export type SessionClient =
+  | {
+      success: true
+      session: {
+        user: {
+          id: string
+          name: string
+          email: string
+          image: string
+        }
+        activeOrganizationId: string
+      }
     }
-    activeOrganizationId: string
-  }
-} | { success: false; error: string }
+  | { success: false; error: string }
 
 export async function getSessionClient(): Promise<SessionClient> {
   try {
@@ -22,11 +24,11 @@ export async function getSessionClient(): Promise<SessionClient> {
         cookie: cookieStore.toString(),
       },
     })
-    
+
     if (!result || !result.session || !result.user) {
       return { success: false, error: 'Sessão inválida' }
     }
-    
+
     return {
       success: true,
       session: {
@@ -36,8 +38,10 @@ export async function getSessionClient(): Promise<SessionClient> {
           email: result.user.email,
           image: result.user.image || '',
         },
-        activeOrganizationId: (result.session as { activeOrganizationId?: string }).activeOrganizationId || '',
-      }
+        activeOrganizationId:
+          (result.session as { activeOrganizationId?: string })
+            .activeOrganizationId || '',
+      },
     }
   } catch {
     return { success: false, error: 'Erro ao buscar sessão' }

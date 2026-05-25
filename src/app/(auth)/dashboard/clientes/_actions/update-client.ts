@@ -12,7 +12,10 @@ export const updateClient = withPermission(
     const validatedFields = updateClientSchema.safeParse(input)
 
     if (!validatedFields.success) {
-      return { success: false, error: 'Dados inválidos para atualizar cliente.' }
+      return {
+        success: false,
+        error: 'Dados inválidos para atualizar cliente.',
+      }
     }
 
     const data = validatedFields.data
@@ -45,5 +48,5 @@ export const updateClient = withPermission(
       console.error('[updateClient Error]', error)
       return { success: false, error: 'Erro ao atualizar cliente.' }
     }
-  }
+  },
 )

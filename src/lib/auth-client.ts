@@ -4,17 +4,9 @@ import { createAuthClient } from 'better-auth/react'
 export const authClient = createAuthClient({
   baseURL: process.env.NEXT_PUBLIC_AUTH_URL || 'http://localhost:3000',
   session: {
-        activeSessionsLimit: 1,
+    activeSessionsLimit: 1,
   },
-  plugins: [
-    organizationClient(),
-  ],
+  plugins: [organizationClient()],
 })
 
-export const {
-  signIn,
-  signUp,
-  signOut,
-  useSession,
-  organization,
-} = authClient
+export const { signIn, signUp, signOut, useSession, organization } = authClient

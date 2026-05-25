@@ -6,14 +6,14 @@ import { useSession } from '@/lib/auth-client'
 import type { DevProfile } from '@/types'
 
 interface BetterAuthUser {
-  id: string;
-  email: string;
-  emailVerified: boolean;
-  name: string;
-  createdAt: Date;
-  updatedAt: Date;
-  image?: string | null;
-  developerProfile?: string | null;
+  id: string
+  email: string
+  emailVerified: boolean
+  name: string
+  createdAt: Date
+  updatedAt: Date
+  image?: string | null
+  developerProfile?: string | null
 }
 
 /**
@@ -51,30 +51,33 @@ export function useDevProfile() {
   /**
    * Calcula as horas de uma funcionalidade baseada no perfil.
    */
-  const getHours = (feature: { 
-    baseHours?: number | string | { toNumber: () => number }; 
-    horasEstimadas?: number;
-    name?: string;
-    nome?: string;
-    category?: { name: string };
-    categoria?: string;
+  const getHours = (feature: {
+    baseHours?: number | string | { toNumber: () => number }
+    horasEstimadas?: number
+    name?: string
+    nome?: string
+    category?: { name: string }
+    categoria?: string
   }): number => {
     // Se a feature for nula, retorna 0
     if (!feature) return 0
 
     // Pega o valor base (compatível com diferentes formatos de objeto, inclusive Prisma.Decimal)
-    let baseValue = 0;
+    let baseValue = 0
     if (feature.baseHours) {
-      if (typeof feature.baseHours === 'object' && 'toNumber' in feature.baseHours) {
-        baseValue = feature.baseHours.toNumber();
+      if (
+        typeof feature.baseHours === 'object' &&
+        'toNumber' in feature.baseHours
+      ) {
+        baseValue = feature.baseHours.toNumber()
       } else {
-        baseValue = Number(feature.baseHours);
+        baseValue = Number(feature.baseHours)
       }
     } else if (feature.horasEstimadas) {
-      baseValue = feature.horasEstimadas;
+      baseValue = feature.horasEstimadas
     }
-    
-    const base = baseValue;
+
+    const base = baseValue
 
     if (!profile) return base
 

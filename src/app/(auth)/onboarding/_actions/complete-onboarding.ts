@@ -2,12 +2,16 @@
 
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { headers } from 'next/headers'
-import { onboardingSchema, type OnboardingInput } from '../_schemas/onboarding-schema'
+import { headers, cookies } from 'next/headers'
+import { seedOrganization } from '../../../../../prisma/seed-organization'
+import {
+  onboardingSchema,
+  type OnboardingInput,
+} from '../_schemas/onboarding-schema'
 
 export async function completeOnboardingAction(values: OnboardingInput) {
   try {
-    // 1. Validar Schema
+    // ... (keep 1. Validar Schema)
     const validatedFields = onboardingSchema.safeParse(values)
     if (!validatedFields.success) {
       return { success: false, error: 'Dados inválidos.' }
@@ -22,33 +26,80 @@ export async function completeOnboardingAction(values: OnboardingInput) {
       return { success: false, error: 'Usuário não autenticado.' }
     }
 
-    // 2. Criar Organização (Caso não tenha sido criada pelo cliente)
-    // O Better-Auth já pode ter criado via client, mas garantimos a configuração extra aqui
-    const org = await prisma.organization.findFirst({
-      where: { slug: data.slug }
+    // 2. Criar ou Buscar Organização
+    let org = await prisma.organization.findFirst({
+      where: { slug: data.slug },
     })
 
+    let isNewOrg = false
     if (!org) {
-       return { success: false, error: 'Organização não encontrada. Crie-a primeiro.' }
+      // Criar organização via API do Better-Auth para garantir consistência
+      // @ts-ignore - createOrganization é injetado pelo plugin
+      const newOrgResponse = await auth.api.createOrganization({
+        headers: await headers(),
+        body: {
+          name: data.orgName,
+          slug: data.slug,
+        },
+      })
+
+      if (!newOrgResponse) {
+        return { success: false, error: 'Erro ao criar organização.' }
+      }
+
+      org = await prisma.organization.findUnique({
+        where: { slug: data.slug },
+      })
+      isNewOrg = true
     }
 
-    // 3. Salvar configurações de perfil e plano no banco
-    // Aqui você pode atualizar o modelo de Organização ou criar um registro de 'Profile'
+    if (!org) {
+      return { success: false, error: 'Erro ao processar organização.' }
+    }
+
+    // 3. Popular dados iniciais se for nova organização
+    if (isNewOrg) {
+      await seedOrganization(org.id)
+    }
+
+    // 4. Salvar configurações de perfil e plano no banco
     await prisma.organization.update({
       where: { id: org.id },
       data: {
-        // Exemplo de campos que você pode ter no schema.prisma
-        // Se não tiver esses campos, você pode salvar em um JSON ou tabela de settings
-        metadata: {
+        metadata: JSON.stringify({
           profile: data.profile,
           answers: data.answers,
           plan: data.plan,
           onboardedAt: new Date().toISOString(),
-        }
-      }
+        }),
+      },
     })
 
-    // 4. Processar Convites (Opcional)
+    // 4. Atualizar o perfil do desenvolvedor no usuário
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: {
+        developerProfile: data.profile,
+      },
+    })
+
+    // 5. Definir a organização como ativa na sessão (Server-side)
+    // @ts-ignore - setActiveOrganization é injetado pelo plugin
+    await auth.api.setActiveOrganization({
+      headers: await headers(),
+      body: { organizationId: org.id },
+    })
+
+    // 6. Forçar o cookie no navegador para o Middleware reconhecer imediatamente
+    const cookieStore = await cookies()
+    cookieStore.set('scopeflow.active_organization_id', org.id, {
+      path: '/',
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: false,
+      sameSite: 'lax',
+    })
+
+    // 7. Processar Convites (Opcional)
     if (data.invites && data.invites.length > 0) {
       // Lógica para disparar convites via Better-Auth ou sua própria tabela
     }

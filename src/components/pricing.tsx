@@ -16,7 +16,7 @@ const plans = [
       'Histórico básico de propostas',
     ],
     buttonText: 'Começar agora',
-    featured: false
+    featured: false,
   },
   {
     name: 'Pro',
@@ -31,7 +31,7 @@ const plans = [
       'Suporte prioritário',
     ],
     buttonText: 'Assinar Pro',
-    featured: true
+    featured: true,
   },
   {
     name: 'Equipe',
@@ -45,7 +45,7 @@ const plans = [
       'Painel administrativo',
     ],
     buttonText: 'Falar com vendas',
-    featured: false
+    featured: false,
   },
 ]
 
@@ -54,7 +54,7 @@ export function Pricing() {
     <section id="pricing" className="py-32 px-6 bg-[#F8F7F3]">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-20">
-          <motion.h2 
+          <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -62,7 +62,7 @@ export function Pricing() {
           >
             Planos que crescem com você
           </motion.h2>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -96,25 +96,48 @@ export function Pricing() {
               )}
 
               <div className="mb-8">
-                <h3 className={`text-sm font-bold uppercase tracking-widest mb-4 ${plan.featured ? 'text-[#9BBFB8]' : 'text-[#888780]'}`}>
+                <h3
+                  className={`text-sm font-bold uppercase tracking-widest mb-4 ${plan.featured ? 'text-[#9BBFB8]' : 'text-[#888780]'}`}
+                >
                   {plan.name}
                 </h3>
                 <div className="flex items-baseline gap-1 mb-4">
-                  <span className="text-5xl font-bold tracking-tight">{plan.price}</span>
-                  <span className={`text-sm font-light ${plan.featured ? 'text-white/60' : 'text-[#888780]'}`}>/mês</span>
+                  <span className="text-5xl font-bold tracking-tight">
+                    {plan.price}
+                  </span>
+                  <span
+                    className={`text-sm font-light ${plan.featured ? 'text-white/60' : 'text-[#888780]'}`}
+                  >
+                    /mês
+                  </span>
                 </div>
-                <p className={`text-sm leading-relaxed font-light ${plan.featured ? 'text-white/70' : 'text-[#5F5E5A]'}`}>
+                <p
+                  className={`text-sm leading-relaxed font-light ${plan.featured ? 'text-white/70' : 'text-[#5F5E5A]'}`}
+                >
                   {plan.description}
                 </p>
               </div>
 
-              <div className={`h-px w-full mb-8 ${plan.featured ? 'bg-white/10' : 'bg-[#D3D1C7]/30'}`} />
+              <div
+                className={`h-px w-full mb-8 ${plan.featured ? 'bg-white/10' : 'bg-[#D3D1C7]/30'}`}
+              />
 
               <ul className="space-y-4 mb-10 flex-1">
                 {plan.features.map((feature, i) => (
-                  <li key={i} className="flex items-start gap-3 text-sm font-light">
-                    <Check className={`w-5 h-5 flex-shrink-0 ${plan.featured ? 'text-[#9BBFB8]' : 'text-[#2A6B5C]'}`} />
-                    <span className={plan.featured ? 'text-white/80' : 'text-[#5F5E5A]'}>{feature}</span>
+                  <li
+                    key={i}
+                    className="flex items-start gap-3 text-sm font-light"
+                  >
+                    <Check
+                      className={`w-5 h-5 flex-shrink-0 ${plan.featured ? 'text-[#9BBFB8]' : 'text-[#2A6B5C]'}`}
+                    />
+                    <span
+                      className={
+                        plan.featured ? 'text-white/80' : 'text-[#5F5E5A]'
+                      }
+                    >
+                      {feature}
+                    </span>
                   </li>
                 ))}
               </ul>

@@ -1,12 +1,14 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
 import { withPermission } from '@/lib/permissions/with-permission'
 import { prisma } from '@/lib/prisma'
 
 export const updateFeatureAction = withPermission(
   'update',
+  'features',
   async (
-    ctx,
+    _ctx,
     id: string,
     data: {
       name?: string
@@ -16,11 +18,17 @@ export const updateFeatureAction = withPermission(
       categoryId?: string | null
     },
   ) => {
-    const result = await prisma.feature.update({
-      where: { id },
-      data,
-    })
-    return { success: true, data: result }
+    try {
+      const result = await prisma.feature.update({
+        where: { id },
+        data,
+      })
+
+      revalidatePath('/dashboard/catalogo')
+      return { success: true, data: result }
+    } catch (error) {
+      console.error('[Update Feature Error]', error)
+      return { success: false, error: 'Erro ao atualizar funcionalidade.' }
+    }
   },
-  { module: 'features' },
 )

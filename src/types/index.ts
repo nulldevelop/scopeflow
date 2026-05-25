@@ -1,4 +1,9 @@
-export type ProjectStatus = 'rascunho' | 'enviada' | 'aprovada' | 'recusada' | 'expirada'
+export type ProjectStatus =
+  | 'rascunho'
+  | 'enviada'
+  | 'aprovada'
+  | 'recusada'
+  | 'expirada'
 
 export interface Organization {
   id: string
@@ -47,12 +52,12 @@ export interface Category {
 
 export type FeatureComplexity = 'baixa' | 'media' | 'alta'
 
-export type DevProfile = 
-  | 'landing_page' 
-  | 'frontend' 
-  | 'backend' 
-  | 'fullstack' 
-  | 'software_house' 
+export type DevProfile =
+  | 'landing_page'
+  | 'frontend'
+  | 'backend'
+  | 'fullstack'
+  | 'software_house'
   | 'saas'
 
 export interface Feature {
@@ -96,7 +101,7 @@ export interface Quote {
   desconto: number // em porcentagem
   acrescimoUrgencia: number // em porcentagem
   notasInternas?: string
-  
+
   // Relações legadas/futuras para compatibilidade
   clientId?: string
   client?: Client

@@ -16,7 +16,10 @@ import type {
 export function withPermission<TArgs extends unknown[], TResponse>(
   action: Action,
   module: Module,
-  fn: (ctx: PermissionContext, ...args: TArgs) => Promise<ActionResponse<TResponse>>,
+  fn: (
+    ctx: PermissionContext,
+    ...args: TArgs
+  ) => Promise<ActionResponse<TResponse>>,
 ) {
   return async (...args: TArgs): Promise<ActionResponse<TResponse>> => {
     try {
@@ -33,7 +36,10 @@ export function withPermission<TArgs extends unknown[], TResponse>(
         userName: permission.userName,
         userEmail: permission.userEmail,
         log: (extra) => {
-          console.log(`[AuditLog] User ${permission.userId} performed ${action} on ${module}`, extra)
+          console.log(
+            `[AuditLog] User ${permission.userId} performed ${action} on ${module}`,
+            extra,
+          )
         },
       }
 
@@ -42,7 +48,7 @@ export function withPermission<TArgs extends unknown[], TResponse>(
       console.error(`[withPermission Error] ${module}:${action}`, error)
       return {
         success: false,
-        error: 'Ocorreu um erro inesperado ao processar sua solicitação.'
+        error: 'Ocorreu um erro inesperado ao processar sua solicitação.',
       }
     }
   }

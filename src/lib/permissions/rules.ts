@@ -31,7 +31,11 @@ const PERMISSION_MATRIX: Record<UserRole, Partial<Record<Module, Action[]>>> = {
   },
 }
 
-export function hasPermission(role: string, module: Module, action: Action): boolean {
+export function hasPermission(
+  role: string,
+  module: Module,
+  action: Action,
+): boolean {
   const userRole = role.toLowerCase() as UserRole
   const permissions = PERMISSION_MATRIX[userRole]
 

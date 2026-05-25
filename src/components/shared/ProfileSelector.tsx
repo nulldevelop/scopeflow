@@ -4,19 +4,24 @@ import React, { useEffect, useState } from 'react'
 import { DevProfile } from '@/types'
 import { useDevProfile } from '@/hooks/useDevProfile'
 import { Card } from '@/components/ui/card'
-import { 
-  Globe, 
-  Layout, 
-  Database, 
-  Zap, 
-  Users, 
-  Rocket, 
-  Check 
+import {
+  Globe,
+  Layout,
+  Database,
+  Zap,
+  Users,
+  Rocket,
+  Check,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
-const profiles: { id: DevProfile; name: string; description: string; icon: any }[] = [
+const profiles: {
+  id: DevProfile
+  name: string
+  description: string
+  icon: any
+}[] = [
   {
     id: 'landing_page',
     name: 'Landing Page Dev',
@@ -74,7 +79,8 @@ export function ProfileSelector() {
             Qual é o seu perfil de desenvolvedor?
           </h1>
           <p className="text-gray-500 max-w-lg mx-auto">
-            Isso nos ajuda a calibrar as estimativas de horas e recomendar os módulos certos para você.
+            Isso nos ajuda a calibrar as estimativas de horas e recomendar os
+            módulos certos para você.
           </p>
         </div>
 
@@ -94,7 +100,7 @@ export function ProfileSelector() {
               <p className="text-xs text-gray-500 leading-relaxed">
                 {p.description}
               </p>
-              
+
               <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                 <div className="w-6 h-6 rounded-full bg-brand text-white flex items-center justify-center">
                   <Check className="w-3.5 h-3.5 stroke-[3]" />

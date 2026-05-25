@@ -21,7 +21,7 @@ export default async function QuotesPage() {
     )
   }
 
-  const { quotes, success, error } = await getQuotes(activeOrgId)
+  const { quotes: quotesData, success, error } = await getQuotes(activeOrgId)
 
   if (!success) {
     return (
@@ -31,5 +31,21 @@ export default async function QuotesPage() {
     )
   }
 
-  return <QuotesClient quotes={quotes || []} />
+  // Serialização de Decimais para o Client Component
+  const quotes = (quotesData || []).map((quote) => ({
+    ...quote,
+    totalHours: Number(quote.totalHours),
+    totalValue: Number(quote.totalValue),
+    hourlyRate: Number(quote.hourlyRate),
+    discount: Number(quote.discount),
+    urgencyFee: Number(quote.urgencyFee),
+    entryAmount: Number(quote.entryAmount),
+    items: (quote.items || []).map((item) => ({
+      ...item,
+      hours: Number(item.hours),
+      unitValue: Number(item.unitValue),
+    })),
+  }))
+
+  return <QuotesClient quotes={quotes} />
 }

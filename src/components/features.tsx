@@ -73,7 +73,7 @@ export function Features() {
   return (
     <section id="features" className="py-32 px-6 bg-[#F8F7F3]">
       <div className="max-w-7xl mx-auto">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -89,7 +89,7 @@ export function Features() {
           </p>
         </motion.div>
 
-        <motion.div 
+        <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -112,7 +112,7 @@ export function Features() {
                 <p className="text-[#5F5E5A] leading-relaxed font-light">
                   {feature.description}
                 </p>
-                
+
                 {/* Subtle Decorative Element */}
                 <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                   <div className="w-1.5 h-1.5 rounded-full bg-[#2A6B5C]" />
@@ -125,4 +125,3 @@ export function Features() {
     </section>
   )
 }
-
