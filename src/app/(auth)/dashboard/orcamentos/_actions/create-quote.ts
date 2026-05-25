@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { checkPlanLimit } from '@/lib/billing'
 import { withPermission } from '@/lib/permissions/with-permission'
 import { prisma } from '@/lib/prisma'
 import { type CreateQuoteInput, createQuoteSchema } from '../_schemas/quote'
@@ -9,6 +10,15 @@ export const createQuote = withPermission(
   'create',
   'quotes',
   async (ctx, input: CreateQuoteInput) => {
+    // 1. Verificar limites do plano
+    const { isWithinLimits, plan } = await checkPlanLimit(ctx.organizationId)
+    if (!isWithinLimits) {
+      return { 
+        success: false, 
+        error: `Você atingiu o limite de orçamentos do seu plano ${plan.toUpperCase()}. Faça upgrade para continuar.` 
+      }
+    }
+
     const validatedFields = createQuoteSchema.safeParse(input)
 
     if (!validatedFields.success) {

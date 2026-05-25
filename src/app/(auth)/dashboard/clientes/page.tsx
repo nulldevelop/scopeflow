@@ -3,11 +3,13 @@ import { getSessionClient } from '@/lib/getSession'
 import { ClientsClient } from './_components/clients-client'
 import { getSessionClients } from './_data-access/get-clients'
 
+export const dynamic = 'force-dynamic'
+
 export default async function ClientsPage() {
   const sessionResponse = await getSessionClient()
 
   if (!sessionResponse.success) {
-    redirect('/sign-in')
+    redirect('/signin')
   }
 
   const { session } = sessionResponse

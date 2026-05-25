@@ -12,13 +12,22 @@ export async function getSettings() {
       return null
     }
 
-    const [user, organization] = await Promise.all([
+    const [user, organization, subscription, billingHistory] = await Promise.all([
       prisma.user.findUnique({
         where: { id: session.user.id },
       }),
       prisma.organization.findUnique({
         where: { id: session.session.activeOrganizationId },
       }),
+      prisma.subscription.findFirst({
+        where: { organizationId: session.session.activeOrganizationId },
+        orderBy: { createdAt: 'desc' }
+      }),
+      prisma.billingHistory.findMany({
+        where: { organizationId: session.session.activeOrganizationId },
+        orderBy: { createdAt: 'desc' },
+        take: 5
+      })
     ])
 
     if (!user || !organization) {
@@ -50,6 +59,17 @@ export async function getSettings() {
           },
           plan: metadata.plan || 'free',
         },
+        subscription: subscription ? {
+          plan: subscription.plan,
+          status: subscription.status,
+          currentPeriodEnd: subscription.currentPeriodEnd?.toISOString() || null,
+        } : null,
+        billingHistory: billingHistory.map(bh => ({
+          id: bh.id,
+          amount: bh.amount.toString(),
+          status: bh.status,
+          createdAt: bh.createdAt.toISOString(),
+        })),
       },
     }
   } catch (error) {

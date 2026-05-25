@@ -6,6 +6,8 @@ import CatalogClient, {
 import { getAllCategories } from './_data-access/get-categories'
 import { getAllFeatures } from './_data-access/get-features'
 
+export const dynamic = 'force-dynamic'
+
 export default async function CatalogoContainer() {
   const sessionResponse = await getSessionClient()
 

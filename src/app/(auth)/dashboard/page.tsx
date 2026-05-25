@@ -24,6 +24,8 @@ import type { ProjectStatus } from '@/types'
 import { DashboardChart } from './_components/DashboardChart'
 import { getSessionQuotes } from './_data-access/get-quotes'
 
+export const dynamic = 'force-dynamic'
+
 export default async function DashboardPage() {
   const quotes = await getSessionQuotes()
 

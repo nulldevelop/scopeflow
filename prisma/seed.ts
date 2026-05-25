@@ -1,6 +1,6 @@
-import { PrismaClient } from '../src/generated/prisma'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { Pool } from 'pg'
+import { PrismaClient } from '../src/generated/prisma'
 import { defaultCategories, defaultFeatures } from './seed-data'
 
 async function main() {

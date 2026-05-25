@@ -26,6 +26,7 @@ import {
   Upload,
   User as UserIcon,
   Users as UsersIcon,
+  X,
   Zap,
   Zap as ZapIcon,
 } from 'lucide-react'

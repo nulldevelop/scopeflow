@@ -7,11 +7,13 @@ import {
 } from './_components/quotes-client'
 import { getQuotes } from './_data-access/get-quotes'
 
+export const dynamic = 'force-dynamic'
+
 export default async function QuotesPage() {
   const sessionResponse = await getSessionClient()
 
   if (!sessionResponse.success) {
-    redirect('/sign-in')
+    redirect('/signin')
   }
 
   const { session } = sessionResponse

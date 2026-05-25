@@ -69,7 +69,7 @@ export const initializeDefaultsAction = withPermission(
       }
 
       revalidatePath('/dashboard/catalogo')
-      return { success: true }
+      return { success: true, data: null }
     } catch (error) {
       console.error('[Initialize Defaults Error]', error)
       return { success: false, error: 'Erro ao inicializar padrões.' }
