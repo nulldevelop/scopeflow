@@ -1,12 +1,12 @@
 'use server'
 
+import { cookies, headers } from 'next/headers'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { headers, cookies } from 'next/headers'
 import { seedOrganization } from '../../../../../prisma/seed-organization'
 import {
-  onboardingSchema,
   type OnboardingInput,
+  onboardingSchema,
 } from '../_schemas/onboarding-schema'
 
 export async function completeOnboardingAction(values: OnboardingInput) {
@@ -34,7 +34,7 @@ export async function completeOnboardingAction(values: OnboardingInput) {
     let isNewOrg = false
     if (!org) {
       // Criar organização via API do Better-Auth para garantir consistência
-      // @ts-ignore - createOrganization é injetado pelo plugin
+      // @ts-expect-error - createOrganization é injetado pelo plugin
       const newOrgResponse = await auth.api.createOrganization({
         headers: await headers(),
         body: {
@@ -84,7 +84,7 @@ export async function completeOnboardingAction(values: OnboardingInput) {
     })
 
     // 5. Definir a organização como ativa na sessão (Server-side)
-    // @ts-ignore - setActiveOrganization é injetado pelo plugin
+    // @ts-expect-error - setActiveOrganization é injetado pelo plugin
     await auth.api.setActiveOrganization({
       headers: await headers(),
       body: { organizationId: org.id },

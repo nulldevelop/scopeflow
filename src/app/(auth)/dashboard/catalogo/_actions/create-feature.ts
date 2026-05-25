@@ -14,6 +14,8 @@ export const createFeatureAction = withPermission(
       description?: string
       baseHours: number
       complexity?: string
+      monthlyFee?: number
+      monthlyDuration?: number
       categoryId?: string | null
     },
   ) => {
@@ -24,6 +26,8 @@ export const createFeatureAction = withPermission(
           description: data.description,
           baseHours: data.baseHours,
           complexity: data.complexity || 'media',
+          monthlyFee: data.monthlyFee || 0,
+          monthlyDuration: data.monthlyDuration || 12,
           categoryId: data.categoryId || null,
           organizationId: ctx.organizationId,
         },

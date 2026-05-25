@@ -6,6 +6,8 @@ export const quoteItemSchema = z.object({
   description: z.string().optional().nullable(),
   hours: z.coerce.number().min(0, 'A quantidade de horas deve ser positiva'),
   unitValue: z.coerce.number().min(0, 'O valor unitário deve ser positivo'),
+  monthlyFee: z.coerce.number().min(0).default(0),
+  monthlyDuration: z.coerce.number().int().min(0).default(12),
   order: z.number().int().default(0),
   featureId: z.string().optional().nullable(),
 })
@@ -22,6 +24,7 @@ export const createQuoteSchema = z.object({
     .nullable(),
   totalHours: z.coerce.number().min(0),
   totalValue: z.coerce.number().min(0),
+  monthlyTotal: z.coerce.number().min(0).default(0),
   hourlyRate: z.coerce.number().min(0),
   discount: z.coerce.number().min(0).default(0),
   urgencyFee: z.coerce.number().min(0).default(0),

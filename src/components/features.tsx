@@ -1,15 +1,15 @@
 'use client'
 
+import { motion, type Variants } from 'framer-motion'
 import {
-  Library,
   Calculator,
   FileText,
+  Library,
+  Search,
   TrendingUp,
   Users,
-  Search,
 } from 'lucide-react'
 import { MagicCard } from '@/components/magicui/magic-card'
-import { motion } from 'framer-motion'
 
 const features = [
   {
@@ -51,7 +51,7 @@ const features = [
 ]
 
 export function Features() {
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -61,7 +61,7 @@ export function Features() {
     },
   }
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { y: 20, opacity: 0 },
     visible: {
       y: 0,
@@ -97,26 +97,20 @@ export function Features() {
           className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
         >
           {features.map((feature, index) => (
-            <motion.div key={index} variants={itemVariants}>
+            <motion.div key={index.toString()} variants={itemVariants}>
               <MagicCard
                 className="group relative bg-white border border-[#D3D1C7]/50 rounded-3xl p-8 hover:border-[#2A6B5C]/30 transition-all duration-500 hover:shadow-2xl hover:shadow-[#2A6B5C]/5"
-                gradientColor="#2A6B5C"
-                gradientOpacity={0.08}
+                gradientColor="#F1F5F0"
               >
-                <div className="w-14 h-14 rounded-2xl bg-[#2A6B5C]/5 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-[#2A6B5C]/10 transition-transform duration-500">
+                <div className="mb-6 w-14 h-14 rounded-2xl bg-[#2A6B5C]/5 flex items-center justify-center group-hover:scale-110 group-hover:bg-[#2A6B5C] group-hover:text-white transition-transform duration-500">
                   {feature.icon}
                 </div>
                 <h3 className="text-lg font-bold text-[#1C1C1A] mb-3 group-hover:text-[#2A6B5C] transition-colors">
                   {feature.title}
                 </h3>
-                <p className="text-[#5F5E5A] leading-relaxed font-light">
+                <p className="text-[#5F5E5A] text-sm leading-relaxed font-light">
                   {feature.description}
                 </p>
-
-                {/* Subtle Decorative Element */}
-                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#2A6B5C]" />
-                </div>
               </MagicCard>
             </motion.div>
           ))}

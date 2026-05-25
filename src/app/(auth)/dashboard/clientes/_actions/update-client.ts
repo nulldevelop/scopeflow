@@ -1,9 +1,9 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { prisma } from '@/lib/prisma'
 import { withPermission } from '@/lib/permissions/with-permission'
-import { updateClientSchema, type UpdateClientInput } from '../_schemas/client'
+import { prisma } from '@/lib/prisma'
+import { type UpdateClientInput, updateClientSchema } from '../_schemas/client'
 
 export const updateClient = withPermission(
   'update',

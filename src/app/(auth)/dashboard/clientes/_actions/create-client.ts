@@ -1,9 +1,9 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { prisma } from '@/lib/prisma'
 import { withPermission } from '@/lib/permissions/with-permission'
-import { createClientSchema, type CreateClientInput } from '../_schemas/client'
+import { prisma } from '@/lib/prisma'
+import { type CreateClientInput, createClientSchema } from '../_schemas/client'
 
 export const createClient = withPermission(
   'create',

@@ -1,5 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getSessionClient } from '@/lib/getSession'
+import type { ProjectStatus } from '@/types'
+import type { QuoteWithClient } from '../../_components/quotes-client'
 import { getQuoteById } from '../../_data-access/get-quotes'
 import { ProposalClient } from './_components/proposal-client'
 
@@ -47,19 +49,25 @@ export default async function ProposalPreviewPage({
   }
 
   // Serialização de Decimais para o Client Component
-  const quote = {
+  const quote: QuoteWithClient = {
     ...quoteData,
+    status: quoteData.status as ProjectStatus,
     totalHours: Number(quoteData.totalHours),
     totalValue: Number(quoteData.totalValue),
+    monthlyTotal: Number(quoteData.monthlyTotal),
     hourlyRate: Number(quoteData.hourlyRate),
     discount: Number(quoteData.discount),
     urgencyFee: Number(quoteData.urgencyFee),
     entryAmount: Number(quoteData.entryAmount),
-    items: (quoteData.items || []).map((item) => ({
-      ...item,
-      hours: Number(item.hours),
-      unitValue: Number(item.unitValue),
-    })),
+    items: quoteData.items.map((item) => {
+      return {
+        ...item,
+        hours: Number(item.hours),
+        unitValue: Number(item.unitValue),
+        monthlyFee: Number(item.monthlyFee),
+        monthlyDuration: item.monthlyDuration,
+      }
+    }),
   }
 
   return <ProposalClient quote={quote} />

@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getSessionClient } from '@/lib/getSession'
-import { getSessionClients } from './_data-access/get-clients'
 import { ClientsClient } from './_components/clients-client'
+import { getSessionClients } from './_data-access/get-clients'
 
 export default async function ClientsPage() {
   const sessionResponse = await getSessionClient()

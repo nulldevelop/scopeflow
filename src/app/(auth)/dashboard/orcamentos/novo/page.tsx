@@ -1,8 +1,11 @@
 import { redirect } from 'next/navigation'
 import { getSessionClient } from '@/lib/getSession'
+import {
+  getAllFeatures,
+  getFeatureById,
+} from '../../catalogo/_data-access/get-features'
 import { getClients } from '../../clientes/_data-access/get-clients'
-import { getFeatureById, getAllFeatures } from '../../catalogo/_data-access/get-features'
-import { QuoteEditorClient } from '../[id]/_components/quote-editor-client'
+import { QuoteEditorClient, type EditorFeature } from '../[id]/_components/quote-editor-client'
 
 export default async function NewQuotePage({
   searchParams,
@@ -32,18 +35,31 @@ export default async function NewQuotePage({
     getAllFeatures(activeOrgId),
   ])
 
-  const features = (featuresData || []).map(f => ({
-    ...f,
-    baseHours: Number(f.baseHours)
+  const features: EditorFeature[] = (featuresData || []).map((f) => ({
+    id: f.id,
+    nome: f.name,
+    descricao: f.description || '',
+    categoria: f.category?.name || 'Outro',
+    baseHours: Number(f.baseHours),
+    complexity: f.complexity,
+    monthlyFee: Number(f.monthlyFee),
+    monthlyDuration: f.monthlyDuration,
   }))
 
-  let initialFeature = null
+  let initialFeature: EditorFeature | null = null
   if (featureId) {
     const res = await getFeatureById(activeOrgId, featureId)
     if (res.success && res.feature) {
+      const f = res.feature
       initialFeature = {
-        ...res.feature,
-        baseHours: Number(res.feature.baseHours)
+        id: f.id,
+        nome: f.name,
+        descricao: f.description || '',
+        categoria: f.category?.name || 'Outro',
+        baseHours: Number(f.baseHours),
+        complexity: f.complexity,
+        monthlyFee: Number(f.monthlyFee),
+        monthlyDuration: f.monthlyDuration,
       }
     }
   }

@@ -2,20 +2,19 @@
 
 import {
   Calendar,
-  MoreHorizontal,
-  Plus,
-  Search,
-  Users,
-  Trash2,
+  CalendarDays,
+  ChevronDown,
+  Clock,
+  CreditCard,
   Edit,
   FileText,
   Link as LinkIcon,
-  Printer,
-  Clock,
+  MoreHorizontal,
   Package,
-  CreditCard,
-  CalendarDays,
-  ChevronDown,
+  Plus,
+  Search,
+  Trash2,
+  Users,
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -25,22 +24,51 @@ import { Header } from '@/components/shared/Header'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
 import type { Client, Quote, QuoteItem } from '@/generated/prisma/client'
 import { cn } from '@/lib/utils'
 import type { ProjectStatus } from '@/types'
 import { deleteQuote } from '../_actions/delete-quote'
 import { updateQuoteStatus } from '../_actions/update-quote-status'
 
-export type QuoteWithClient = Quote & {
+export type SerializedQuoteItem = Omit<
+  QuoteItem,
+  'hours' | 'unitValue' | 'monthlyFee'
+> & {
+  hours: number
+  unitValue: number
+  monthlyFee: number
+}
+
+export type SerializedQuote = Omit<
+  Quote,
+  | 'totalHours'
+  | 'totalValue'
+  | 'monthlyTotal'
+  | 'hourlyRate'
+  | 'discount'
+  | 'urgencyFee'
+  | 'entryAmount'
+> & {
+  totalHours: number
+  totalValue: number
+  monthlyTotal: number
+  hourlyRate: number
+  discount: number
+  urgencyFee: number
+  entryAmount: number
+  status: ProjectStatus
+}
+
+export type QuoteWithClient = SerializedQuote & {
   client: Client | null
-  items: QuoteItem[]
+  items: SerializedQuoteItem[]
 }
 
 const filterOptions: { label: string; value: ProjectStatus | 'Todos' }[] = [
@@ -60,7 +88,7 @@ const statusOptions: { label: string; value: ProjectStatus }[] = [
 
 export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
   const router = useRouter()
-  const [isPending, startTransition] = useTransition()
+  const [_isPending, startTransition] = useTransition()
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | 'Todos'>(
     'Todos',
@@ -88,7 +116,7 @@ export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
         } else {
           toast.error(res.error)
         }
-      } catch (error) {
+      } catch (_error) {
         toast.error('Erro ao excluir orçamento.')
       }
     })
@@ -103,7 +131,7 @@ export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
         } else {
           toast.error(res.error)
         }
-      } catch (error) {
+      } catch (_error) {
         toast.error('Erro ao atualizar status.')
       }
     })
@@ -178,10 +206,10 @@ export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
                 <div className="flex items-start justify-between mb-4">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <button className="flex items-center gap-1.5 hover:opacity-80 transition-opacity outline-none">
+                      <Button className="flex items-center gap-1.5 hover:opacity-80 transition-opacity outline-none">
                         <StatusBadge status={quote.status as ProjectStatus} />
                         <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
-                      </button>
+                      </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start">
                       {statusOptions.map((option) => (

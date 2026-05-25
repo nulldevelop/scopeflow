@@ -15,6 +15,8 @@ export const updateFeatureAction = withPermission(
       description?: string
       baseHours?: number
       complexity?: string
+      monthlyFee?: number
+      monthlyDuration?: number
       categoryId?: string | null
     },
   ) => {

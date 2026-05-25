@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import type React from 'react'
 import { usePermission } from '../hooks/use-permission'
 import type { Action, Module } from '../types'
 

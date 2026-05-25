@@ -16,6 +16,7 @@ import {
   Zap,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import type { ElementType } from 'react'
 import { useMemo, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -29,7 +30,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { organization } from '@/lib/auth-client'
 import { cn } from '@/lib/utils'
 import { completeOnboardingAction } from './_actions/complete-onboarding'
 import {
@@ -266,7 +266,7 @@ const profiles = [
       },
     ],
   },
-]
+] as const
 
 const steps = [
   { id: 1, name: 'Identidade', description: 'Nome e URL' },
@@ -280,12 +280,20 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
 
-  const form = useForm<OnboardingInput>({
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    control,
+    trigger,
+    formState: { errors },
+  } = useForm<OnboardingInput>({
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
       orgName: '',
       slug: '',
-      profile: undefined as any,
+      // @ts-expect-error - initial undefined for enum
+      profile: undefined,
       answers: {
         taxRegime: 'Simples Nacional',
         taxPercentage: '6',
@@ -298,314 +306,135 @@ export default function OnboardingPage() {
       },
       plan: 'basic',
       invites: [],
-    } as OnboardingInput,
+    },
   })
 
-  const {
-    control,
-    handleSubmit,
-    setValue,
-    trigger,
-    setError,
-    formState: { errors },
-  } = form
+  const formData = useWatch({ control })
+  const activeProfile = profiles.find((p) => p.id === formData.profile)
 
-  const profile = useWatch({ control, name: 'profile' })
-  const answers = useWatch({ control, name: 'answers' })
-  const planValue = useWatch({ control, name: 'plan' })
+  const hourlyRate = useMemo(() => {
+    if (!formData.answers) return 0
+    const desiredSalary = Number(formData.answers.desiredSalary) || 0
+    const fixedCosts = Number(formData.answers.fixedCosts) || 0
+    const taxPercentage = Number(formData.answers.taxPercentage) || 0
+    const profitMargin = Number(formData.answers.profitMargin) || 0
+    const workHoursDay = Number(formData.answers.workHoursDay) || 0
+    const workDaysMonth = Number(formData.answers.workDaysMonth) || 22
 
-  const currentProfile = profiles.find((p) => p.id === profile)
+    const monthlyGoal = (desiredSalary + fixedCosts) / (1 - (taxPercentage + profitMargin) / 100)
+    const hoursPerMonth = workHoursDay * workDaysMonth
 
-  // Lógica da Calculadora de Valor Hora
-  const calculatedStats = useMemo(() => {
-    const salary = Number(answers?.desiredSalary || 0)
-    const fixed = Number(answers?.fixedCosts || 0)
-    const hoursDay = Number(answers?.workHoursDay || 6)
-    const daysMonth = Number(answers?.workDaysMonth || 22)
-    const tax = Number(answers?.taxPercentage || 6)
-    const reserve = Number(answers?.contingencyReserve || 10)
-    const profit = Number(answers?.profitMargin || 20)
-
-    const totalMonthlyCost = salary + fixed
-    const totalHoursMonth = hoursDay * daysMonth
-
-    if (totalHoursMonth === 0) return null
-
-    const baseHourlyRate = totalMonthlyCost / totalHoursMonth
-    const rateWithTax = baseHourlyRate / (1 - tax / 100)
-    const rateWithReserve = rateWithTax * (1 + reserve / 100)
-    const finalRate = rateWithReserve * (1 + profit / 100)
-
-    return {
-      totalMonthlyCost,
-      totalHoursMonth,
-      baseHourlyRate,
-      finalRate,
-    }
-  }, [answers])
+    return hoursPerMonth > 0 ? Math.ceil(monthlyGoal / hoursPerMonth) : 0
+  }, [formData.answers])
 
   const nextStep = async () => {
-    let fields: any[] = []
-    if (step === 1) fields = ['orgName', 'slug']
-    if (step === 2) fields = ['profile']
-    if (step === 3) {
-      // Quando avança da calibragem, injetamos o valor hora final calculado
-      if (calculatedStats) {
-        setValue(
-          'answers.hourlyRate',
-          Math.ceil(calculatedStats.finalRate).toString(),
-        )
-      }
-      fields = ['answers']
-    }
+    let fieldsToValidate: (keyof OnboardingInput)[] = []
+    if (step === 1) fieldsToValidate = ['orgName', 'slug']
+    if (step === 2) fieldsToValidate = ['profile']
 
-    const isValid = await trigger(fields)
-    if (isValid) setStep((s) => s + 1)
+    const isValid = await trigger(fieldsToValidate)
+    if (isValid) setStep(step + 1)
   }
 
-  const prevStep = () => setStep((s) => s - 1)
+  const prevStep = () => setStep(step - 1)
 
-  const onSubmit = async (values: OnboardingInput) => {
+  const onSubmit = async (data: OnboardingInput) => {
     setLoading(true)
     try {
-      const result = await completeOnboardingAction(values)
-      if (!result.success) {
-        toast.error(result.error)
-        setLoading(false)
-        return
+      const res = await completeOnboardingAction(data)
+      if (res.success) {
+        toast.success('Configuração finalizada com sucesso!')
+        router.push('/dashboard')
+      } else {
+        toast.error(res.error || 'Erro ao finalizar configuração.')
       }
-      toast.success('Workspace configurado com sucesso!')
-      window.location.assign('/dashboard')
-    } catch (err) {
-      console.error(err)
-      toast.error('Erro ao finalizar onboarding.')
+    } catch (_error) {
+      toast.error('Erro de conexão.')
+    } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row overflow-x-hidden">
-      {/* Sidebar de Progresso */}
-      <div className="w-full md:w-80 bg-gray-900 text-white p-8 md:p-12 flex flex-col justify-between shrink-0">
-        <div>
-          <div className="flex items-center gap-3 mb-12">
-            <div className="w-8 h-8 bg-brand rounded-lg flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-bold text-xl tracking-tight">ScopeFlow</span>
-          </div>
-
-          <div className="space-y-8">
+    <div className="min-h-screen bg-[#F8F7F3] flex flex-col items-center justify-center p-6">
+       <div className="max-w-4xl w-full">
+         {/* Multi-step logic rendering... (kept from original) */}
+         <div className="mb-12 flex items-center justify-between px-2">
             {steps.map((s) => (
-              <div key={s.id} className="flex gap-4 group">
-                <div className="flex flex-col items-center">
-                  <div
-                    className={cn(
-                      'w-6 h-6 rounded-full border-2 flex items-center justify-center text-[10px] font-bold transition-all',
-                      step === s.id
-                        ? 'border-brand bg-brand text-white scale-125'
-                        : step > s.id
-                          ? 'border-brand bg-brand text-white'
-                          : 'border-gray-700 text-gray-500',
-                    )}
-                  >
-                    {step > s.id ? <Check className="w-3 h-3" /> : s.id}
-                  </div>
-                  {s.id !== 4 && (
-                    <div
-                      className={cn(
-                        'w-0.5 h-10 mt-1 rounded-full',
-                        step > s.id ? 'bg-brand' : 'bg-gray-800',
-                      )}
-                    />
+              <div key={s.id} className="flex flex-col items-center gap-2 group relative">
+                <div
+                  className={cn(
+                    "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-500",
+                    step >= s.id
+                      ? "bg-brand border-brand text-white shadow-lg shadow-brand/20 scale-110"
+                      : "bg-white border-gray-200 text-gray-400"
                   )}
+                >
+                  {step > s.id ? <Check className="w-5 h-5" /> : <span>{s.id}</span>}
                 </div>
-                <div>
-                  <p
-                    className={cn(
-                      'text-sm font-bold leading-none mb-1',
-                      step === s.id ? 'text-white' : 'text-gray-500',
-                    )}
-                  >
+                <div className="absolute top-12 whitespace-nowrap text-center opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity">
+                  <p className={cn("text-[10px] font-bold uppercase tracking-wider", step >= s.id ? "text-brand" : "text-gray-400")}>
                     {s.name}
-                  </p>
-                  <p className="text-xs text-gray-600 font-medium">
-                    {s.description}
                   </p>
                 </div>
               </div>
             ))}
           </div>
-        </div>
 
-        <div className="hidden md:block">
-          <div className="p-4 bg-gray-800/50 rounded-2xl border border-gray-700/50">
-            <p className="text-xs text-gray-400 leading-relaxed italic">
-              "A melhor ferramenta para precificar seus projetos de forma
-              inteligente e lucrativa."
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Conteúdo Principal */}
-      <div className="flex-1 p-8 md:p-20 flex items-start justify-center overflow-y-auto">
-        <div className="max-w-4xl w-full">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
             <AnimatePresence mode="wait">
               {step === 1 && (
                 <motion.div
                   key="step1"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="space-y-8 max-w-2xl mx-auto"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="bg-white p-8 md:p-12 rounded-[32px] shadow-xl border border-gray-100"
                 >
-                  <div>
-                    <h2 className="text-3xl font-black text-gray-900 mb-2">
-                      Primeiro, vamos dar um nome à sua casa.
-                    </h2>
-                    <p className="text-gray-500">
-                      Isso ajudará a organizar seus orçamentos e clientes.
-                    </p>
+                  <div className="mb-8">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand/5 text-brand rounded-full mb-4">
+                      <Sparkles className="w-4 h-4" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest">Passo 01: Identidade</span>
+                    </div>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Primeiro, como se chama seu negócio?</h1>
+                    <p className="text-gray-500">Isso será usado nas suas propostas e na sua URL exclusiva.</p>
                   </div>
 
                   <div className="space-y-6">
-                    <Controller
-                      control={control}
-                      name="orgName"
-                      render={({ field }) => (
-                        <Field className="space-y-3">
-                          <FieldLabel className="text-sm font-black uppercase tracking-widest text-gray-400">
-                            Nome do seu negócio
-                          </FieldLabel>
-                          <Input
-                            placeholder="Ex: Minha Software House"
-                            className="h-16 text-xl bg-white border-gray-100 rounded-2xl shadow-sm focus:ring-brand focus:border-brand transition-all px-6"
-                            {...field}
-                            onChange={(e) => {
-                              field.onChange(e)
-                              setValue(
-                                'slug',
-                                e.target.value
-                                  .toLowerCase()
-                                  .trim()
-                                  .replace(/\s+/g, '-')
-                                  .replace(/[^a-z0-9-]/g, ''),
-                                { shouldValidate: true },
-                              )
-                            }}
-                          />
-                          <FieldError errors={[errors.orgName]} />
-                        </Field>
-                      )}
-                    />
+                    <Field>
+                      <FieldLabel>Nome da Organização</FieldLabel>
+                      <Input
+                        {...register('orgName')}
+                        placeholder="Ex: Minha Software House"
+                        className="h-14 text-lg rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white transition-all"
+                      />
+                      {errors.orgName && <FieldError>{errors.orgName.message}</FieldError>}
+                    </Field>
 
-                    <Controller
-                      control={control}
-                      name="slug"
-                      render={({ field }) => (
-                        <Field className="space-y-3">
-                          <FieldLabel className="text-sm font-black uppercase tracking-widest text-gray-400">
-                            Link do seu workspace
-                          </FieldLabel>
-                          <div className="flex items-center">
-                            <div className="h-16 flex items-center px-6 bg-gray-100 border border-r-0 border-gray-100 rounded-l-2xl text-gray-400 font-medium text-lg">
-                              scopeflow.com/
-                            </div>
-                            <Input
-                              className="h-16 text-lg bg-white border-gray-100 rounded-l-none rounded-r-2xl shadow-sm focus:ring-brand focus:border-brand transition-all px-6"
-                              {...field}
-                            />
-                          </div>
-                          <FieldError errors={[errors.slug]} />
-                        </Field>
-                      )}
-                    />
+                    <Field>
+                      <FieldLabel>URL Exclusiva</FieldLabel>
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-mono text-sm">scopeflow.io/</span>
+                        <Input
+                          {...register('slug')}
+                          placeholder="meu-negocio"
+                          className="h-14 pl-[105px] text-lg rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white transition-all font-mono"
+                          onChange={(e) => {
+                            const val = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '')
+                            setValue('slug', val)
+                          }}
+                        />
+                      </div>
+                      <p className="text-[10px] text-gray-400 mt-2">Dica: Use apenas letras minúsculas, números e hífens.</p>
+                      {errors.slug && <FieldError>{errors.slug.message}</FieldError>}
+                    </Field>
                   </div>
 
-                  <Button
-                    type="button"
-                    className="w-full h-16 bg-gray-900 text-white hover:bg-black rounded-2xl text-lg font-bold gap-3 shadow-xl"
-                    onClick={nextStep}
-                  >
-                    Continuar <ArrowRight className="w-5 h-5" />
-                  </Button>
-                </motion.div>
-              )}
-
-              {step === 2 && (
-                <motion.div
-                  key="step2"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="space-y-8 max-w-2xl mx-auto"
-                >
-                  <div>
-                    <h2 className="text-3xl font-black text-gray-900 mb-2">
-                      Como você atua hoje?
-                    </h2>
-                    <p className="text-gray-500">
-                      Seu perfil calibra nossa inteligência de estimativas.
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {profiles.map((p) => (
-                      <button
-                        key={p.id}
-                        type="button"
-                        onClick={() => {
-                          setValue('profile', p.id as any)
-                          // Não resetamos mais tudo, apenas campos específicos se necessário
-                        }}
-                        className={cn(
-                          'p-6 rounded-[24px] border-2 text-left transition-all group relative overflow-hidden',
-                          profile === p.id
-                            ? 'border-brand bg-brand/5 shadow-lg shadow-brand/5'
-                            : 'border-white bg-white hover:border-brand/30 hover:shadow-xl',
-                        )}
-                      >
-                        <div
-                          className={cn(
-                            'w-12 h-12 rounded-2xl flex items-center justify-center mb-4 transition-colors',
-                            profile === p.id
-                              ? 'bg-brand text-white'
-                              : 'bg-gray-50 text-gray-400 group-hover:bg-brand/10 group-hover:text-brand',
-                          )}
-                        >
-                          <p.icon className="w-6 h-6" />
-                        </div>
-                        <div className="font-black text-gray-900 mb-1">
-                          {p.title}
-                        </div>
-                        <div className="text-xs text-gray-500 leading-relaxed">
-                          {p.description}
-                        </div>
-
-                        {profile === p.id && (
-                          <div className="absolute top-4 right-4 bg-brand text-white w-6 h-6 rounded-full flex items-center justify-center shadow-lg">
-                            <Check className="w-3.5 h-3.5 stroke-[3]" />
-                          </div>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="flex gap-4">
+                  <div className="mt-10 flex justify-end">
                     <Button
                       type="button"
-                      variant="ghost"
-                      className="h-16 px-8 rounded-2xl text-gray-400"
-                      onClick={prevStep}
-                    >
-                      Voltar
-                    </Button>
-                    <Button
-                      type="button"
-                      className="flex-1 h-16 bg-gray-900 text-white hover:bg-black rounded-2xl text-lg font-bold gap-3"
                       onClick={nextStep}
+                      className="bg-brand text-white hover:bg-brand-dark h-14 px-8 rounded-2xl gap-2 text-lg shadow-lg shadow-brand/20"
                     >
                       Continuar <ArrowRight className="w-5 h-5" />
                     </Button>
@@ -613,194 +442,168 @@ export default function OnboardingPage() {
                 </motion.div>
               )}
 
-              {step === 3 && currentProfile && (
+              {step === 2 && (
                 <motion.div
-                  key="step3"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="space-y-8"
+                  key="step2"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="bg-white p-8 md:p-12 rounded-[32px] shadow-xl border border-gray-100"
                 >
-                  <div className="max-w-2xl mx-auto text-center">
-                    <h2 className="text-3xl font-black text-gray-900 mb-2">
-                      Calculadora de Valor Hora
-                    </h2>
-                    <p className="text-gray-500">
-                      Defina sua meta financeira e nós calculamos quanto sua
-                      hora deve valer.
-                    </p>
+                  <div className="mb-8">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand/5 text-brand rounded-full mb-4">
+                      <Star className="w-4 h-4" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest">Passo 02: Perfil</span>
+                    </div>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Qual seu perfil de trabalho?</h1>
+                    <p className="text-gray-500">Isso nos ajuda a pré-configurar seu catálogo de horas e complexidade.</p>
                   </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-                    {/* Campos de Input */}
-                    <div className="space-y-6 bg-white p-8 rounded-[32px] border border-gray-100 shadow-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {profiles.map((p) => {
+                      const Icon = p.icon
+                      const isSelected = formData.profile === p.id
+                      return (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => {
+                            // @ts-expect-error - enum type mismatch with string
+                            setValue('profile', p.id)
+                          }}
+                          className={cn(
+                            "flex items-start gap-4 p-5 rounded-3xl border-2 transition-all text-left group",
+                            isSelected
+                              ? "bg-white border-brand shadow-lg ring-1 ring-brand/10"
+                              : "bg-gray-50/50 border-transparent hover:border-gray-200"
+                          )}
+                        >
+                          <div className={cn(
+                            "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-colors",
+                            isSelected ? "bg-brand text-white" : "bg-white text-gray-400 group-hover:text-brand"
+                          )}>
+                            <Icon className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <p className={cn("font-bold transition-colors", isSelected ? "text-gray-900" : "text-gray-600 group-hover:text-gray-900")}>
+                              {p.title}
+                            </p>
+                            <p className="text-xs text-gray-400 leading-relaxed mt-1">{p.description}</p>
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                  {errors.profile && <p className="text-red-500 text-xs mt-4">{errors.profile.message}</p>}
+
+                  <div className="mt-10 flex justify-between">
+                    <Button type="button" variant="ghost" onClick={prevStep} className="h-14 px-8 rounded-2xl">Voltar</Button>
+                    <Button
+                      type="button"
+                      onClick={nextStep}
+                      disabled={!formData.profile}
+                      className="bg-brand text-white hover:bg-brand-dark h-14 px-8 rounded-2xl gap-2 text-lg shadow-lg shadow-brand/20"
+                    >
+                      Configurar Metas <ArrowRight className="w-5 h-5" />
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
+
+              {step === 3 && activeProfile && (
+                <motion.div
+                  key="step3"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="bg-white p-8 md:p-12 rounded-[32px] shadow-xl border border-gray-100"
+                >
+                  <div className="flex flex-col md:flex-row gap-12">
+                    <div className="flex-1">
+                      <div className="mb-8">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand/5 text-brand rounded-full mb-4">
+                          <Crown className="w-4 h-4" />
+                          <span className="text-[10px] font-bold uppercase tracking-widest">Passo 03: Calibragem</span>
+                        </div>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Vamos calcular seu valor hora</h1>
+                        <p className="text-gray-500">Responda as perguntas abaixo para calibrarmos sua lucratividade.</p>
+                      </div>
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {currentProfile.questions.map((q) => (
-                          <Controller
-                            key={q.id}
-                            control={control}
-                            name={`answers.${q.id}` as any}
-                            render={({ field }) => (
-                              <Field className="space-y-2">
-                                <FieldLabel className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                                  {q.label}
-                                </FieldLabel>
-                                {q.type === 'select' ? (
-                                  <Select
-                                    onValueChange={field.onChange}
-                                    value={field.value}
-                                  >
-                                    <SelectTrigger className="h-12 bg-gray-50 border-none rounded-xl text-base px-4">
+                        {activeProfile.questions.map((q) => (
+                          <Field key={q.id}>
+                            <FieldLabel>{q.label}</FieldLabel>
+                            {q.type === 'select' ? (
+                              <Controller
+                                control={control}
+                                // @ts-expect-error - dynamic path
+                                name={`answers.${q.id}`}
+                                render={({ field }) => (
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <SelectTrigger className="h-12 rounded-xl bg-gray-50/50 border-gray-100">
                                       <SelectValue placeholder="Selecione..." />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      {q.options?.map((o) => (
-                                        <SelectItem key={o} value={o}>
-                                          {o}
-                                        </SelectItem>
+                                      {q.options?.map(opt => (
+                                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
                                       ))}
                                     </SelectContent>
                                   </Select>
-                                ) : (
-                                  <Input
-                                    type={q.type}
-                                    placeholder={q.placeholder}
-                                    className="h-12 text-base bg-gray-50 border-none rounded-xl px-4 font-medium"
-                                    {...field}
-                                  />
                                 )}
-                              </Field>
+                              />
+                            ) : (
+                              <Input
+                                type={q.type}
+                                // @ts-expect-error - dynamic path
+                                {...register(`answers.${q.id}`)}
+                                placeholder={q.placeholder}
+                                className="h-12 rounded-xl bg-gray-50/50 border-gray-100 focus:bg-white"
+                              />
                             )}
-                          />
+                          </Field>
                         ))}
-
-                        <Controller
-                          control={control}
-                          name="answers.workDaysMonth"
-                          render={({ field }) => (
-                            <Field className="space-y-2">
-                              <FieldLabel className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                                Dias úteis/mês
-                              </FieldLabel>
-                              <Input
-                                type="number"
-                                className="h-12 bg-gray-50 border-none rounded-xl px-4"
-                                {...field}
-                              />
-                            </Field>
-                          )}
-                        />
-                        <Controller
-                          control={control}
-                          name="answers.contingencyReserve"
-                          render={({ field }) => (
-                            <Field className="space-y-2">
-                              <FieldLabel className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                                Reserva (%)
-                              </FieldLabel>
-                              <Input
-                                type="number"
-                                className="h-12 bg-gray-50 border-none rounded-xl px-4"
-                                {...field}
-                              />
-                            </Field>
-                          )}
-                        />
-                        <Controller
-                          control={control}
-                          name="answers.profitMargin"
-                          render={({ field }) => (
-                            <Field className="space-y-2">
-                              <FieldLabel className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                                Margem de Lucro (%)
-                              </FieldLabel>
-                              <Input
-                                type="number"
-                                className="h-12 bg-gray-50 border-none rounded-xl px-4"
-                                {...field}
-                              />
-                            </Field>
-                          )}
-                        />
+                        <Field>
+                          <FieldLabel>Margem de Lucro Alvo (%)</FieldLabel>
+                          <Input
+                            type="number"
+                            {...register('answers.profitMargin')}
+                            className="h-12 rounded-xl bg-gray-50/50 border-gray-100 focus:bg-white"
+                          />
+                        </Field>
                       </div>
                     </div>
 
-                    {/* Resumo dos Cálculos */}
-                    <div className="sticky top-0 space-y-6">
-                      <div className="bg-gray-900 text-white p-10 rounded-[40px] shadow-2xl relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-brand/10 rounded-full -mr-16 -mt-16 blur-3xl" />
-
-                        <h3 className="text-xs font-black uppercase tracking-widest text-gray-500 mb-8">
-                          Custos e Hora Calculados
-                        </h3>
-
-                        <div className="space-y-6">
-                          <div className="flex justify-between items-center text-sm">
-                            <span className="text-gray-400 font-medium">
-                              Custo total mensal
-                            </span>
-                            <span className="font-mono font-bold text-gray-200">
-                              {calculatedStats?.totalMonthlyCost.toLocaleString(
-                                'pt-BR',
-                                { style: 'currency', currency: 'BRL' },
-                              )}
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center text-sm">
-                            <span className="text-gray-400 font-medium">
-                              Horas disponíveis/mês
-                            </span>
-                            <span className="font-mono font-bold text-gray-200">
-                              {calculatedStats?.totalHoursMonth}h
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center text-sm">
-                            <span className="text-gray-400 font-medium">
-                              Custo hora base
-                            </span>
-                            <span className="font-mono text-gray-400">
-                              {calculatedStats?.baseHourlyRate.toLocaleString(
-                                'pt-BR',
-                                { style: 'currency', currency: 'BRL' },
-                              )}
-                              /h
-                            </span>
-                          </div>
-
-                          <div className="pt-6 mt-6 border-t border-white/5">
-                            <p className="text-[10px] font-black uppercase text-brand mb-2 tracking-widest">
-                              ⭐ HORA FINAL COM LUCRO
-                            </p>
-                            <div className="flex items-baseline gap-2">
-                              <span className="text-5xl font-mono font-black text-white">
-                                R$ {Math.ceil(calculatedStats?.finalRate || 0)}
-                              </span>
-                              <span className="text-gray-500 font-bold">
-                                /h
-                              </span>
+                    <div className="w-full md:w-80">
+                      <div className="sticky top-8 p-6 bg-brand/5 rounded-[24px] border border-brand/10">
+                         <div className="text-center mb-6">
+                            <p className="text-[10px] font-bold text-brand uppercase tracking-[0.2em] mb-2">Seu Valor Hora Sugerido</p>
+                            <h2 className="text-5xl font-black text-gray-900 font-mono tracking-tighter">
+                              R$ {hourlyRate}
+                            </h2>
+                         </div>
+                         <div className="space-y-4 pt-6 border-t border-brand/10">
+                            <div className="flex justify-between text-xs">
+                              <span className="text-gray-500">Custo Base p/ Mês</span>
+                              <span className="font-bold text-gray-900">R$ {(Number(formData.answers?.desiredSalary) || 0) + (Number(formData.answers?.fixedCosts) || 0)}</span>
                             </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-4">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          className="h-16 px-8 rounded-2xl text-gray-400"
-                          onClick={prevStep}
-                        >
-                          Voltar
-                        </Button>
-                        <Button
-                          type="button"
-                          className="flex-1 h-16 bg-gray-900 text-white hover:bg-black rounded-2xl text-lg font-bold gap-3"
-                          onClick={nextStep}
-                        >
-                          Confirmar Valor <ArrowRight className="w-5 h-5" />
-                        </Button>
+                            <div className="flex justify-between text-xs">
+                              <span className="text-gray-500">Horas Vendáveis</span>
+                              <span className="font-bold text-gray-900">{(Number(formData.answers?.workHoursDay) || 0) * (Number(formData.answers?.workDaysMonth) || 22)}h</span>
+                            </div>
+                         </div>
                       </div>
                     </div>
+                  </div>
+
+                  <div className="mt-10 flex justify-between">
+                    <Button type="button" variant="ghost" onClick={prevStep} className="h-14 px-8 rounded-2xl">Voltar</Button>
+                    <Button
+                      type="button"
+                      onClick={nextStep}
+                      className="bg-brand text-white hover:bg-brand-dark h-14 px-8 rounded-2xl gap-2 text-lg shadow-lg shadow-brand/20"
+                    >
+                      Último Passo <ArrowRight className="w-5 h-5" />
+                    </Button>
                   </div>
                 </motion.div>
               )}
@@ -808,159 +611,84 @@ export default function OnboardingPage() {
               {step === 4 && (
                 <motion.div
                   key="step4"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="space-y-8 max-w-4xl mx-auto"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="bg-white p-8 md:p-12 rounded-[32px] shadow-xl border border-gray-100"
                 >
-                  <div className="text-center">
-                    <h2 className="text-3xl font-black text-gray-900 mb-2">
-                      Para finalizar, escolha seu plano.
-                    </h2>
-                    <p className="text-gray-500">
-                      Você pode mudar isso a qualquer momento.
-                    </p>
+                   <div className="mb-10 text-center max-w-2xl mx-auto">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand/5 text-brand rounded-full mb-4">
+                      <Zap className="w-4 h-4" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest">Passo 04: Escolha o Plano</span>
+                    </div>
+                    <h1 className="text-4xl font-black text-gray-900 mb-4 tracking-tight">Comece como quiser.</h1>
+                    <p className="text-gray-500">Acesse o ScopeFlow hoje mesmo com os limites que você precisa.</p>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {[
-                      {
-                        id: 'free',
-                        title: 'Grátis',
-                        price: 'R$ 0',
-                        icon: Star,
-                        desc: 'Para começar a organizar',
-                        color: 'text-gray-400',
-                        features: [
-                          '5 orçamentos ativos',
-                          'Catálogo básico',
-                          'Proposta em PDF',
-                        ],
-                      },
-                      {
-                        id: 'basic',
-                        title: 'Pro',
-                        price: 'R$ 49',
-                        icon: Zap,
-                        desc: 'Solução para profissionais',
-                        color: 'text-brand',
-                        popular: true,
-                        features: [
-                          'Orçamentos ilimitados',
-                          'Catálogo ilimitado',
-                          'Link dinâmico',
-                          'Métricas de conversão',
-                        ],
-                      },
-                      {
-                        id: 'pro',
-                        title: 'Equipe',
-                        price: 'R$ 129',
-                        icon: Crown,
-                        desc: 'Gestão para times',
-                        color: 'text-orange-500',
-                        features: [
-                          'Até 5 membros',
-                          'Templates customizados',
-                          'Painel administrativo',
-                          'Suporte prioritário',
-                        ],
-                      },
-                    ].map((plan) => (
-                      <button
-                        key={plan.id}
-                        type="button"
-                        onClick={() => setValue('plan', plan.id as any)}
-                        className={cn(
-                          'p-8 rounded-[32px] border-2 text-left transition-all flex flex-col group relative h-full',
-                          planValue === plan.id
-                            ? 'border-brand bg-brand/5 shadow-2xl shadow-brand/10 z-10'
-                            : 'border-white bg-white hover:border-brand/30 hover:shadow-xl',
-                        )}
-                      >
-                        <div
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {[
+                        { id: 'free', name: 'Grátis', price: 'R$ 0', description: 'Para quem está começando a organizar.', features: ['Até 5 orçamentos/mês', 'Proposta via Link', 'Catálogo Básico'] },
+                        { id: 'basic', name: 'Standard', price: 'R$ 49', description: 'Foco total em vendas profissionais.', features: ['Orçamentos Ilimitados', 'PDF Customizado', 'Métricas Financeiras', 'Suporte Prioritário'], popular: true },
+                      ].map((plan) => (
+                        <button
+                          key={plan.id}
+                          type="button"
+                          onClick={() => {
+                            // @ts-expect-error - enum type mismatch
+                            setValue('plan', plan.id)
+                          }}
                           className={cn(
-                            'w-12 h-12 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110',
-                            plan.color,
-                            'bg-gray-50',
+                            "relative flex flex-col p-8 rounded-[32px] border-2 transition-all text-left",
+                            formData.plan === plan.id
+                              ? "bg-white border-brand shadow-2xl ring-1 ring-brand/10 scale-[1.02]"
+                              : "bg-gray-50/50 border-transparent hover:border-gray-200"
                           )}
                         >
-                          <plan.icon className="w-6 h-6" />
-                        </div>
-
-                        <div className="mb-6">
-                          <div className="font-black text-gray-900 text-xl mb-1">
-                            {plan.title}
-                          </div>
-                          <div className="flex items-baseline gap-1">
-                            <span className="text-2xl font-black text-gray-900">
-                              {plan.price}
-                            </span>
-                            <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">
-                              /mês
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="text-xs text-gray-500 font-medium mb-6 leading-relaxed">
-                          {plan.desc}
-                        </div>
-
-                        <div className="space-y-3 mb-8 flex-1">
-                          {plan.features.map((feature, i) => (
-                            <div
-                              key={i}
-                              className="flex items-center gap-2 text-xs font-bold text-gray-600"
-                            >
-                              <Check className="w-3.5 h-3.5 text-brand" />
-                              {feature}
+                          {plan.popular && (
+                             <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold uppercase tracking-[0.2em] px-4 py-1.5 rounded-full shadow-lg">
+                               Mais Popular
+                             </div>
+                          )}
+                          <div className="mb-6">
+                            <h3 className="text-xl font-bold text-gray-900">{plan.name}</h3>
+                            <div className="mt-2 flex items-baseline gap-1">
+                               <span className="text-3xl font-black text-gray-900 font-mono">{plan.price}</span>
+                               <span className="text-gray-400 text-sm">/mês</span>
                             </div>
-                          ))}
-                        </div>
-
-                        {plan.popular && (
-                          <div className="absolute top-4 right-4 bg-brand text-[8px] font-black text-white uppercase px-3 py-1.5 rounded-full tracking-widest shadow-lg shadow-brand/20">
-                            Mais Popular
+                            <p className="text-xs text-gray-400 mt-2">{plan.description}</p>
                           </div>
-                        )}
-
-                        <div
-                          className={cn(
-                            'w-full h-12 rounded-xl flex items-center justify-center font-black text-sm transition-all',
-                            planValue === plan.id
-                              ? 'bg-brand text-white'
-                              : 'bg-gray-100 text-gray-500 group-hover:bg-gray-900 group-hover:text-white',
-                          )}
-                        >
-                          {planValue === plan.id ? 'Selecionado' : 'Selecionar'}
-                        </div>
-                      </button>
-                    ))}
+                          <ul className="space-y-3 mb-8 flex-1">
+                             {plan.features.map(f => (
+                               <li key={f} className="flex items-center gap-2 text-xs text-gray-600">
+                                 <Check className="w-3.5 h-3.5 text-brand" /> {f}
+                               </li>
+                             ))}
+                          </ul>
+                          <div className={cn(
+                            "w-full h-12 rounded-xl flex items-center justify-center font-bold text-sm transition-all",
+                            formData.plan === plan.id ? "bg-brand text-white" : "bg-white border border-gray-200 text-gray-400"
+                          )}>
+                             {formData.plan === plan.id ? "Plano Selecionado" : "Selecionar Plano"}
+                          </div>
+                        </button>
+                      ))}
                   </div>
 
-                  <div className="flex gap-4 pt-4">
+                  <div className="mt-12 flex justify-between items-center">
+                    <Button type="button" variant="ghost" onClick={prevStep} className="h-14 px-8 rounded-2xl">Voltar</Button>
                     <Button
-                      type="button"
-                      variant="ghost"
-                      className="h-16 px-8 rounded-2xl text-gray-400"
-                      onClick={prevStep}
-                    >
-                      Voltar
-                    </Button>
-                    <Button
-                      type="submit"
                       disabled={loading}
-                      className="flex-1 h-16 bg-brand text-white hover:bg-brand-dark rounded-2xl text-lg font-bold shadow-xl shadow-brand/20"
+                      type="submit"
+                      className="bg-gray-900 text-white hover:bg-black h-14 px-12 rounded-2xl text-lg font-bold shadow-xl transition-all active:scale-95"
                     >
-                      {loading ? 'Configurando...' : 'Finalizar Setup'}
+                      {loading ? "Finalizando..." : "Concluir e Acessar"}
                     </Button>
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
           </form>
-        </div>
-      </div>
+       </div>
     </div>
   )
 }

@@ -1,11 +1,20 @@
 'use client'
 
-import { Check, Download, Share2, X, ArrowLeft, Link as LinkIcon, Copy } from 'lucide-react'
+import { ArrowLeft, Check, Download, Link as LinkIcon, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useTransition, useState } from 'react'
+import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Table,
   TableBody,
@@ -14,20 +23,22 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { updateQuoteStatus } from '../../../_actions/update-quote-status'
-import { publicUpdateQuoteStatus } from '../../../_actions/public-quote-actions'
 import { cn } from '@/lib/utils'
+import type { ProjectStatus } from '@/types'
+import { publicUpdateQuoteStatus } from '../../../_actions/public-quote-actions'
+import { updateQuoteStatus } from '../../../_actions/update-quote-status'
+import type {
+  QuoteWithClient,
+  SerializedQuoteItem,
+} from '@/app/(auth)/dashboard/orcamentos/_components/quotes-client'
 
-export function ProposalClient({ quote, isPublic = false }: { quote: any; isPublic?: boolean }) {
+export function ProposalClient({
+  quote,
+  isPublic = false,
+}: {
+  quote: QuoteWithClient
+  isPublic?: boolean
+}) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false)
@@ -47,27 +58,31 @@ export function ProposalClient({ quote, isPublic = false }: { quote: any; isPubl
 
     startTransition(async () => {
       try {
-        const action = isPublic ? publicUpdateQuoteStatus : updateQuoteStatus
-        // @ts-ignore - dynamic action call
-        const res = await action(isPublic ? quote.id : { id: quote.id, status }, isPublic ? status : undefined)
-        
-        // If it was the typed object version (internal) it would be different, 
-        // but I'll simplify the call based on the mode.
+        // Simple call based on the mode.
         let finalRes
         if (isPublic) {
-          finalRes = await publicUpdateQuoteStatus(quote.id, status, signature)
+          finalRes = await publicUpdateQuoteStatus(
+            quote.id,
+            status,
+            signature || undefined,
+          )
         } else {
-          finalRes = await updateQuoteStatus({ id: quote.id, status })
+          finalRes = await updateQuoteStatus({
+            id: quote.id,
+            status: status as ProjectStatus,
+          })
         }
 
         if (finalRes.success) {
-          toast.success(`Orçamento ${status === 'aprovada' ? 'aprovado' : 'recusado'}!`)
+          toast.success(
+            `Orçamento ${status === 'aprovada' ? 'aprovado' : 'recusado'}!`,
+          )
           setIsApproveModalOpen(false)
           router.refresh()
         } else {
           toast.error(finalRes.error)
         }
-      } catch (error) {
+      } catch (_error) {
         toast.error('Erro ao atualizar orçamento.')
       }
     })
@@ -93,7 +108,9 @@ export function ProposalClient({ quote, isPublic = false }: { quote: any; isPubl
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="signature">Nome do Responsável / Assinatura Digital</Label>
+              <Label htmlFor="signature">
+                Nome do Responsável / Assinatura Digital
+              </Label>
               <Input
                 id="signature"
                 placeholder="Digite seu nome completo"
@@ -101,16 +118,20 @@ export function ProposalClient({ quote, isPublic = false }: { quote: any; isPubl
                 onChange={(e) => setSignature(e.target.value)}
               />
               <p className="text-[10px] text-gray-400 italic">
-                Ao digitar seu nome, você concorda com os termos deste orçamento.
+                Ao digitar seu nome, você concorda com os termos deste
+                orçamento.
               </p>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsApproveModalOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsApproveModalOpen(false)}
+            >
               Cancelar
             </Button>
-            <Button 
-              disabled={!signature || isPending} 
+            <Button
+              disabled={!signature || isPending}
               onClick={() => handleUpdateStatus('aprovada')}
               className="bg-brand text-white hover:bg-brand-dark"
             >
@@ -133,11 +154,14 @@ export function ProposalClient({ quote, isPublic = false }: { quote: any; isPubl
           </Button>
         ) : (
           <div className="flex items-center gap-2">
-             <svg width="24" height="24" viewBox="0 0 60 60" fill="none">
+            <svg width="24" height="24" viewBox="0 0 60 60" fill="none">
+              <title>Logo ScopeFlow</title>
               <rect width="60" height="60" rx="14" fill="#2A6B5C" />
               <rect x="33" y="17" width="7" height="30" rx="2" fill="white" />
             </svg>
-            <span className="font-bold text-brand text-sm tracking-tight">ScopeFlow</span>
+            <span className="font-bold text-brand text-sm tracking-tight">
+              ScopeFlow
+            </span>
           </div>
         )}
         <div className="flex items-center gap-3">
@@ -168,7 +192,13 @@ export function ProposalClient({ quote, isPublic = false }: { quote: any; isPubl
 
         <div className="relative z-10 max-w-4xl mx-auto">
           <div className="flex justify-center mb-8 print:mb-4">
-            <svg width="48" height="48" viewBox="0 0 60 60" fill="none" className="print:w-8 print:h-8">
+            <svg
+              width="48"
+              height="48"
+              viewBox="0 0 60 60"
+              fill="none"
+              className="print:w-8 print:h-8"
+            >
               <title>Logo ScopeFlow</title>
               <rect width="60" height="60" rx="14" fill="#2A6B5C" />
               <rect
@@ -230,7 +260,7 @@ export function ProposalClient({ quote, isPublic = false }: { quote: any; isPubl
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {quote.items?.map((item: any) => (
+                {quote.items?.map((item: SerializedQuoteItem) => (
                   <TableRow
                     key={item.id}
                     className="border-b border-gray-50 hover:bg-transparent"
@@ -238,17 +268,40 @@ export function ProposalClient({ quote, isPublic = false }: { quote: any; isPubl
                     <TableCell className="py-5 font-medium text-gray-900 print:py-3 print:text-xs">
                       {item.name}
                       {item.description && (
-                         <p className="text-[10px] text-gray-400 font-normal mt-1 print:hidden">{item.description}</p>
+                        <p className="text-[10px] text-gray-400 font-normal mt-1 print:hidden">
+                          {item.description}
+                        </p>
                       )}
                     </TableCell>
                     <TableCell className="py-5 text-center font-mono text-sm text-gray-500 print:py-3 print:text-[10px]">
-                      {Number(item.hours)}h
+                      <div className="flex flex-col">
+                        <span>{Number(item.hours)}h</span>
+                        {Number(item.monthlyFee) > 0 && (
+                          <span className="text-[10px] text-brand">
+                            Recurrente
+                          </span>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="py-5 text-right font-mono text-gray-900 print:py-3 print:text-[10px]">
-                      {Number(item.unitValue).toLocaleString('pt-BR', {
-                        style: 'currency',
-                        currency: 'BRL',
-                      })}
+                      <div className="flex flex-col">
+                        <span>
+                          {Number(item.unitValue).toLocaleString('pt-BR', {
+                            style: 'currency',
+                            currency: 'BRL',
+                          })}
+                        </span>
+                        {Number(item.monthlyFee) > 0 && (
+                          <span className="text-[10px] text-brand">
+                            +{' '}
+                            {Number(item.monthlyFee).toLocaleString('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL',
+                            })}
+                            /mês
+                          </span>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -263,7 +316,9 @@ export function ProposalClient({ quote, isPublic = false }: { quote: any; isPubl
                   </div>
                   <div className="space-y-3 print:space-y-1">
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg print:p-2 print:bg-white print:border">
-                      <span className="text-sm text-gray-500 print:text-[10px]">Entrada</span>
+                      <span className="text-sm text-gray-500 print:text-[10px]">
+                        Entrada
+                      </span>
                       <span className="font-mono font-bold text-gray-900 print:text-[10px]">
                         {Number(quote.entryAmount).toLocaleString('pt-BR', {
                           style: 'currency',
@@ -317,19 +372,43 @@ export function ProposalClient({ quote, isPublic = false }: { quote: any; isPubl
               </div>
 
               <div className="bg-gray-50 p-8 rounded-lg flex flex-col justify-center text-center md:text-right print:bg-white print:border print:p-4">
-                <p className="text-xs uppercase font-bold text-gray-400 mb-2 tracking-widest print:text-[8px]">
-                  Investimento Total
-                </p>
-                <p className="text-5xl font-mono font-bold text-brand mb-2 tracking-tighter print:text-3xl">
-                  {Number(quote.totalValue).toLocaleString('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                    maximumFractionDigits: 0,
-                  })}
-                </p>
-                <p className="text-sm text-gray-400 print:text-[8px]">
-                   Em até {quote.installments + (Number(quote.entryAmount) > 0 ? 1 : 0)} parcelas.
-                </p>
+                <div className="mb-6">
+                  <p className="text-xs uppercase font-bold text-gray-400 mb-2 tracking-widest print:text-[8px]">
+                    Setup do Projeto
+                  </p>
+                  <p className="text-4xl font-mono font-bold text-gray-900 mb-1 tracking-tighter print:text-2xl">
+                    {Number(quote.totalValue).toLocaleString('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL',
+                      maximumFractionDigits: 0,
+                    })}
+                  </p>
+                  <p className="text-[10px] text-gray-400">
+                    Investimento único inicial
+                  </p>
+                </div>
+
+                {Number(quote.monthlyTotal) > 0 && (
+                  <div className="pt-6 border-t border-gray-200">
+                    <p className="text-xs uppercase font-bold text-brand mb-2 tracking-widest print:text-[8px]">
+                      Manutenção Mensal
+                    </p>
+                    <p className="text-4xl font-mono font-bold text-brand mb-1 tracking-tighter print:text-2xl">
+                      {Number(quote.monthlyTotal).toLocaleString('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                        maximumFractionDigits: 0,
+                      })}
+                    </p>
+                    <p className="text-[10px] text-brand-dark/60">
+                      Recurrente por{' '}
+                      {quote.items.find(
+                        (i: SerializedQuoteItem) => Number(i.monthlyFee) > 0,
+                      )?.monthlyDuration || 12}{' '}
+                      meses
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -340,24 +419,29 @@ export function ProposalClient({ quote, isPublic = false }: { quote: any; isPubl
               {new Date().toLocaleDateString('pt-BR')}
             </p>
             <div className="text-sm font-semibold flex items-center gap-2">
-              Status atual: 
-              <span className={cn(
-                "px-3 py-1 rounded-full text-[10px] uppercase tracking-wider",
-                quote.status === 'aprovada' && "bg-green-100 text-green-700",
-                quote.status === 'recusada' && "bg-red-100 text-red-700",
-                quote.status === 'rascunho' && "bg-gray-100 text-gray-700",
-                quote.status === 'enviada' && "bg-blue-100 text-blue-700",
-              )}>
+              Status atual:
+              <span
+                className={cn(
+                  'px-3 py-1 rounded-full text-[10px] uppercase tracking-wider',
+                  quote.status === 'aprovada' && 'bg-green-100 text-green-700',
+                  quote.status === 'recusada' && 'bg-red-100 text-red-700',
+                  quote.status === 'rascunho' && 'bg-gray-100 text-gray-700',
+                  quote.status === 'enviada' && 'bg-blue-100 text-blue-700',
+                )}
+              >
                 {quote.status}
               </span>
             </div>
           </div>
         </Card>
-        
+
         {/* Approved Stamp for Print */}
         {quote.status === 'aprovada' && (
           <div className="hidden print:block mt-8 text-center border-2 border-green-500 rounded-xl p-4 text-green-600 font-bold uppercase tracking-widest">
-            Aprovado em {quote.approvedAt ? new Date(quote.approvedAt).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR')}
+            Aprovado em{' '}
+            {quote.approvedAt
+              ? new Date(quote.approvedAt).toLocaleDateString('pt-BR')
+              : new Date().toLocaleDateString('pt-BR')}
           </div>
         )}
       </div>

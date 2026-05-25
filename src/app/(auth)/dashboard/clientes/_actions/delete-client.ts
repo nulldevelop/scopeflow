@@ -1,8 +1,8 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { prisma } from '@/lib/prisma'
 import { withPermission } from '@/lib/permissions/with-permission'
+import { prisma } from '@/lib/prisma'
 
 export const deleteClient = withPermission(
   'delete',

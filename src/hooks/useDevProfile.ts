@@ -52,11 +52,11 @@ export function useDevProfile() {
    * Calcula as horas de uma funcionalidade baseada no perfil.
    */
   const getHours = (feature: {
-    baseHours?: number | string | { toNumber: () => number }
+    baseHours?: number | string | { toNumber(): number }
     horasEstimadas?: number
     name?: string
     nome?: string
-    category?: { name: string }
+    category?: { name: string } | null
     categoria?: string
   }): number => {
     // Se a feature for nula, retorna 0

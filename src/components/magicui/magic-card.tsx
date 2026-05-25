@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useCallback, useEffect, useRef } from 'react'
 import { motion, useMotionTemplate, useMotionValue } from 'framer-motion'
+import type React from 'react'
+import { useCallback, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 
 export interface MagicCardProps extends React.HTMLAttributes<HTMLDivElement> {

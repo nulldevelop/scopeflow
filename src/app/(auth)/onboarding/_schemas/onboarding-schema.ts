@@ -11,19 +11,14 @@ export const onboardingSchema = z.object({
     .regex(/^[a-z0-9-]+$/, 'Slug inválido'),
 
   // Perfil e Segmento
-  profile: z.enum(
-    [
-      'landing_page',
-      'frontend',
-      'backend',
-      'fullstack',
-      'software_house',
-      'saas_startup',
-    ],
-    {
-      required_error: 'Selecione um perfil de trabalho',
-    },
-  ),
+  profile: z.enum([
+    'landing_page',
+    'frontend',
+    'backend',
+    'fullstack',
+    'software_house',
+    'saas_startup',
+  ]),
 
   // Respostas Dinâmicas
   answers: z.object({

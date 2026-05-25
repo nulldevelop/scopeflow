@@ -12,7 +12,10 @@ export const updateQuote = withPermission(
     const validatedFields = updateQuoteSchema.safeParse(input)
 
     if (!validatedFields.success) {
-      console.error('[updateQuote Validation Error]', validatedFields.error.flatten().fieldErrors)
+      console.error(
+        '[updateQuote Validation Error]',
+        validatedFields.error.flatten().fieldErrors,
+      )
       return {
         success: false,
         error: 'Dados inválidos para atualizar orçamento.',
@@ -46,6 +49,7 @@ export const updateQuote = withPermission(
           status: data.status,
           totalHours: data.totalHours,
           totalValue: data.totalValue,
+          monthlyTotal: data.monthlyTotal || 0,
           hourlyRate: data.hourlyRate,
           discount: data.discount,
           urgencyFee: data.urgencyFee,
@@ -58,6 +62,8 @@ export const updateQuote = withPermission(
               description: item.description,
               hours: item.hours,
               unitValue: item.unitValue,
+              monthlyFee: item.monthlyFee || 0,
+              monthlyDuration: item.monthlyDuration || 12,
               order: item.order || index,
               featureId: item.featureId,
             })),
@@ -74,6 +80,7 @@ export const updateQuote = withPermission(
         ...updatedQuote,
         totalHours: Number(updatedQuote.totalHours),
         totalValue: Number(updatedQuote.totalValue),
+        monthlyTotal: Number(updatedQuote.monthlyTotal),
         hourlyRate: Number(updatedQuote.hourlyRate),
         discount: Number(updatedQuote.discount),
         urgencyFee: Number(updatedQuote.urgencyFee),

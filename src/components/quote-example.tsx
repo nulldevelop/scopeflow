@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Calendar, Users, Clock, Layers, ChevronRight } from 'lucide-react'
+import { Calendar, ChevronRight, Clock, Layers, Users } from 'lucide-react'
 
 export function QuoteExample() {
   return (

@@ -1,7 +1,7 @@
+import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { Sidebar } from '@/components/shared/Sidebar'
 import { getSessionClient } from '@/lib/getSession'
-import { headers } from 'next/headers'
 
 export default async function AuthLayout({
   children,

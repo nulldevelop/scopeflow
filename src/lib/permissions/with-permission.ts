@@ -1,10 +1,5 @@
 import { checkPermission } from './check-permission'
-import type {
-  Action,
-  ActionResponse,
-  Module,
-  PermissionContext
-} from './types'
+import type { Action, ActionResponse, Module, PermissionContext } from './types'
 
 /**
  * Wrapper profissional para Server Actions que valida permissões e provê contexto.

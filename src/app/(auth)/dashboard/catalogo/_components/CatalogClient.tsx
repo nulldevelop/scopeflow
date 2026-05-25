@@ -1,27 +1,27 @@
 ﻿'use client'
 
 import {
+  Check,
   CreditCard,
   Database,
+  Edit2,
   Globe,
   Layout,
   Lock,
   Mail,
   Plus,
   Search,
-  Share2,
-  Upload,
-  Zap,
   Settings2,
+  Share2,
   Trash2,
-  Edit2,
-  Check,
+  Upload,
   X,
+  Zap,
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import type React from 'react'
 import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
-import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import {
@@ -42,12 +42,12 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
-import { createFeatureAction } from '../_actions/create-feature'
-import { deleteFeatureAction } from '../_actions/delete-feature'
-import { updateFeatureAction } from '../_actions/update-feature'
 import { createCategoryAction } from '../_actions/create-category'
-import { updateCategoryAction } from '../_actions/update-category'
+import { createFeatureAction } from '../_actions/create-feature'
 import { deleteCategoryAction } from '../_actions/delete-category'
+import { deleteFeatureAction } from '../_actions/delete-feature'
+import { updateCategoryAction } from '../_actions/update-category'
+import { updateFeatureAction } from '../_actions/update-feature'
 
 export interface CatalogCategory {
   id: string
@@ -60,6 +60,8 @@ export interface CatalogFeature {
   description: string | null
   baseHours: number
   complexity: string
+  monthlyFee: number
+  monthlyDuration: number
   categoryId: string | null
   category: CatalogCategory | null
 }
@@ -124,6 +126,8 @@ export default function CatalogClient({
       description: formData.get('description') as string,
       baseHours: Number(formData.get('baseHours')),
       complexity: formData.get('complexity') as string,
+      monthlyFee: Number(formData.get('monthlyFee')),
+      monthlyDuration: Number(formData.get('monthlyDuration')),
       categoryId:
         formData.get('categoryId') === 'none'
           ? null
@@ -150,7 +154,7 @@ export default function CatalogClient({
         } else {
           toast.error(res.error)
         }
-      } catch (error) {
+      } catch (_error) {
         toast.error('Ocorreu um erro inesperado.')
       }
     })
@@ -165,7 +169,7 @@ export default function CatalogClient({
         } else {
           toast.error(res.error)
         }
-      } catch (error) {
+      } catch (_error) {
         toast.error('Erro ao excluir funcionalidade.')
       }
     })
@@ -264,18 +268,18 @@ export default function CatalogClient({
                             className="h-8 text-sm"
                             autoFocus
                           />
-                          <button
+                          <Button
                             onClick={() => handleUpdateCategory(cat.id)}
                             className="text-brand"
                           >
                             <Check className="w-4 h-4" />
-                          </button>
-                          <button
+                          </Button>
+                          <Button
                             onClick={() => setEditingCategoryId(null)}
                             className="text-gray-400"
                           >
                             <X className="w-4 h-4" />
-                          </button>
+                          </Button>
                         </div>
                       ) : (
                         <>
@@ -283,7 +287,7 @@ export default function CatalogClient({
                             {cat.name}
                           </span>
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button
+                            <Button
                               onClick={() => {
                                 setEditingCategoryId(cat.id)
                                 setEditingCategoryName(cat.name)
@@ -291,13 +295,13 @@ export default function CatalogClient({
                               className="p-1 text-gray-400 hover:text-brand"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                               onClick={() => handleDeleteCategory(cat.id)}
                               className="p-1 text-gray-400 hover:text-red-500"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+                            </Button>
                           </div>
                         </>
                       )}
@@ -405,6 +409,49 @@ export default function CatalogClient({
                         <SelectItem value="alta">Alta</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="monthlyFee"
+                      className="text-xs font-bold uppercase text-gray-400 tracking-wider"
+                    >
+                      Mensalidade (R$)
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="monthlyFee"
+                        name="monthlyFee"
+                        type="number"
+                        step="0.01"
+                        defaultValue={
+                          editingFeature?.monthlyFee?.toString() || '0'
+                        }
+                        className="h-11 rounded-xl pr-8"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-400">
+                        /mês
+                      </span>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="monthlyDuration"
+                      className="text-xs font-bold uppercase text-gray-400 tracking-wider"
+                    >
+                      Duração (meses)
+                    </Label>
+                    <Input
+                      id="monthlyDuration"
+                      name="monthlyDuration"
+                      type="number"
+                      defaultValue={
+                        editingFeature?.monthlyDuration?.toString() || '12'
+                      }
+                      className="h-11 rounded-xl"
+                    />
                   </div>
                 </div>
 
@@ -544,15 +591,29 @@ export default function CatalogClient({
               </div>
 
               <div className="flex items-center justify-between pt-5 border-t border-gray-50">
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-bold text-gray-300 uppercase">
-                    Esforço
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <span className="text-sm font-mono font-black text-gray-900">
-                      {feature.baseHours}h
+                <div className="flex gap-4">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold text-gray-300 uppercase">
+                      Esforço
                     </span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm font-mono font-black text-gray-900">
+                        {feature.baseHours}h
+                      </span>
+                    </div>
                   </div>
+                  {Number(feature.monthlyFee) > 0 && (
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-bold text-brand uppercase">
+                        Mensal
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm font-mono font-black text-brand">
+                          R$ {Number(feature.monthlyFee)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0">
                   <Button

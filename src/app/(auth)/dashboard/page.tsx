@@ -11,7 +11,6 @@ import { Header } from '@/components/shared/Header'
 import { MetricCard } from '@/components/shared/MetricCard'
 import { ProfileSelector } from '@/components/shared/ProfileSelector'
 import { StatusBadge } from '@/components/shared/StatusBadge'
-import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import {
   Table,
@@ -21,8 +20,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { getSessionQuotes } from './_data-access/get-quotes'
+import type { ProjectStatus } from '@/types'
 import { DashboardChart } from './_components/DashboardChart'
+import { getSessionQuotes } from './_data-access/get-quotes'
 
 export default async function DashboardPage() {
   const quotes = await getSessionQuotes()
@@ -139,7 +139,10 @@ export default async function DashboardPage() {
                       currency: 'BRL',
                     })}
                   </p>
-                  <StatusBadge status={quote.status} className="mt-1" />
+                  <StatusBadge
+                    status={quote.status as ProjectStatus}
+                    className="mt-1"
+                  />
                 </div>
               </div>
             ))}
@@ -188,7 +191,7 @@ export default async function DashboardPage() {
                     })}
                   </TableCell>
                   <TableCell>
-                    <StatusBadge status={quote.status} />
+                    <StatusBadge status={quote.status as ProjectStatus} />
                   </TableCell>
                   <TableCell className="text-right text-gray-400 text-sm">
                     {new Date(quote.createdAt).toLocaleDateString('pt-BR')}

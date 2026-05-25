@@ -1,26 +1,25 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
-import { DevProfile } from '@/types'
-import { useDevProfile } from '@/hooks/useDevProfile'
-import { Card } from '@/components/ui/card'
 import {
+  Check,
+  Database,
   Globe,
   Layout,
-  Database,
-  Zap,
-  Users,
   Rocket,
-  Check,
+  Users,
+  Zap,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
+import type { ElementType } from 'react'
+import { useEffect, useState } from 'react'
+import { Card } from '@/components/ui/card'
+import { useDevProfile } from '@/hooks/useDevProfile'
+import type { DevProfile } from '@/types'
 
 const profiles: {
   id: DevProfile
   name: string
   description: string
-  icon: any
+  icon: ElementType
 }[] = [
   {
     id: 'landing_page',

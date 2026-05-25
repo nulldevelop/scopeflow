@@ -169,6 +169,8 @@ model Feature {
   description    String?      @db.Text
   baseHours      Decimal      @db.Decimal(10, 2)
   complexity     String       @default("media")
+  monthlyFee     Decimal      @default(0) @db.Decimal(15, 2)
+  monthlyDuration Int         @default(12)
   categoryId     String?
   category       Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   organizationId String
@@ -188,6 +190,7 @@ model Quote {
   status         String       @default("rascunho")
   totalHours     Decimal      @db.Decimal(10, 2)
   totalValue     Decimal      @db.Decimal(15, 2)
+  monthlyTotal   Decimal      @default(0) @db.Decimal(15, 2)
   hourlyRate     Decimal      @db.Decimal(10, 2)
   discount       Decimal      @default(0) @db.Decimal(5, 2)
   urgencyFee     Decimal      @default(0) @db.Decimal(5, 2)
@@ -215,6 +218,8 @@ model QuoteItem {
   description String?  @db.Text
   hours       Decimal  @db.Decimal(10, 2)
   unitValue   Decimal  @db.Decimal(15, 2)
+  monthlyFee  Decimal  @default(0) @db.Decimal(15, 2)
+  monthlyDuration Int    @default(12)
   order       Int      @default(0)
   quoteId     String
   quote       Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)

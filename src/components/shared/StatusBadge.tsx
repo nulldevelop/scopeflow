@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import { ProjectStatus } from '@/types'
+import type { ProjectStatus } from '@/types'
 
 interface StatusBadgeProps {
   status: ProjectStatus

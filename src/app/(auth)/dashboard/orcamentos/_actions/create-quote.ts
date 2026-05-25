@@ -1,9 +1,9 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { prisma } from '@/lib/prisma'
 import { withPermission } from '@/lib/permissions/with-permission'
-import { createQuoteSchema, type CreateQuoteInput } from '../_schemas/quote'
+import { prisma } from '@/lib/prisma'
+import { type CreateQuoteInput, createQuoteSchema } from '../_schemas/quote'
 
 export const createQuote = withPermission(
   'create',
@@ -12,7 +12,10 @@ export const createQuote = withPermission(
     const validatedFields = createQuoteSchema.safeParse(input)
 
     if (!validatedFields.success) {
-      console.error('[createQuote Validation Error]', validatedFields.error.flatten().fieldErrors)
+      console.error(
+        '[createQuote Validation Error]',
+        validatedFields.error.flatten().fieldErrors,
+      )
       return { success: false, error: 'Dados inválidos para criar orçamento.' }
     }
 
@@ -27,6 +30,7 @@ export const createQuote = withPermission(
           clientId: data.clientId,
           totalHours: data.totalHours,
           totalValue: data.totalValue,
+          monthlyTotal: data.monthlyTotal || 0,
           hourlyRate: data.hourlyRate,
           discount: data.discount,
           urgencyFee: data.urgencyFee,
@@ -39,6 +43,8 @@ export const createQuote = withPermission(
               description: item.description,
               hours: item.hours,
               unitValue: item.unitValue,
+              monthlyFee: item.monthlyFee || 0,
+              monthlyDuration: item.monthlyDuration || 12,
               order: item.order || index,
               featureId: item.featureId,
             })),
@@ -54,6 +60,7 @@ export const createQuote = withPermission(
         ...newQuote,
         totalHours: Number(newQuote.totalHours),
         totalValue: Number(newQuote.totalValue),
+        monthlyTotal: Number(newQuote.monthlyTotal),
         hourlyRate: Number(newQuote.hourlyRate),
         discount: Number(newQuote.discount),
         urgencyFee: Number(newQuote.urgencyFee),

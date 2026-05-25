@@ -1,14 +1,14 @@
 'use client'
 
 import {
+  Edit2,
   FileText,
   Mail,
   MoreHorizontal,
+  Phone,
   Plus,
   Search,
-  Edit2,
   Trash2,
-  Phone,
   User,
 } from 'lucide-react'
 import { useState, useTransition } from 'react'
@@ -16,6 +16,12 @@ import { toast } from 'sonner'
 import { Header } from '@/components/shared/Header'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import {
   Table,
@@ -25,23 +31,21 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { type ClientData } from '../_data-access/get-clients'
 import { deleteClient } from '../_actions/delete-client'
+import type { ClientData } from '../_data-access/get-clients'
 import { ClientModal } from './client-modal'
 
-export function ClientsClient({ initialClients }: { initialClients: ClientData[] }) {
+export function ClientsClient({
+  initialClients,
+}: {
+  initialClients: ClientData[]
+}) {
   const [searchTerm, setSearchTerm] = useState('')
   const [isPending, startTransition] = useTransition()
-  
+
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editingClient, setEditingClient] = useState<any>(null)
+  const [editingClient, setEditingClient] = useState<ClientData | null>(null)
 
   const filteredClients = initialClients.filter((client) => {
     return (
@@ -61,7 +65,7 @@ export function ClientsClient({ initialClients }: { initialClients: ClientData[]
         } else {
           toast.error(res.error)
         }
-      } catch (error) {
+      } catch (_error) {
         toast.error('Erro ao excluir cliente.')
       }
     })
@@ -74,6 +78,8 @@ export function ClientsClient({ initialClients }: { initialClients: ClientData[]
       email: client.email,
       document: client.document,
       phone: client.phone,
+      totalQuotes: client.totalQuotes,
+      totalApproved: client.totalApproved,
     })
     setIsModalOpen(true)
   }
@@ -90,7 +96,7 @@ export function ClientsClient({ initialClients }: { initialClients: ClientData[]
       />
 
       <Header title="Clientes">
-        <Button 
+        <Button
           onClick={() => setIsModalOpen(true)}
           className="bg-brand text-white hover:bg-brand-dark rounded-lg flex items-center gap-2"
         >
@@ -144,8 +150,12 @@ export function ClientsClient({ initialClients }: { initialClients: ClientData[]
                       <User className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="font-bold text-gray-900 leading-none mb-1">{client.name}</p>
-                      <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">{client.document || 'Sem documento'}</p>
+                      <p className="font-bold text-gray-900 leading-none mb-1">
+                        {client.name}
+                      </p>
+                      <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">
+                        {client.document || 'Sem documento'}
+                      </p>
                     </div>
                   </div>
                 </TableCell>
@@ -188,11 +198,14 @@ export function ClientsClient({ initialClients }: { initialClients: ClientData[]
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-40">
-                      <DropdownMenuItem onClick={() => handleEdit(client)} className="gap-2 cursor-pointer">
+                      <DropdownMenuItem
+                        onClick={() => handleEdit(client)}
+                        className="gap-2 cursor-pointer"
+                      >
                         <Edit2 className="w-4 h-4" /> Editar
                       </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => handleDelete(client.id)} 
+                      <DropdownMenuItem
+                        onClick={() => handleDelete(client.id)}
                         className="gap-2 text-red-600 focus:text-red-600 cursor-pointer"
                         disabled={isPending}
                       >
@@ -213,7 +226,9 @@ export function ClientsClient({ initialClients }: { initialClients: ClientData[]
             <User className="w-6 h-6 text-gray-200" />
           </div>
           <p className="text-gray-400 font-medium">Nenhum cliente encontrado</p>
-          <p className="text-xs text-gray-300">Tente ajustar sua busca ou crie um novo cliente</p>
+          <p className="text-xs text-gray-300">
+            Tente ajustar sua busca ou crie um novo cliente
+          </p>
         </div>
       )}
     </div>
