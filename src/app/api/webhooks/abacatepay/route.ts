@@ -4,19 +4,20 @@ import { prisma } from '@/lib/prisma'
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json()
+    const rawBody = await req.text()
     const signature = req.headers.get('x-abacatepay-signature')
     const secret = process.env.ABACATEPAY_WEBHOOK_SECRET
 
     // 1. Validar assinatura HMAC (opcional mas recomendado)
     if (secret && signature) {
       const hmac = crypto.createHmac('sha256', secret)
-      const digest = hmac.update(JSON.stringify(body)).digest('hex')
+      const digest = hmac.update(rawBody).digest('hex')
       if (signature !== digest) {
         return NextResponse.json({ error: 'Assinatura inválida' }, { status: 401 })
       }
     }
 
+    const body = JSON.parse(rawBody)
     const { event, metadata } = body.data
 
     // 2. Processar eventos
