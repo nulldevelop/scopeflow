@@ -56,7 +56,7 @@ export const abacatePay = {
         body: JSON.stringify({
           ...data,
           frequency: 'SUBSCRIPTION',
-          methods: ['PIX', 'CARD'],
+          methods: ['CARD'],
         }),
       })
     },
