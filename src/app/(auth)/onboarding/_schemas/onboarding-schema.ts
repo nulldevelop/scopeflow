@@ -46,7 +46,7 @@ export const onboardingSchema = z.object({
   }),
 
   // Plano
-  plan: z.enum(['free', 'basic', 'pro']),
+  plan: z.enum(['free', 'pro', 'equipe']),
 
   // Convites Opcionais
   invites: z.array(z.string().email('E-mail inválido')),

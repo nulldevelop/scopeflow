@@ -1,6 +1,7 @@
 'use server'
 
 import { cookies, headers } from 'next/headers'
+import { abacatePay } from '@/lib/abacate-pay'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { seedOrganization } from '../../../../../prisma/seed-organization'
@@ -61,6 +62,20 @@ export async function completeOnboardingAction(values: OnboardingInput) {
       await seedOrganization(org.id)
     }
 
+    // Garantir que o cliente AbacatePay existe para a org
+    let abacateCustomerId = org.abacateCustomerId
+    if (!abacateCustomerId) {
+      const customer = await abacatePay.customers.create({
+        email: session.user.email,
+        name: org.name,
+      })
+      abacateCustomerId = customer.id
+      await prisma.organization.update({
+        where: { id: org.id },
+        data: { abacateCustomerId },
+      })
+    }
+
     // 4. Salvar configurações de perfil e plano no banco
     await prisma.organization.update({
       where: { id: org.id },
@@ -97,12 +112,39 @@ export async function completeOnboardingAction(values: OnboardingInput) {
       sameSite: 'lax',
     })
 
-    // 7. Processar Convites (Opcional)
-    if (data.invites && data.invites.length > 0) {
-      // Lógica para disparar convites via Better-Auth ou sua própria tabela
+    // 7. Gerar URL de Checkout se for um plano pago
+    let checkoutUrl = null
+    if (data.plan === 'pro' || data.plan === 'equipe') {
+      const PRODUCT_IDS: Record<string, string | undefined> = {
+        pro: process.env.ABACATEPAY_PRODUCT_PRO,
+        equipe: process.env.ABACATEPAY_PRODUCT_EQUIPE
+      }
+
+      const abacateProductId = PRODUCT_IDS[data.plan]
+      
+      if (abacateProductId && abacateCustomerId) {
+        try {
+          const products = await abacatePay.products.list()
+          const product = products.find((p) => p.id === abacateProductId)
+
+          if (product) {
+            const checkout = await abacatePay.checkouts.create({
+              customerId: abacateCustomerId,
+              externalId: `checkout_${org.id}_${Date.now()}`,
+              items: [{ id: product.id, quantity: 1 }],
+              returnUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
+              completionUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true`,
+            })
+            checkoutUrl = checkout.url
+          }
+        } catch (checkoutError) {
+          console.error('[Onboarding Checkout Error]', checkoutError)
+          // Falha não crítica, deixa o usuário seguir e cobrar depois no dashboard
+        }
+      }
     }
 
-    return { success: true, data: { orgId: org.id } }
+    return { success: true, data: { orgId: org.id, checkoutUrl } }
   } catch (error) {
     console.error('[Onboarding Action Error]', error)
     return { success: false, error: 'Erro ao finalizar configuração.' }

@@ -32,6 +32,13 @@ export async function POST(req: Request) {
         if (org) {
           const product = items[0]
           
+          // Mapeamento reverso de Product IDs para Planos
+          const PLAN_MAP: Record<string, string> = {}
+          if (process.env.ABACATEPAY_PRODUCT_PRO) PLAN_MAP[process.env.ABACATEPAY_PRODUCT_PRO] = 'pro'
+          if (process.env.ABACATEPAY_PRODUCT_EQUIPE) PLAN_MAP[process.env.ABACATEPAY_PRODUCT_EQUIPE] = 'equipe'
+          
+          const planName = PLAN_MAP[product.id] || product.externalId || 'basic'
+          
           // Buscar assinatura existente
           const existingSub = await prisma.subscription.findFirst({
             where: { organizationId: org.id }
@@ -43,7 +50,7 @@ export async function POST(req: Request) {
               data: {
                 externalId: subscriptionId,
                 status: 'active',
-                plan: product.externalId,
+                plan: planName,
                 currentPeriodEnd: new Date(Date.now() + 32 * 24 * 60 * 60 * 1000),
               }
             })
@@ -53,7 +60,7 @@ export async function POST(req: Request) {
                 organizationId: org.id,
                 externalId: subscriptionId,
                 status: 'active',
-                plan: product.externalId,
+                plan: planName,
                 currentPeriodEnd: new Date(Date.now() + 32 * 24 * 60 * 60 * 1000),
               }
             })

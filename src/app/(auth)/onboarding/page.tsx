@@ -303,7 +303,7 @@ export default function OnboardingPage() {
         contingencyReserve: '10',
         profitMargin: '20',
       },
-      plan: 'basic',
+      plan: 'free',
       invites: [],
     },
   })
@@ -359,7 +359,11 @@ export default function OnboardingPage() {
       const res = await completeOnboardingAction(data)
       if (res.success) {
         toast.success('Configuração finalizada com sucesso!')
-        router.push('/dashboard')
+        if (res.data?.checkoutUrl) {
+          window.location.href = res.data.checkoutUrl
+        } else {
+          router.push('/dashboard')
+        }
       } else {
         toast.error(res.error || 'Erro ao finalizar configuração.')
       }
@@ -675,10 +679,11 @@ export default function OnboardingPage() {
                     <p className="text-gray-500">Acesse o ScopeFlow hoje mesmo com os limites que você precisa.</p>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       {[
                         { id: 'free', name: 'Grátis', price: 'R$ 0', description: 'Para quem está começando a organizar.', features: ['Até 5 orçamentos/mês', 'Proposta via Link', 'Catálogo Básico'] },
-                        { id: 'basic', name: 'Standard', price: 'R$ 49', description: 'Foco total em vendas profissionais.', features: ['Orçamentos Ilimitados', 'PDF Customizado', 'Métricas Financeiras', 'Suporte Prioritário'], popular: true },
+                        { id: 'pro', name: 'Pro', price: 'R$ 49', description: 'Foco total em vendas profissionais.', features: ['Orçamentos Ilimitados', 'PDF Customizado', 'Suporte Prioritário'], popular: true },
+                        { id: 'equipe', name: 'Equipe', price: 'R$ 129', description: 'Para times e agências.', features: ['Tudo do Pro', 'Até 5 membros', 'Painel Admin'] },
                       ].map((plan) => (
                         <button
                           key={plan.id}
@@ -688,34 +693,34 @@ export default function OnboardingPage() {
                             setValue('plan', plan.id)
                           }}
                           className={cn(
-                            "relative flex flex-col p-8 rounded-[32px] border-2 transition-all text-left",
+                            "relative flex flex-col p-6 rounded-[32px] border-2 transition-all text-left",
                             formData.plan === plan.id
                               ? "bg-white border-brand shadow-2xl ring-1 ring-brand/10 scale-[1.02]"
                               : "bg-gray-50/50 border-transparent hover:border-gray-200"
                           )}
                         >
                           {plan.popular && (
-                             <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold uppercase tracking-[0.2em] px-4 py-1.5 rounded-full shadow-lg">
+                             <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold uppercase tracking-[0.2em] px-4 py-1.5 rounded-full shadow-lg whitespace-nowrap">
                                Mais Popular
                              </div>
                           )}
                           <div className="mb-6">
                             <h3 className="text-xl font-bold text-gray-900">{plan.name}</h3>
                             <div className="mt-2 flex items-baseline gap-1">
-                               <span className="text-3xl font-black text-gray-900 font-mono">{plan.price}</span>
-                               <span className="text-gray-400 text-sm">/mês</span>
+                               <span className="text-2xl font-black text-gray-900 font-mono">{plan.price}</span>
+                               <span className="text-gray-400 text-xs">/mês</span>
                             </div>
-                            <p className="text-xs text-gray-400 mt-2">{plan.description}</p>
+                            <p className="text-[10px] text-gray-400 mt-2 min-h-[30px]">{plan.description}</p>
                           </div>
                           <ul className="space-y-3 mb-8 flex-1">
                              {plan.features.map(f => (
-                               <li key={f} className="flex items-center gap-2 text-xs text-gray-600">
+                               <li key={f} className="flex items-center gap-2 text-[11px] text-gray-600">
                                  <Check className="w-3.5 h-3.5 text-brand" /> {f}
                                </li>
                              ))}
                           </ul>
                           <div className={cn(
-                            "w-full h-12 rounded-xl flex items-center justify-center font-bold text-sm transition-all",
+                            "w-full h-10 rounded-xl flex items-center justify-center font-bold text-xs transition-all",
                             formData.plan === plan.id ? "bg-brand text-white" : "bg-white border border-gray-200 text-gray-400"
                           )}>
                              {formData.plan === plan.id ? "Plano Selecionado" : "Selecionar Plano"}

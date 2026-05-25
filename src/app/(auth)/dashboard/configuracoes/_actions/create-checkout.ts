@@ -37,12 +37,24 @@ export async function createCheckoutAction(planId: string) {
       })
     }
 
-    // 2. Buscar o produto no AbacatePay (ID externo deve bater com o plano)
+    // 2. Mapeamento de Planos para IDs de Produto no AbacatePay
+    const PRODUCT_IDS: Record<string, string | undefined> = {
+      pro: process.env.ABACATEPAY_PRODUCT_PRO,
+      equipe: process.env.ABACATEPAY_PRODUCT_EQUIPE
+    }
+
+    const abacateProductId = PRODUCT_IDS[planId]
+
+    if (!abacateProductId) {
+      return { success: false, error: 'Plano não mapeado no sistema (Variável de ambiente ausente)' }
+    }
+
+    // Buscar o produto para garantir que ele existe
     const products = await abacatePay.products.list()
-    const product = products.find((p) => p.externalId === planId)
+    const product = products.find((p) => p.id === abacateProductId)
 
     if (!product) {
-      return { success: false, error: 'Plano não configurado no AbacatePay' }
+      return { success: false, error: 'Plano não encontrado no AbacatePay' }
     }
 
     // 3. Criar Checkout de Assinatura
