@@ -7,8 +7,9 @@ import { QuoteEditorClient } from '../[id]/_components/quote-editor-client'
 export default async function NewQuotePage({
   searchParams,
 }: {
-  searchParams: { featureId?: string }
+  searchParams: Promise<{ featureId?: string }>
 }) {
+  const { featureId } = await searchParams
   const sessionResponse = await getSessionClient()
 
   if (!sessionResponse.success) {
@@ -37,8 +38,8 @@ export default async function NewQuotePage({
   }))
 
   let initialFeature = null
-  if (searchParams.featureId) {
-    const res = await getFeatureById(activeOrgId, searchParams.featureId)
+  if (featureId) {
+    const res = await getFeatureById(activeOrgId, featureId)
     if (res.success && res.feature) {
       initialFeature = {
         ...res.feature,

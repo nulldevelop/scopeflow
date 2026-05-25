@@ -1,16 +1,17 @@
 import { getSessionClient } from '@/lib/getSession'
 import { prisma } from '@/lib/prisma'
 
-interface ClientData {
-  email: string
+export interface ClientData {
+  id: string
   name: string
+  email: string | null
+  document: string | null
+  phone: string | null
   totalQuotes: number
   totalApproved: number
 }
 
-export async function getSessionClients(
-  _search: string,
-): Promise<ClientData[]> {
+export async function getSessionClients(): Promise<ClientData[]> {
   const sessionResponse = await getSessionClient()
 
   if (!sessionResponse.success) return []
@@ -20,40 +21,43 @@ export async function getSessionClients(
 
   if (!activeOrgId) return []
 
-  const quotes = await prisma.quote.findMany({
+  const clients = await prisma.client.findMany({
     where: { organizationId: activeOrgId },
+    include: {
+      quotes: {
+        select: {
+          status: true,
+          totalValue: true,
+        },
+      },
+    },
+    orderBy: {
+      name: 'asc',
+    },
   })
 
-  const clientMap = new Map<string, ClientData>()
+  return clients.map((client) => {
+    const stats = client.quotes.reduce(
+      (acc, quote) => {
+        acc.totalQuotes++
+        if (quote.status === 'aprovada') {
+          acc.totalApproved += Number(quote.totalValue)
+        }
+        return acc
+      },
+      { totalQuotes: 0, totalApproved: 0 },
+    )
 
-  for (const quote of quotes) {
-    const clientId = quote.clientId
-    if (!clientId) continue
-
-    const client = await prisma.client.findUnique({
-      where: { id: clientId },
-    })
-
-    if (!client || !client.email) continue
-
-    const existing = clientMap.get(client.email)
-    const newClient: ClientData = existing || {
-      email: client.email,
+    return {
+      id: client.id,
       name: client.name,
-      totalQuotes: 0,
-      totalApproved: 0,
+      email: client.email,
+      document: client.document,
+      phone: client.phone,
+      totalQuotes: stats.totalQuotes,
+      totalApproved: stats.totalApproved,
     }
-
-    newClient.totalQuotes++
-
-    if (quote.status === 'aprovada') {
-      newClient.totalApproved += Number(quote.totalValue)
-    }
-
-    clientMap.set(client.email, newClient)
-  }
-
-  return Array.from(clientMap.values())
+  })
 }
 
 export async function getClients(organizationId: string) {

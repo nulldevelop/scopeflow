@@ -479,8 +479,8 @@ export function QuoteEditorClient({
                     Adicionar Funcionalidades
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[950px] max-h-[90vh] p-0 overflow-hidden bg-white border-none shadow-2xl rounded-[32px]">
-                  <div className="p-8 pb-4">
+                <DialogContent className="sm:max-w-[950px] h-[90vh] p-0 flex flex-col overflow-hidden bg-white border-none shadow-2xl rounded-[32px]">
+                  <div className="p-8 pb-4 flex-shrink-0">
                     <DialogHeader className="mb-6">
                       <div className="flex items-center justify-between">
                         <div>
@@ -519,7 +519,7 @@ export function QuoteEditorClient({
                     </div>
                   </div>
 
-                  <div className="flex flex-1 overflow-hidden min-h-[400px]">
+                  <div className="flex-1 overflow-hidden min-h-0 flex flex-col">
                     <div className="flex-1 overflow-y-auto p-8 grid grid-cols-1 md:grid-cols-2 gap-4 custom-scrollbar bg-white">
                       {filteredFeatures.map((feature) => {
                         const isSelected = selectedFeatureIds.includes(
@@ -584,7 +584,7 @@ export function QuoteEditorClient({
                     </div>
                   </div>
 
-                  <div className="p-8 bg-gray-50/80 border-t border-gray-100 flex justify-end gap-4">
+                  <div className="p-8 bg-gray-50/80 border-t border-gray-100 flex justify-end gap-4 flex-shrink-0">
                     <Button
                       variant="ghost"
                       onClick={() => setIsModalOpen(false)}

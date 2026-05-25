@@ -12,6 +12,7 @@ export const updateQuote = withPermission(
     const validatedFields = updateQuoteSchema.safeParse(input)
 
     if (!validatedFields.success) {
+      console.error('[updateQuote Validation Error]', validatedFields.error.flatten().fieldErrors)
       return {
         success: false,
         error: 'Dados inválidos para atualizar orçamento.',
@@ -68,7 +69,18 @@ export const updateQuote = withPermission(
       revalidatePath('/dashboard/orcamentos')
       revalidatePath(`/dashboard/orcamentos/${updatedQuote.id}`)
 
-      return { success: true, data: updatedQuote }
+      // Serialização para o retorno
+      const serializedQuote = {
+        ...updatedQuote,
+        totalHours: Number(updatedQuote.totalHours),
+        totalValue: Number(updatedQuote.totalValue),
+        hourlyRate: Number(updatedQuote.hourlyRate),
+        discount: Number(updatedQuote.discount),
+        urgencyFee: Number(updatedQuote.urgencyFee),
+        entryAmount: Number(updatedQuote.entryAmount),
+      }
+
+      return { success: true, data: serializedQuote }
     } catch (error) {
       console.error('[updateQuote Error]', error)
       return { success: false, error: 'Erro ao atualizar orçamento.' }

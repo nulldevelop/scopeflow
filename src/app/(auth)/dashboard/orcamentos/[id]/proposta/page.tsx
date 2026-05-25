@@ -6,8 +6,9 @@ import { ProposalClient } from './_components/proposal-client'
 export default async function ProposalPreviewPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
+  const { id } = await params
   const sessionResponse = await getSessionClient()
 
   if (!sessionResponse.success) {
@@ -25,7 +26,7 @@ export default async function ProposalPreviewPage({
     )
   }
 
-  const { quote: quoteData, success } = await getQuoteById(activeOrgId, params.id)
+  const { quote: quoteData, success } = await getQuoteById(activeOrgId, id)
 
   if (!success || !quoteData) {
     return (

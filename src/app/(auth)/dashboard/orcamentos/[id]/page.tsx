@@ -8,8 +8,9 @@ import { QuoteEditorClient } from './_components/quote-editor-client'
 export default async function QuoteEditorPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
+  const { id } = await params
   const sessionResponse = await getSessionClient()
 
   if (!sessionResponse.success) {
@@ -30,7 +31,7 @@ export default async function QuoteEditorPage({
   const [{ clients }, featuresData, quoteRes] = await Promise.all([
     getClients(activeOrgId),
     getAllFeatures(activeOrgId),
-    params.id !== 'novo' ? getQuoteById(activeOrgId, params.id) : Promise.resolve({ success: false, quote: null })
+    id !== 'novo' ? getQuoteById(activeOrgId, id) : Promise.resolve({ success: false, quote: null })
   ])
 
   const features = (featuresData || []).map(f => ({

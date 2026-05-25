@@ -3,8 +3,7 @@ import type {
   Action,
   ActionResponse,
   Module,
-  PermissionContext,
-  WithPermissionOptions,
+  PermissionContext
 } from './types'
 
 /**

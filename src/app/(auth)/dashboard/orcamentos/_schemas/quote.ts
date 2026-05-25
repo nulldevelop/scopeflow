@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export const quoteItemSchema = z.object({
-  id: z.string().uuid().optional(),
+  id: z.string().optional(),
   name: z.string().min(1, 'O nome é obrigatório'),
   description: z.string().optional().nullable(),
   hours: z.coerce.number().min(0, 'A quantidade de horas deve ser positiva'),
@@ -16,6 +16,8 @@ export const createQuoteSchema = z.object({
   clientId: z
     .string()
     .uuid('Selecione um cliente válido')
+    .or(z.literal(''))
+    .transform((val) => (val === '' ? null : val))
     .optional()
     .nullable(),
   totalHours: z.coerce.number().min(0),
@@ -25,7 +27,7 @@ export const createQuoteSchema = z.object({
   urgencyFee: z.coerce.number().min(0).default(0),
   entryAmount: z.coerce.number().min(0).default(0),
   installments: z.coerce.number().int().min(1).default(1),
-  expirationDate: z.date().optional().nullable(),
+  expirationDate: z.coerce.date().optional().nullable(),
   items: z.array(quoteItemSchema).optional().default([]),
 })
 

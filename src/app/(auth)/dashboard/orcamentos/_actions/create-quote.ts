@@ -12,6 +12,7 @@ export const createQuote = withPermission(
     const validatedFields = createQuoteSchema.safeParse(input)
 
     if (!validatedFields.success) {
+      console.error('[createQuote Validation Error]', validatedFields.error.flatten().fieldErrors)
       return { success: false, error: 'Dados inválidos para criar orçamento.' }
     }
 
@@ -48,7 +49,18 @@ export const createQuote = withPermission(
       ctx.log({ entityId: newQuote.id })
       revalidatePath('/dashboard/orcamentos')
 
-      return { success: true, data: newQuote }
+      // Serialização para o retorno (importante para Client Components que chamam a action)
+      const serializedQuote = {
+        ...newQuote,
+        totalHours: Number(newQuote.totalHours),
+        totalValue: Number(newQuote.totalValue),
+        hourlyRate: Number(newQuote.hourlyRate),
+        discount: Number(newQuote.discount),
+        urgencyFee: Number(newQuote.urgencyFee),
+        entryAmount: Number(newQuote.entryAmount),
+      }
+
+      return { success: true, data: serializedQuote }
     } catch (error) {
       console.error('[createQuote Error]', error)
       return { success: false, error: 'Erro ao criar orçamento.' }

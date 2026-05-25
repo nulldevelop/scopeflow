@@ -3,7 +3,7 @@
 import { toast } from 'sonner'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import {
@@ -56,11 +56,20 @@ export function ClientModal({
     },
   })
 
+  // Sincroniza dados iniciais quando mudam (ex: clicar em Editar em diferentes clientes)
+  useEffect(() => {
+    if (open) {
+      reset({
+        name: initialData?.name || '',
+        email: initialData?.email || '',
+        document: initialData?.document || '',
+        phone: initialData?.phone || '',
+      })
+    }
+  }, [initialData, reset, open])
+
   // Reseta form quando abre/fecha
   const handleOpenChange = (isOpen: boolean) => {
-    if (!isOpen) {
-      reset()
-    }
     onOpenChange(isOpen)
   }
 
