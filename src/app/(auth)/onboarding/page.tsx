@@ -15,9 +15,9 @@ import {
   Users,
   Zap,
 } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import type { ElementType } from 'react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -279,6 +279,8 @@ export const dynamic = 'force-dynamic'
 
 export default function OnboardingPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const planFromUrl = searchParams.get('plan')
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
 
@@ -305,10 +307,17 @@ export default function OnboardingPage() {
         contingencyReserve: '10',
         profitMargin: '20',
       },
-      plan: 'free',
+      plan: (planFromUrl as 'free' | 'pro' | 'equipe') || 'free',
       invites: [],
     },
   })
+
+  useEffect(() => {
+    if (planFromUrl) {
+      // @ts-expect-error - enum type mismatch
+      setValue('plan', planFromUrl)
+    }
+  }, [planFromUrl, setValue])
 
   const formData = useWatch({ control })
   const activeProfile = profiles.find((p) => p.id === formData.profile)

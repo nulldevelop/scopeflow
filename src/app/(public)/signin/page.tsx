@@ -2,16 +2,21 @@
 
 import { Check, Quote } from 'lucide-react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { BorderBeam } from '@/components/magicui/border-beam'
 import { Meteors } from '@/components/magicui/meteors'
 import { Button } from '@/components/ui/button'
 import { signIn } from '@/lib/auth-client'
 
 export default function SigninPage() {
+  const searchParams = useSearchParams()
+  const plan = searchParams.get('plan')
+
   const handleSignIn = async (provider: 'google' | 'github') => {
+    const callbackURL = plan ? `/onboarding?plan=${plan}` : '/dashboard'
     await signIn.social({
       provider,
-      callbackURL: '/dashboard',
+      callbackURL,
     })
   }
 

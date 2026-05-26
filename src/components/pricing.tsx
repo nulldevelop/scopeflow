@@ -144,6 +144,9 @@ export function Pricing() {
 
               <Button
                 size="lg"
+                onClick={() => {
+                  window.location.href = `/signin?plan=${plan.name.toLowerCase()}`
+                }}
                 className={`w-full h-14 rounded-xl text-base font-bold transition-all duration-300 ${
                   plan.featured
                     ? 'bg-[#2A6B5C] hover:bg-[#1f5045] text-white hover:text-white shadow-lg shadow-[#2A6B5C]/20'
