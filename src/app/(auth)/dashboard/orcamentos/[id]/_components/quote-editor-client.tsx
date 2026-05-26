@@ -458,7 +458,7 @@ export function QuoteEditorClient({
                     control={control}
                     name="clientId"
                     render={({ field }) => (
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select value={field.value ?? undefined} onValueChange={field.onChange}>
                         <SelectTrigger className="h-12 bg-gray-50 border-none rounded-xl text-gray-900 font-medium">
                           <SelectValue placeholder="Selecione um cliente" />
                         </SelectTrigger>
@@ -510,7 +510,7 @@ export function QuoteEditorClient({
                             const newRate = Number(e.target.value)
                             const currentItems = fields.map((item, idx) => ({
                               ...item,
-                              unitValue: (item.hours || 0) * newRate,
+                              unitValue: (Number(item.hours) || 0) * newRate,
                             }))
                             setValue('items', currentItems as any)
                           },
@@ -563,7 +563,9 @@ export function QuoteEditorClient({
                         value={
                           formValues.expirationDate instanceof Date
                             ? formValues.expirationDate.toISOString().split('T')[0]
-                            : formValues.expirationDate
+                            : typeof formValues.expirationDate === 'string'
+                              ? formValues.expirationDate
+                              : ''
                         }
                         onChange={(e) =>
                           setValue('expirationDate', new Date(e.target.value))
@@ -1002,12 +1004,12 @@ export function QuoteEditorClient({
                 </div>
               </div>
 
-              {formValues.installments && Number(formValues.installments) > 1 && (
+              {Number(formValues.installments) > 1 && (
                 <div className="px-8 py-6 bg-brand/10 border-t border-brand/10 space-y-3">
                   {(Number(formValues.entryAmount) || 0) > 0 && (
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-[10px] font-bold text-brand-light uppercase">
-                        Entrada ({formValues.entryAmount}%)
+                        Entrada ({Number(formValues.entryAmount) || 0}%)
                       </span>
                       <span className="font-mono font-medium">
                         {totals.valorEntrada.toLocaleString('pt-BR', {
@@ -1023,7 +1025,7 @@ export function QuoteEditorClient({
                         Parcelamento
                       </p>
                       <p className="text-sm font-medium">
-                        {formValues.installments}× de{' '}
+                        {Number(formValues.installments)}× de{' '}
                         {totals.valorParcela.toLocaleString('pt-BR', {
                           style: 'currency',
                           currency: 'BRL',
