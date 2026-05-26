@@ -7,14 +7,17 @@ import {
   LogOut,
   Menu,
   Settings,
+  Shield,
   Users,
   X,
 } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import React from 'react'
 import { signOut } from '@/lib/auth-client'
 import { cn } from '@/lib/utils'
+import { Button } from '../ui/button'
 
 interface SidebarProps {
   user: {
@@ -22,6 +25,7 @@ interface SidebarProps {
     email: string
     image?: string | null | undefined
   } | null
+  userRole?: string
 }
 
 const menuItems = [
@@ -32,10 +36,18 @@ const menuItems = [
   { label: 'Configurações', href: '/dashboard/configuracoes', icon: Settings },
 ]
 
-export function Sidebar({ user }: SidebarProps) {
+export function Sidebar({ user, userRole }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [isOpen, setIsOpen] = React.useState(false)
+
+  const allMenuItems =
+    userRole === 'owner'
+      ? [
+          ...menuItems,
+          { label: 'Owner', href: '/dashboard/owner', icon: Shield },
+        ]
+      : menuItems
 
   const handleSignOut = async () => {
     await signOut({
@@ -70,6 +82,7 @@ export function Sidebar({ user }: SidebarProps) {
           opacity="0.65"
         />
         <rect x="33" y="17" width="7" height="30" rx="2" fill="white" />
+        <title>ScopeFlow</title>
         <path
           d="M39 14 L46 8 M46 8 L41.5 8 M46 8 L46 12.5"
           stroke="white"
@@ -87,17 +100,18 @@ export function Sidebar({ user }: SidebarProps) {
   return (
     <>
       {/* Mobile Trigger */}
-      <button
+      <Button
         onClick={() => setIsOpen(true)}
         className="lg:hidden fixed top-4 left-4 z-40 p-2 bg-white border border-gray-200 rounded-lg shadow-sm"
       >
         <Menu className="w-5 h-5 text-gray-600" />
-      </button>
+      </Button>
 
       {/* Sidebar Overlay */}
       {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
+        <Button
+          aria-label="Close sidebar"
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden cursor-default"
           onClick={() => setIsOpen(false)}
         />
       )}
@@ -112,13 +126,13 @@ export function Sidebar({ user }: SidebarProps) {
         <div className="flex flex-col h-full p-6">
           <div className="flex items-center justify-between mb-8">
             <Logo />
-            <button onClick={() => setIsOpen(false)} className="lg:hidden p-1">
+            <Button onClick={() => setIsOpen(false)} className="lg:hidden p-1">
               <X className="w-5 h-5 text-gray-400" />
-            </button>
+            </Button>
           </div>
 
           <nav className="flex-1 space-y-1">
-            {menuItems.map((item) => {
+            {allMenuItems.map((item) => {
               const isActive =
                 item.href === '/dashboard'
                   ? pathname === '/dashboard'
@@ -151,10 +165,12 @@ export function Sidebar({ user }: SidebarProps) {
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-full bg-brand-light flex items-center justify-center overflow-hidden">
                 {user?.image ? (
-                  <img
+                  <Image
                     src={user.image}
                     alt={user.name}
                     className="w-full h-full object-cover"
+                    width={36}
+                    height={36}
                   />
                 ) : (
                   <span className="text-brand font-semibold text-xs">
@@ -170,13 +186,13 @@ export function Sidebar({ user }: SidebarProps) {
               </div>
             </div>
 
-            <button
+            <Button
               onClick={handleSignOut}
               className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
             >
               <LogOut className="w-4 h-4" />
               Sair
-            </button>
+            </Button>
           </div>
         </div>
       </aside>

@@ -81,7 +81,11 @@ export function HeroVideoDialog({
 
   return (
     <div className={cn('relative', className)}>
-      <div className="cursor-pointer" onClick={() => setIsVideoOpen(true)}>
+      <button
+        type="button"
+        className="cursor-pointer text-left"
+        onClick={() => setIsVideoOpen(true)}
+      >
         {children ? (
           children
         ) : (
@@ -110,7 +114,7 @@ export function HeroVideoDialog({
             </div>
           </div>
         )}
-      </div>
+      </button>
       <AnimatePresence>
         {isVideoOpen && (
           <motion.div
@@ -119,12 +123,22 @@ export function HeroVideoDialog({
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md"
             onClick={() => setIsVideoOpen(false)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') setIsVideoOpen(false)
+            }}
           >
             <motion.div
               {...selectedAnimation}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
               className="relative mx-4 aspect-video w-full max-w-5xl md:mx-0"
               onClick={(e) => e.stopPropagation()}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') e.stopPropagation()
+              }}
             >
               <button
                 onClick={() => setIsVideoOpen(false)}

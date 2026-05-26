@@ -89,6 +89,11 @@ export function ProfileSelector() {
               key={p.id}
               onClick={() => setProfile(p.id)}
               className="p-6 cursor-pointer border-2 border-gray-100 hover:border-brand hover:shadow-xl hover:shadow-brand/5 transition-all group relative overflow-hidden bg-white"
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') setProfile(p.id)
+              }}
             >
               <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-brand-light group-hover:text-brand transition-colors mb-4">
                 <p.icon className="w-6 h-6" />

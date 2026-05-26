@@ -18,6 +18,12 @@ export default async function AuthLayout({
   const user = sessionData.session.user
   const activeOrgId = sessionData.session.activeOrganizationId
 
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { role: true },
+  })
+  const userRole = dbUser?.role || 'member'
+
   // Verifica se estamos na rota de onboarding
   const headersList = await headers()
   const pathname = headersList.get('x-pathname') || ''
@@ -62,7 +68,7 @@ export default async function AuthLayout({
 
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar user={user} />
+      <Sidebar user={user} userRole={userRole} />
       <main className="flex-1 lg:ml-64 min-h-screen">
         <div className="mx-auto py-3">{children}</div>
       </main>

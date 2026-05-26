@@ -17,7 +17,6 @@ import {
   Zap,
 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import type { ElementType } from 'react'
 import { Suspense, useEffect, useMemo, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
