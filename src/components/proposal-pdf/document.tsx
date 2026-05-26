@@ -368,13 +368,21 @@ function getAbsoluteUrl(url: string | null | undefined): string | null {
 interface ProposalPDFProps {
   quote: QuoteWithClient
   organizationName?: string
+  activeOrg?: {
+    name: string
+    logo: string | null
+  } | null
 }
 
 export function ProposalPDF({
   quote,
   organizationName = 'ScopeFlow',
+  activeOrg,
 }: ProposalPDFProps) {
-  const orgLogoUrl = getAbsoluteUrl(quote.organization?.logo)
+  const displayLogo = activeOrg?.logo || quote.organization?.logo
+  const displayOrgName = activeOrg?.name || quote.organization?.name || organizationName
+
+  const orgLogoUrl = getAbsoluteUrl(displayLogo)
   const grossValue = Number(quote.totalValue)
   const discountValue = (grossValue * Number(quote.discount)) / 100
   const urgencyValue = (grossValue * Number(quote.urgencyFee)) / 100
@@ -398,37 +406,9 @@ export function ProposalPDF({
                   style={[styles.orgLogo, { objectFit: 'contain' }]}
                 />
               )}
-              <Svg width={24} height={24} viewBox="0 0 60 60">
-                <Rect width={60} height={60} rx={14} fill={BRAND} />
-                <Rect
-                  x={13}
-                  y={34}
-                  width={7}
-                  height={13}
-                  rx={2}
-                  fill="white"
-                  opacity={0.4}
-                />
-                <Rect
-                  x={23}
-                  y={26}
-                  width={7}
-                  height={21}
-                  rx={2}
-                  fill="white"
-                  opacity={0.65}
-                />
-                <Rect x={33} y={17} width={7} height={30} rx={2} fill="white" />
-                <Path
-                  d="M39 14 L46 8 M46 8 L41.5 8 M46 8 L46 12.5"
-                  stroke="white"
-                  strokeWidth={1.8}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </Svg>
+
               <Text style={styles.companyName}>
-                {quote.organization?.name || organizationName}
+                {displayOrgName}
               </Text>
             </View>
             <Text style={styles.documentTitle}>Proposta Comercial</Text>
@@ -666,7 +646,9 @@ export function ProposalPDF({
             ) : (
               <View style={styles.signatureLine} />
             )}
-            <Text style={styles.signatureLabel}>{organizationName}</Text>
+            <Text style={styles.signatureLabel}>
+              {displayOrgName}
+            </Text>
           </View>
           <View style={styles.signatureBlock}>
             <View style={styles.signatureLine} />
@@ -677,7 +659,7 @@ export function ProposalPDF({
         {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            {organizationName} — Proposta Comercial
+            {displayOrgName} — Proposta Comercial
           </Text>
           <Text style={styles.pageNumber}>
             Gerado em {formatDate(new Date())}

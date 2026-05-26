@@ -27,7 +27,7 @@ export const updateSettingsAction = withPermission<[SettingsInput], null>(
         },
       })
 
-      // 2. Update Organization Metadata
+      // 2. Update Organization
       const org = await prisma.organization.findUnique({
         where: { id: ctx.organizationId },
         select: { metadata: true },
@@ -52,6 +52,7 @@ export const updateSettingsAction = withPermission<[SettingsInput], null>(
       await prisma.organization.update({
         where: { id: ctx.organizationId },
         data: {
+          logo: data.orgLogo,
           metadata: JSON.stringify(newMetadata),
         },
       })

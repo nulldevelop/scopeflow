@@ -35,6 +35,7 @@ interface SettingsClientProps {
       id: string
       name: string
       slug: string
+      logo: string | null
       metadata: {
         profile: string
         answers: {
@@ -92,6 +93,7 @@ export function SettingsClient({
       name: initialData.user.name,
       email: initialData.user.email,
       image: initialData.user.image || undefined,
+      orgLogo: initialData.organization.logo || undefined,
       taxPercentage: initialData.organization.metadata.answers.taxPercentage,
       workHoursDay: initialData.organization.metadata.answers.workHoursDay,
       workDaysMonth: initialData.organization.metadata.answers.workDaysMonth,
@@ -115,8 +117,12 @@ export function SettingsClient({
 
   const formData = watch()
   const fileInputRef = React.useRef<HTMLInputElement>(null)
+  const orgLogoInputRef = React.useRef<HTMLInputElement>(null)
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: 'image' | 'orgLogo',
+  ) => {
     const file = e.target.files?.[0]
     if (file) {
       if (file.size > 2 * 1024 * 1024) {
@@ -127,7 +133,7 @@ export function SettingsClient({
       const reader = new FileReader()
       reader.onloadend = () => {
         const base64String = reader.result as string
-        setValue('image', base64String, { shouldDirty: true })
+        setValue(field, base64String, { shouldDirty: true })
       }
       reader.readAsDataURL(file)
     }
@@ -241,42 +247,91 @@ export function SettingsClient({
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-6">
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        className="hidden"
-                        accept="image/*"
-                        onChange={handleFileChange}
-                      />
-                      <div className="w-20 h-20 rounded-2xl bg-brand-light flex items-center justify-center overflow-hidden border-2 border-white shadow-sm">
-                        {formData.image ? (
-                          <Image
-                            src={formData.image}
-                            alt={formData.name}
-                            className="w-full h-full object-cover"
-                            width={80}
-                            height={80}
-                          />
-                        ) : (
-                          <span className="text-brand font-bold text-2xl">
-                            {formData.name?.charAt(0) || 'U'}
-                          </span>
-                        )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      {/* Foto do Usuário */}
+                      <div className="flex items-center gap-6">
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          className="hidden"
+                          accept="image/*"
+                          onChange={(e) => handleFileChange(e, 'image')}
+                        />
+                        <div className="w-20 h-20 rounded-2xl bg-brand-light flex items-center justify-center overflow-hidden border-2 border-white shadow-sm">
+                          {formData.image ? (
+                            <Image
+                              src={formData.image}
+                              alt={formData.name}
+                              className="w-full h-full object-cover"
+                              width={80}
+                              height={80}
+                            />
+                          ) : (
+                            <span className="text-brand font-bold text-2xl">
+                              {formData.name?.charAt(0) || 'U'}
+                            </span>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900 mb-1">
+                            Foto de Perfil
+                          </p>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="mb-2"
+                            onClick={() => fileInputRef.current?.click()}
+                          >
+                            Alterar foto
+                          </Button>
+                          <p className="text-[11px] text-gray-400">
+                            Máximo de 2MB.
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="mb-2"
-                          onClick={() => fileInputRef.current?.click()}
-                        >
-                          Alterar foto
-                        </Button>
-                        <p className="text-[11px] text-gray-400">
-                          JPG, GIF ou PNG. Máximo de 2MB.
-                        </p>
+
+                      {/* Logo da Organização */}
+                      <div className="flex items-center gap-6">
+                        <input
+                          type="file"
+                          ref={orgLogoInputRef}
+                          className="hidden"
+                          accept="image/*"
+                          onChange={(e) => handleFileChange(e, 'orgLogo')}
+                        />
+                        <div className="w-20 h-20 rounded-2xl bg-brand/5 flex items-center justify-center overflow-hidden border-2 border-white shadow-sm">
+                          {formData.orgLogo ? (
+                            <Image
+                              src={formData.orgLogo}
+                              alt="Logo da Organização"
+                              className="w-full h-full object-contain p-2"
+                              width={80}
+                              height={80}
+                            />
+                          ) : (
+                            <span className="text-brand/30 font-bold text-2xl">
+                              {initialData.organization.name?.charAt(0) || 'O'}
+                            </span>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900 mb-1">
+                            Logo da Empresa
+                          </p>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="mb-2"
+                            onClick={() => orgLogoInputRef.current?.click()}
+                          >
+                            Alterar logo
+                          </Button>
+                          <p className="text-[11px] text-gray-400">
+                            Usado em seus orçamentos.
+                          </p>
+                        </div>
                       </div>
                     </div>
 

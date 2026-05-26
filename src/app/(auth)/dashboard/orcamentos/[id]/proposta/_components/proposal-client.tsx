@@ -39,6 +39,7 @@ import {
 import { cn } from '@/lib/utils'
 import type { ProjectStatus } from '@/types'
 import { publicUpdateQuoteStatus } from '../../../_actions/public-quote-actions'
+import { signQuote } from '../../../_actions/sign-quote'
 import { updateQuoteStatus } from '../../../_actions/update-quote-status'
 
 const ProposalPDFDownload = dynamic(
@@ -57,6 +58,29 @@ export function ProposalClient({
   const [isPending, startTransition] = useTransition()
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false)
   const [signature, setSignature] = useState('')
+
+  const handleSign = async () => {
+    if (
+      !confirm(
+        'Deseja assinar digitalmente este orçamento? Isso gerará um código de autenticidade e marcará a proposta como enviada.',
+      )
+    )
+      return
+
+    startTransition(async () => {
+      try {
+        const res = await signQuote({ id: quote.id })
+        if (res.success) {
+          toast.success('Orçamento assinado com sucesso!')
+          router.refresh()
+        } else {
+          toast.error(res.error)
+        }
+      } catch (_error) {
+        toast.error('Erro ao assinar orçamento.')
+      }
+    })
+  }
 
   const valorParcela =
     quote.installments > 0
@@ -181,14 +205,27 @@ export function ProposalClient({
         )}
         <div className="flex items-center gap-3">
           {!isPublic && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleCopyLink}
-              className="text-brand hover:text-brand-dark hover:bg-brand/5 gap-2 border-brand/20"
-            >
-              <LinkIcon className="w-4 h-4" /> Copiar Link Público
-            </Button>
+            <>
+              {!quote.signatureHash && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSign}
+                  disabled={isPending}
+                  className="bg-brand/5 text-brand hover:bg-brand/10 gap-2 border-brand/20 font-bold"
+                >
+                  <CheckCircle className="w-4 h-4" /> Assinar Proposta
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCopyLink}
+                className="text-brand hover:text-brand-dark hover:bg-brand/5 gap-2 border-brand/20"
+              >
+                <LinkIcon className="w-4 h-4" /> Copiar Link Público
+              </Button>
+            </>
           )}
           <ProposalPDFDownload quote={quote} />
           <Button

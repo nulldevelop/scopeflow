@@ -50,6 +50,7 @@ export async function getSettings() {
         id: organization.id,
         name: organization.name,
         slug: organization.slug,
+        logo: organization.logo,
         metadata: {
           profile: metadata.profile || 'fullstack',
           answers: metadata.answers || {
