@@ -1,0 +1,57 @@
+'use server'
+
+import { createHash } from 'crypto'
+import { revalidatePath } from 'next/cache'
+import { withPermission } from '@/lib/permissions/with-permission'
+import { prisma } from '@/lib/prisma'
+
+export const signQuote = withPermission(
+  'update',
+  'quotes',
+  async (ctx, { id }: { id: string }) => {
+    try {
+      const quote = await prisma.quote.findUnique({
+        where: { id, organizationId: ctx.organizationId },
+      })
+
+      if (!quote) {
+        return { success: false, error: 'Orçamento não encontrado.' }
+      }
+
+      const user = await prisma.user.findUnique({
+        where: { id: ctx.userId },
+      })
+
+      if (!user) {
+        return { success: false, error: 'Usuário não encontrado.' }
+      }
+
+      const signedAt = new Date()
+      const signerName = user.name
+      
+      // Generate hash: sha256(quoteId + orgId + userId + signedAt + totalValue)
+      const hashContent = `${quote.id}-${ctx.organizationId}-${ctx.userId}-${signedAt.toISOString()}-${quote.totalValue.toString()}`
+      const signatureHash = createHash('sha256').update(hashContent).digest('hex').toUpperCase().slice(0, 16) // Short hash for display
+
+      await prisma.quote.update({
+        where: { id },
+        data: {
+          signedAt,
+          signatureHash,
+          signerName,
+          status: 'enviada',
+        },
+      })
+
+      ctx.log({ entityId: id, metadata: { signatureHash } })
+      revalidatePath('/dashboard/orcamentos')
+      revalidatePath(`/dashboard/orcamentos/${id}`)
+      revalidatePath(`/dashboard/orcamentos/${id}/proposta`)
+
+      return { success: true }
+    } catch (error) {
+      console.error('[signQuote Error]', error)
+      return { success: false, error: 'Erro ao assinar o orçamento.' }
+    }
+  },
+)

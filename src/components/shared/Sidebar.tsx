@@ -10,6 +10,7 @@ import {
   Shield,
   Users,
   X,
+  ChevronRight,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -60,38 +61,34 @@ export function Sidebar({ user, userRole }: SidebarProps) {
   }
 
   const Logo = () => (
-    <div className="flex items-center gap-3">
-      <svg width="32" height="32" viewBox="0 0 60 60" fill="none">
-        <rect width="60" height="60" rx="14" fill="#2A6B5C" />
-        <rect
-          x="13"
-          y="34"
-          width="7"
-          height="13"
-          rx="2"
-          fill="white"
-          opacity="0.40"
-        />
-        <rect
-          x="23"
-          y="26"
-          width="7"
-          height="21"
-          rx="2"
-          fill="white"
-          opacity="0.65"
-        />
-        <rect x="33" y="17" width="7" height="30" rx="2" fill="white" />
-        <title>ScopeFlow</title>
-        <path
-          d="M39 14 L46 8 M46 8 L41.5 8 M46 8 L46 12.5"
-          stroke="white"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-      <span className="font-semibold text-lg tracking-tight text-gray-900">
+    <div className="flex items-center gap-3 group px-2">
+      <div className="relative">
+        <div className="absolute inset-0 bg-brand/20 blur-lg rounded-full group-hover:bg-brand/40 transition-all" />
+        <svg width="32" height="32" viewBox="0 0 60 60" fill="none" className="relative">
+          <rect width="60" height="60" rx="14" fill="#2A6B5C" />
+          <rect
+            x="13"
+            y="34"
+            width="7"
+            height="13"
+            rx="2"
+            fill="white"
+            opacity="0.40"
+          />
+          <rect
+            x="23"
+            y="26"
+            width="7"
+            height="21"
+            rx="2"
+            fill="white"
+            opacity="0.65"
+          />
+          <rect x="33" y="17" width="7" height="30" rx="2" fill="white" />
+          <title>ScopeFlow</title>
+        </svg>
+      </div>
+      <span className="font-black text-xl tracking-tight text-white uppercase group-hover:text-brand-light transition-colors">
         ScopeFlow
       </span>
     </div>
@@ -102,16 +99,15 @@ export function Sidebar({ user, userRole }: SidebarProps) {
       {/* Mobile Trigger */}
       <Button
         onClick={() => setIsOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-40 p-2 bg-white border border-gray-200 rounded-lg shadow-sm"
+        className="lg:hidden fixed top-4 left-4 z-40 w-10 h-10 p-0 bg-white/80 backdrop-blur-md border border-gray-200 rounded-xl shadow-lg flex items-center justify-center hover:bg-white transition-all active:scale-95"
       >
-        <Menu className="w-5 h-5 text-gray-600" />
+        <Menu className="w-5 h-5 text-gray-900" />
       </Button>
 
       {/* Sidebar Overlay */}
       {isOpen && (
-        <Button
-          aria-label="Close sidebar"
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden cursor-default"
+        <div
+          className="fixed inset-0 bg-gray-950/40 backdrop-blur-sm z-40 lg:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
@@ -119,19 +115,32 @@ export function Sidebar({ user, userRole }: SidebarProps) {
       {/* Sidebar Container */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-50 w-72 bg-[#0F1115] border-r border-white/5 transform transition-all duration-300 ease-in-out lg:translate-x-0 shadow-2xl',
           isOpen ? 'translate-x-0' : '-translate-x-full',
         )}
       >
-        <div className="flex flex-col h-full p-6">
-          <div className="flex items-center justify-between mb-8">
+        {/* Decorative Background Elements */}
+        <div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-brand/10 to-transparent pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-full h-64 bg-gradient-to-t from-brand/5 to-transparent pointer-events-none" />
+
+        <div className="relative flex flex-col h-full">
+          {/* Header */}
+          <div className="p-8 flex items-center justify-between">
             <Logo />
-            <Button onClick={() => setIsOpen(false)} className="lg:hidden p-1">
-              <X className="w-5 h-5 text-gray-400" />
+            <Button 
+              onClick={() => setIsOpen(false)} 
+              variant="ghost" 
+              className="lg:hidden p-1.5 text-gray-500 hover:text-white hover:bg-white/10 rounded-lg"
+            >
+              <X className="w-5 h-5" />
             </Button>
           </div>
 
-          <nav className="flex-1 space-y-1">
+          {/* Navigation */}
+          <nav className="flex-1 px-4 py-2 space-y-1.5 overflow-y-auto no-scrollbar">
+            <p className="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">
+              Menu Principal
+            </p>
             {allMenuItems.map((item) => {
               const isActive =
                 item.href === '/dashboard'
@@ -143,56 +152,92 @@ export function Sidebar({ user, userRole }: SidebarProps) {
                   href={item.href}
                   onClick={() => setIsOpen(false)}
                   className={cn(
-                    'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                    'group flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-200 relative overflow-hidden',
                     isActive
-                      ? 'bg-brand-light text-brand'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+                      ? 'bg-brand text-white shadow-lg shadow-brand/20'
+                      : 'text-gray-400 hover:text-white hover:bg-white/5',
                   )}
                 >
-                  <item.icon
-                    className={cn(
-                      'w-4 h-4',
-                      isActive ? 'text-brand' : 'text-gray-400',
-                    )}
-                  />
-                  {item.label}
+                  <div className="flex items-center gap-3 relative z-10">
+                    <div className={cn(
+                      "w-8 h-8 rounded-xl flex items-center justify-center transition-all",
+                      isActive ? "bg-white/20" : "bg-white/5 group-hover:bg-white/10"
+                    )}>
+                      <item.icon
+                        className={cn(
+                          'w-4 h-4',
+                          isActive ? 'text-white' : 'text-gray-400 group-hover:text-white',
+                        )}
+                      />
+                    </div>
+                    {item.label}
+                  </div>
+                  {isActive ? (
+                    <ChevronRight className="w-4 h-4 text-white/60 relative z-10" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-gray-600 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all relative z-10" />
+                  )}
+                  {isActive && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-brand to-brand-dark opacity-90" />
+                  )}
                 </Link>
               )
             })}
           </nav>
 
-          <div className="pt-6 border-t border-gray-100 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-brand-light flex items-center justify-center overflow-hidden">
-                {user?.image ? (
-                  <Image
-                    src={user.image}
-                    alt={user.name}
-                    className="w-full h-full object-cover"
-                    width={36}
-                    height={36}
-                  />
-                ) : (
-                  <span className="text-brand font-semibold text-xs">
-                    {user?.name?.charAt(0).toUpperCase() || '?'}
-                  </span>
-                )}
+          {/* Footer User Profile */}
+          <div className="p-4 mt-auto">
+            <div className="bg-white/5 rounded-[28px] p-4 border border-white/5 backdrop-blur-md">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="relative">
+                  <div className="w-12 h-12 rounded-2xl bg-brand/20 flex items-center justify-center overflow-hidden border border-brand/30">
+                    {user?.image ? (
+                      <Image
+                        src={user.image}
+                        alt={user.name}
+                        className="w-full h-full object-cover"
+                        width={48}
+                        height={48}
+                      />
+                    ) : (
+                      <span className="text-brand font-black text-lg">
+                        {user?.name?.charAt(0).toUpperCase() || '?'}
+                      </span>
+                    )}
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-[#0F1115] rounded-full" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-white truncate">
+                    {user?.name || 'Usuário'}
+                  </p>
+                  <p className="text-[10px] text-gray-500 truncate font-medium uppercase tracking-tighter">
+                    {userRole === 'owner' ? 'Administrator' : 'Membro'}
+                  </p>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  {user?.name || 'Usuário'}
-                </p>
-                <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  asChild
+                  variant="ghost"
+                  className="h-10 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all text-xs border border-white/5"
+                >
+                  <Link href="/dashboard/configuracoes">
+                    <Settings className="w-3.5 h-3.5 mr-2" />
+                    Ajustes
+                  </Link>
+                </Button>
+                <Button
+                  onClick={handleSignOut}
+                  variant="ghost"
+                  className="h-10 rounded-xl bg-red-500/5 hover:bg-red-500/10 text-red-500 hover:text-red-400 transition-all text-xs border border-red-500/10"
+                >
+                  <LogOut className="w-3.5 h-3.5 mr-2" />
+                  Sair
+                </Button>
               </div>
             </div>
-
-            <Button
-              onClick={handleSignOut}
-              className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              Sair
-            </Button>
           </div>
         </div>
       </aside>

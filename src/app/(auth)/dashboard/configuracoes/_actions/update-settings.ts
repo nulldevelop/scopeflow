@@ -17,12 +17,13 @@ export const updateSettingsAction = withPermission<[SettingsInput], null>(
 
       const data = validatedFields.data
 
-      // 1. Update User (Better-Auth handles this usually, but we update our DB too)
+      // 1. Update User
       await prisma.user.update({
         where: { id: ctx.userId },
         data: {
           name: data.name,
           email: data.email,
+          image: data.image,
         },
       })
 

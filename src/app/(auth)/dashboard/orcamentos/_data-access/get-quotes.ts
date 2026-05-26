@@ -11,7 +11,9 @@ export async function getQuotes(organizationId: string) {
         items: true,
         organization: {
           select: {
+            name: true,
             slug: true,
+            logo: true,
           },
         },
       },
@@ -42,7 +44,9 @@ export async function getQuoteById(organizationId: string, id: string) {
         },
         organization: {
           select: {
+            name: true,
             slug: true,
+            logo: true,
           },
         },
       },

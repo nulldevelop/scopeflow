@@ -3,11 +3,11 @@ import {
   CheckCircle2,
   DollarSign,
   FileText,
+  LayoutDashboard,
   Plus,
   TrendingUp,
 } from 'lucide-react'
 import Link from 'next/link'
-import { Header } from '@/components/shared/Header'
 import { MetricCard } from '@/components/shared/MetricCard'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { Card } from '@/components/ui/card'
@@ -45,7 +45,6 @@ export default async function DashboardPage() {
 
   const recentQuotes = [...quotes].slice(0, 5)
 
-  // Calcular dados reais do gráfico (últimos 6 meses)
   const last6Months = Array.from({ length: 6 }, (_, i) => {
     const d = new Date()
     d.setMonth(d.getMonth() - i)
@@ -70,137 +69,168 @@ export default async function DashboardPage() {
   const chartData = last6Months.map(({ name, value }) => ({ name, value }))
 
   return (
-    <div className="px-8 pb-12">
-      <Header title="Dashboard">
-        <Link
-          href="dashboard/orcamentos/novo"
-          className="bg-brand text-white hover:bg-brand-dark rounded-lg flex items-center gap-2 px-4 py-2"
-        >
-          <Plus className="w-4 h-4" />
-          Novo orçamento
-        </Link>
-      </Header>
+    <div className="min-h-screen bg-[#F8F7F3]">
+      {/* Hero Header */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-brand/90 px-8 pt-16 pb-28">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDM0djItSDI0di0yaDEyek0zNiAyNHYySDI0di0yaDEyeiIvPjwvZz48L2c+PC9zdmc+')] opacity-50" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-brand/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-light/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4" />
+        <div className="relative max-w-[1600px] mx-auto">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center ring-1 ring-white/20">
+                <LayoutDashboard className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight">
+                  Dashboard
+                </h1>
+                <p className="text-white/60 text-sm mt-1">
+                  Acompanhe seus orçamentos, conversões e métricas
+                </p>
+              </div>
+            </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <MetricCard
-          label="Total de orçamentos"
-          value={totalQuotes}
-          icon={FileText}
-        />
-        <MetricCard
-          label="Aprovadas"
-          value={approvedQuotes}
-          icon={CheckCircle2}
-          variant="ok"
-        />
-        <MetricCard
-          label="Taxa de conversão"
-          value={`${conversionRate}%`}
-          icon={TrendingUp}
-          variant="brand"
-        />
-        <MetricCard
-          label="Ticket médio"
-          value={avgTicket}
-          icon={DollarSign}
-          variant="blue"
-        />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <DashboardChart data={chartData} />
-
-        <Card className="p-6 bg-white border border-gray-200 rounded-[14px] flex flex-col">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-sm font-semibold text-gray-900">Recentes</h3>
             <Link
-              href="/orcamentos"
-              className="text-xs text-brand font-medium hover:underline flex items-center gap-1"
+              href="dashboard/orcamentos/novo"
+              className="bg-white text-gray-900 hover:bg-gray-50 rounded-xl flex items-center gap-2 px-5 py-2.5 font-medium transition-all shadow-lg shadow-brand/10"
             >
-              Ver todos <ArrowRight className="w-3 h-3" />
+              <Plus className="w-4 h-4" />
+              Novo orçamento
             </Link>
           </div>
-
-          <div className="space-y-6 flex-1">
-            {recentQuotes.map((quote) => (
-              <div key={quote.id} className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-900 truncate max-w-[150px]">
-                    {quote.title}
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    {quote.client?.name || '-'}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-mono font-medium text-gray-900">
-                    {Number(quote.totalValue).toLocaleString('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL',
-                    })}
-                  </p>
-                  <StatusBadge
-                    status={quote.status as ProjectStatus}
-                    className="mt-1"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
+        </div>
       </div>
 
-      <div className="mt-8">
-        <Card className="border border-gray-200 rounded-[14px] overflow-hidden">
-          <Table>
-            <TableHeader className="bg-gray-50/50">
-              <TableRow className="border-b border-gray-100">
-                <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-gray-400">
-                  Projeto
-                </TableHead>
-                <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-gray-400">
-                  Cliente
-                </TableHead>
-                <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-gray-400">
-                  Valor
-                </TableHead>
-                <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-gray-400">
-                  Status
-                </TableHead>
-                <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-gray-400 text-right">
-                  Data
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {recentQuotes.map((quote) => (
-                <TableRow
-                  key={quote.id}
-                  className="border-b border-gray-50 hover:bg-gray-50/30 transition-colors"
+      {/* Content */}
+      <div className="px-8 -mt-14 relative z-10 pb-12">
+        <div className="max-w-[1600px] mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <MetricCard
+              label="Total de orçamentos"
+              value={totalQuotes}
+              icon={FileText}
+              className="rounded-[24px] hover:shadow-xl hover:shadow-brand/5 transition-all"
+            />
+            <MetricCard
+              label="Aprovadas"
+              value={approvedQuotes}
+              icon={CheckCircle2}
+              variant="ok"
+              className="rounded-[24px] hover:shadow-xl hover:shadow-brand/5 transition-all"
+            />
+            <MetricCard
+              label="Taxa de conversão"
+              value={`${conversionRate}%`}
+              icon={TrendingUp}
+              variant="brand"
+              className="rounded-[24px] hover:shadow-xl hover:shadow-brand/5 transition-all"
+            />
+            <MetricCard
+              label="Ticket médio"
+              value={avgTicket}
+              icon={DollarSign}
+              variant="blue"
+              className="rounded-[24px] hover:shadow-xl hover:shadow-brand/5 transition-all"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <DashboardChart data={chartData} />
+
+            <Card className="p-6 bg-white border border-gray-200 rounded-[24px] flex flex-col hover:shadow-xl hover:shadow-brand/5 transition-all">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-sm font-semibold text-gray-900">Recentes</h3>
+                <Link
+                  href="/orcamentos"
+                  className="text-xs text-brand font-medium hover:underline flex items-center gap-1"
                 >
-                  <TableCell className="font-medium text-gray-900">
-                    {quote.title}
-                  </TableCell>
-                  <TableCell className="text-gray-600">
-                    {quote.client?.name || '-'}
-                  </TableCell>
-                  <TableCell className="font-mono text-gray-900">
-                    {Number(quote.totalValue).toLocaleString('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL',
-                    })}
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge status={quote.status as ProjectStatus} />
-                  </TableCell>
-                  <TableCell className="text-right text-gray-400 text-sm">
-                    {new Date(quote.createdAt).toLocaleDateString('pt-BR')}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
+                  Ver todos <ArrowRight className="w-3 h-3" />
+                </Link>
+              </div>
+
+              <div className="space-y-6 flex-1">
+                {recentQuotes.map((quote) => (
+                  <div key={quote.id} className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 truncate max-w-[150px]">
+                        {quote.title}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {quote.client?.name || '-'}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-mono font-medium text-gray-900">
+                        {Number(quote.totalValue).toLocaleString('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL',
+                        })}
+                      </p>
+                      <StatusBadge
+                        status={quote.status as ProjectStatus}
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+
+          <div className="mt-8">
+            <Card className="border border-gray-200 rounded-[24px] overflow-hidden hover:shadow-xl hover:shadow-brand/5 transition-all">
+              <Table>
+                <TableHeader className="bg-gray-50/50">
+                  <TableRow className="border-b border-gray-100">
+                    <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-gray-400">
+                      Projeto
+                    </TableHead>
+                    <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-gray-400">
+                      Cliente
+                    </TableHead>
+                    <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-gray-400">
+                      Valor
+                    </TableHead>
+                    <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-gray-400">
+                      Status
+                    </TableHead>
+                    <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-gray-400 text-right">
+                      Data
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {recentQuotes.map((quote) => (
+                    <TableRow
+                      key={quote.id}
+                      className="border-b border-gray-50 hover:bg-gray-50/30 transition-colors"
+                    >
+                      <TableCell className="font-medium text-gray-900">
+                        {quote.title}
+                      </TableCell>
+                      <TableCell className="text-gray-600">
+                        {quote.client?.name || '-'}
+                      </TableCell>
+                      <TableCell className="font-mono text-gray-900">
+                        {Number(quote.totalValue).toLocaleString('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL',
+                        })}
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge status={quote.status as ProjectStatus} />
+                      </TableCell>
+                      <TableCell className="text-right text-gray-400 text-sm">
+                        {new Date(quote.createdAt).toLocaleDateString('pt-BR')}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
   )

@@ -233,6 +233,9 @@ model Quote {
   expirationDate DateTime?
   sentAt         DateTime?
   approvedAt     DateTime?
+  signedAt       DateTime?
+  signatureHash  String?      @db.Text
+  signerName     String?      @db.Text
   clientId       String?
   client         Client?      @relation(fields: [clientId], references: [id], onDelete: SetNull)
   organizationId String

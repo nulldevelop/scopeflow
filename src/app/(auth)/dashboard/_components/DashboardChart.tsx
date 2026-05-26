@@ -17,7 +17,7 @@ interface DashboardChartProps {
 
 export function DashboardChart({ data }: DashboardChartProps) {
   return (
-    <Card className="lg:col-span-2 p-6 bg-white border border-gray-200 rounded-[14px]">
+    <Card className="lg:col-span-2 p-6 bg-white border border-gray-200 rounded-[24px] hover:shadow-xl hover:shadow-brand/5 transition-all">
       <div className="flex items-center justify-between mb-8">
         <h3 className="text-sm font-semibold text-gray-900">
           Propostas por mês

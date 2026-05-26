@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeft, Check, Download, Link as LinkIcon, X } from 'lucide-react'
+import { ArrowLeft, Check, Link as LinkIcon, Printer, X, CheckCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
@@ -25,12 +25,18 @@ import {
 } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
 import type { ProjectStatus } from '@/types'
+import dynamic from 'next/dynamic'
 import { publicUpdateQuoteStatus } from '../../../_actions/public-quote-actions'
 import { updateQuoteStatus } from '../../../_actions/update-quote-status'
 import type {
   QuoteWithClient,
   SerializedQuoteItem,
 } from '@/app/(auth)/dashboard/orcamentos/_components/quotes-client'
+
+const ProposalPDFDownload = dynamic(
+  () => import('@/components/proposal-pdf/download-inner'),
+  { ssr: false },
+)
 
 export function ProposalClient({
   quote,
@@ -143,7 +149,7 @@ export function ProposalClient({
       </Dialog>
 
       {/* Top Bar (Sticky) - Hidden on print */}
-      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 px-8 py-3 flex items-center justify-between print:hidden">
+      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100/80 px-8 py-3 flex items-center justify-between print:hidden">
         {!isPublic ? (
           <Button
             variant="ghost"
@@ -176,20 +182,23 @@ export function ProposalClient({
               <LinkIcon className="w-4 h-4" /> Copiar Link Público
             </Button>
           )}
+          <ProposalPDFDownload quote={quote} />
           <Button
             variant="outline"
             size="sm"
             onClick={handlePrint}
             className="text-gray-400 hover:text-gray-900 gap-2 border-gray-200"
           >
-            <Download className="w-4 h-4" /> PDF / Imprimir
+            <Printer className="w-4 h-4" /> Imprimir
           </Button>
         </div>
       </div>
 
       {/* Header */}
-      <div className="bg-brand-deep text-white px-8 py-16 text-center relative overflow-hidden print:bg-white print:text-gray-900 print:py-8 print:border-b print:border-gray-100">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(42,107,92,0.3),transparent_70%)] print:hidden" />
+      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-brand/90 text-white px-8 py-16 text-center relative overflow-hidden print:bg-white print:text-gray-900 print:py-8 print:border-b print:border-gray-100">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDM0djItSDI0di0yaDEyek0zNiAyNHYySDI0di0yaDEyeiIvPjwvZz48L2c+PC9zdmc+')] opacity-50 print:hidden" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-brand/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 print:hidden" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-light/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 print:hidden" />
 
         <div className="relative z-10 max-w-4xl mx-auto">
           <div className="flex justify-center mb-8 print:mb-4">
@@ -226,10 +235,10 @@ export function ProposalClient({
           <h1 className="text-3xl md:text-4xl font-semibold mb-2 print:text-2xl">
             {quote.title}
           </h1>
-          <p className="text-brand-mid text-lg mb-4 print:text-sm print:text-gray-500">
+          <p className="text-white/60 text-lg mb-4 print:text-sm print:text-gray-500">
             Proposta comercial para {quote.client?.name || 'Cliente'}
           </p>
-          <div className="inline-flex items-center gap-4 text-sm text-brand-light/50 font-mono print:text-[10px] print:text-gray-400">
+          <div className="inline-flex items-center gap-4 text-sm text-white/40 font-mono print:text-[10px] print:text-gray-400">
             <span>Ref: #{quote.id.substring(0, 8)}</span>
             <span>•</span>
             <span>
@@ -240,9 +249,10 @@ export function ProposalClient({
       </div>
 
       <div className="max-w-4xl mx-auto px-8 -mt-8 relative z-20 print:mt-0 print:px-0">
-        <Card className="bg-white border border-gray-100 shadow-xl rounded-[20px] overflow-hidden print:shadow-none print:border-none">
-          <div className="p-8 md:p-12 print:p-0 print:pt-8">
-            <div className="text-[10px] uppercase font-bold text-brand tracking-[0.2em] mb-8 print:mb-4">
+        <Card className="bg-white border border-gray-100 shadow-xl rounded-[24px] overflow-hidden print:shadow-none print:border-none relative">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-brand/[0.02] to-transparent rounded-bl-full print:hidden" />
+          <div className="relative p-8 md:p-12 print:p-0 print:pt-8">
+            <div className="section-label mb-8 print:mb-4">
               Escopo do Projeto
             </div>
 
@@ -312,70 +322,70 @@ export function ProposalClient({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 pt-8 border-t border-gray-100 print:grid-cols-2 print:gap-4 print:pt-4">
               <div className="space-y-8 print:space-y-4">
                 <div>
-                  <div className="text-[10px] uppercase font-bold text-brand tracking-[0.2em] mb-4 print:mb-2">
+                  <div className="section-label mb-4 print:mb-2">
                     Condições de Pagamento
                   </div>
-                  <div className="space-y-3 print:space-y-1">
-                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg print:p-2 print:bg-white print:border">
-                      <span className="text-sm text-gray-500 print:text-[10px]">
-                        Entrada
-                      </span>
-                      <span className="font-mono font-bold text-gray-900 print:text-[10px]">
-                        {Number(quote.entryAmount).toLocaleString('pt-BR', {
-                          style: 'currency',
-                          currency: 'BRL',
-                        })}
-                      </span>
-                    </div>
-                    {quote.installments > 0 && (
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg print:p-2 print:bg-white print:border">
+                    <div className="space-y-3 print:space-y-1">
+                      <div className="flex justify-between items-center p-4 bg-gradient-to-r from-gray-50 to-white border border-gray-100 rounded-2xl print:p-2 print:bg-white print:border">
                         <span className="text-sm text-gray-500 print:text-[10px]">
-                          {quote.installments}× Mensais
+                          Entrada
                         </span>
                         <span className="font-mono font-bold text-gray-900 print:text-[10px]">
-                          {valorParcela.toLocaleString('pt-BR', {
+                          {Number(quote.entryAmount).toLocaleString('pt-BR', {
                             style: 'currency',
                             currency: 'BRL',
                           })}
                         </span>
                       </div>
-                    )}
-                  </div>
+                      {quote.installments > 0 && (
+                        <div className="flex justify-between items-center p-4 bg-gradient-to-r from-gray-50 to-white border border-gray-100 rounded-2xl print:p-2 print:bg-white print:border">
+                          <span className="text-sm text-gray-500 print:text-[10px]">
+                            {quote.installments}× Mensais
+                          </span>
+                          <span className="font-mono font-bold text-gray-900 print:text-[10px]">
+                            {valorParcela.toLocaleString('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL',
+                            })}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                 </div>
 
                 <div>
-                  <div className="text-[10px] uppercase font-bold text-brand tracking-[0.2em] mb-4 print:mb-2">
+                  <div className="section-label mb-4 print:mb-2">
                     Prazos & Validade
                   </div>
-                  <div className="grid grid-cols-2 gap-4 print:gap-2">
-                    <div className="p-3 border border-gray-100 rounded-lg print:p-2">
-                      <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">
-                        Execução
-                      </p>
-                      <p className="text-sm font-semibold text-gray-900 print:text-[10px]">
-                        {Math.ceil(Number(quote.totalHours) / 20)} semanas
-                      </p>
+                    <div className="grid grid-cols-2 gap-4 print:gap-2">
+                      <div className="p-4 border border-gray-100 rounded-2xl bg-gradient-to-br from-white to-gray-50/50 print:p-2">
+                        <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">
+                          Execução
+                        </p>
+                        <p className="text-sm font-semibold text-gray-900 print:text-[10px]">
+                          {Math.ceil(Number(quote.totalHours) / 20)} semanas
+                        </p>
+                      </div>
+                      <div className="p-4 border border-gray-100 rounded-2xl bg-gradient-to-br from-white to-gray-50/50 print:p-2">
+                        <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">
+                          Válido até
+                        </p>
+                        <p className="text-sm font-semibold text-gray-900 print:text-[10px]">
+                          {quote.expirationDate
+                            ? new Date(quote.expirationDate).toLocaleDateString(
+                                'pt-BR',
+                              )
+                            : 'Sem validade'}
+                        </p>
+                      </div>
                     </div>
-                    <div className="p-3 border border-gray-100 rounded-lg print:p-2">
-                      <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">
-                        Válido até
-                      </p>
-                      <p className="text-sm font-semibold text-gray-900 print:text-[10px]">
-                        {quote.expirationDate
-                          ? new Date(quote.expirationDate).toLocaleDateString(
-                              'pt-BR',
-                            )
-                          : 'Sem validade'}
-                      </p>
-                    </div>
-                  </div>
                 </div>
               </div>
 
-              <div className="bg-gray-50 p-8 rounded-lg flex flex-col justify-center text-center md:text-right print:bg-white print:border print:p-4">
+              <div className="bg-gradient-to-br from-gray-50 to-white p-8 rounded-2xl border border-gray-100 flex flex-col justify-center text-center md:text-right print:bg-white print:border print:p-4">
                 <div className="mb-6 space-y-4">
                   <div>
-                    <p className="text-xs uppercase font-bold text-gray-400 mb-2 tracking-widest print:text-[8px]">
+                    <p className="text-[10px] uppercase font-bold text-gray-400 mb-2 tracking-widest print:text-[8px]">
                       Setup do Projeto
                     </p>
                     
@@ -425,9 +435,63 @@ export function ProposalClient({
                 )}
               </div>
             </div>
+
+            {/* Signatures Section */}
+            <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-12 pt-8 border-t border-gray-100 print:grid-cols-2 print:gap-8 print:pt-8">
+              <div className="flex flex-col gap-4">
+                <div className="section-label mb-2 text-gray-400">Emissor</div>
+                {quote.signatureHash ? (
+                  <div className="p-4 bg-brand/[0.03] border border-brand/10 rounded-2xl relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-2 text-brand/10">
+                      <CheckCircle className="w-8 h-8" />
+                    </div>
+                    <p className="text-xs font-bold text-gray-900 mb-1 flex items-center gap-2">
+                      <CheckCircle className="w-3.5 h-3.5 text-brand" />
+                      Assinado Digitalmente
+                    </p>
+                    <p className="text-sm font-semibold text-gray-700">{quote.signerName}</p>
+                    <p className="text-[10px] text-gray-400 font-mono mt-2">
+                      AUTENTICIDADE: {quote.signatureHash}
+                    </p>
+                    <p className="text-[10px] text-gray-400">
+                      {new Date(quote.signedAt!).toLocaleString('pt-BR')}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="h-[80px] border-b border-gray-200 border-dashed" />
+                )}
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                  {quote.organization?.slug || 'ScopeFlow'}
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-4">
+                <div className="section-label mb-2 text-gray-400">Cliente</div>
+                {quote.status === 'aprovada' ? (
+                  <div className="p-4 bg-green-50/50 border border-green-100 rounded-2xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-2 text-green-500/10">
+                      <Check className="w-8 h-8" />
+                    </div>
+                    <p className="text-xs font-bold text-green-700 mb-1 flex items-center gap-2">
+                      <Check className="w-3.5 h-3.5 text-green-600" />
+                      Aprovado pelo Cliente
+                    </p>
+                    <p className="text-sm font-semibold text-gray-700">{quote.client?.name}</p>
+                    <p className="text-[10px] text-gray-400 mt-2">
+                      Aceite digital em {new Date(quote.updatedAt).toLocaleDateString('pt-BR')}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="h-[80px] border-b border-gray-200 border-dashed" />
+                )}
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                  {quote.client?.name || 'Assinatura do Cliente'}
+                </p>
+              </div>
+            </div>
           </div>
 
-          <div className="bg-gray-50 px-8 py-6 flex flex-col md:flex-row items-center justify-between gap-4 border-t border-gray-100 print:hidden">
+          <div className="bg-gradient-to-r from-gray-50/80 to-white px-8 py-6 flex flex-col md:flex-row items-center justify-between gap-4 border-t border-gray-100 print:hidden">
             <p className="text-xs text-gray-400">
               Proposta gerada automaticamente pelo ScopeFlow em{' '}
               {new Date().toLocaleDateString('pt-BR')}
@@ -436,11 +500,11 @@ export function ProposalClient({
               Status atual:
               <span
                 className={cn(
-                  'px-3 py-1 rounded-full text-[10px] uppercase tracking-wider',
-                  quote.status === 'aprovada' && 'bg-green-100 text-green-700',
-                  quote.status === 'recusada' && 'bg-red-100 text-red-700',
-                  quote.status === 'rascunho' && 'bg-gray-100 text-gray-700',
-                  quote.status === 'enviada' && 'bg-blue-100 text-blue-700',
+                  'px-3 py-1.5 rounded-full text-[10px] uppercase tracking-wider font-bold',
+                  quote.status === 'aprovada' && 'bg-green-100 text-green-700 ring-1 ring-green-200',
+                  quote.status === 'recusada' && 'bg-red-100 text-red-700 ring-1 ring-red-200',
+                  quote.status === 'rascunho' && 'bg-gray-100 text-gray-700 ring-1 ring-gray-200',
+                  quote.status === 'enviada' && 'bg-blue-100 text-blue-700 ring-1 ring-blue-200',
                 )}
               >
                 {quote.status}
@@ -462,7 +526,7 @@ export function ProposalClient({
 
       {/* Floating Actions - Hidden on print */}
       {quote.status !== 'aprovada' && quote.status !== 'recusada' && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 px-6 py-4 bg-white/80 backdrop-blur-md border border-gray-200 rounded-full shadow-2xl z-50 animate-in fade-in slide-in-from-bottom-4 duration-500 print:hidden">
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 px-6 py-4 bg-white/80 backdrop-blur-xl border border-gray-200/80 rounded-full shadow-2xl z-50 animate-in fade-in slide-in-from-bottom-4 duration-500 print:hidden">
           <Button
             variant="outline"
             disabled={isPending}

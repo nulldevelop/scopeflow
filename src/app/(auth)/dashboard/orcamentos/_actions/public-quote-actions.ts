@@ -34,7 +34,18 @@ export async function publicUpdateQuoteStatus(
     revalidatePath(`/dashboard/orcamentos/${id}/proposta`)
     revalidatePath('/dashboard/orcamentos')
 
-    return { success: true, data: updatedQuote }
+    const serializedQuote = {
+      ...updatedQuote,
+      totalHours: Number(updatedQuote.totalHours),
+      totalValue: Number(updatedQuote.totalValue),
+      monthlyTotal: Number(updatedQuote.monthlyTotal),
+      hourlyRate: Number(updatedQuote.hourlyRate),
+      discount: Number(updatedQuote.discount),
+      urgencyFee: Number(updatedQuote.urgencyFee),
+      entryAmount: Number(updatedQuote.entryAmount),
+    }
+
+    return { success: true, data: serializedQuote }
   } catch (error) {
     console.error('[publicUpdateQuoteStatus Error]', error)
     return { success: false, error: 'Erro ao atualizar orçamento.' }

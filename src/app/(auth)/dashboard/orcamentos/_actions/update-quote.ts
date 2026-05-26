@@ -56,6 +56,9 @@ export const updateQuote = withPermission(
           entryAmount: data.entryAmount,
           installments: data.installments,
           expirationDate: data.expirationDate,
+          signedAt: null,
+          signatureHash: null,
+          signerName: null,
           items: {
             create: data.items.map((item, index) => ({
               name: item.name,

@@ -16,11 +16,11 @@ import {
   Trash2,
   Users,
 } from 'lucide-react'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
-import { Header } from '@/components/shared/Header'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -36,6 +36,13 @@ import { cn } from '@/lib/utils'
 import type { ProjectStatus } from '@/types'
 import { deleteQuote } from '../_actions/delete-quote'
 import { updateQuoteStatus } from '../_actions/update-quote-status'
+import { signQuote } from '../_actions/sign-quote'
+import { CheckCircle } from 'lucide-react'
+
+const QuotePDFDownload = dynamic(
+  () => import('@/components/proposal-pdf/download-inner'),
+  { ssr: false },
+)
 
 export type SerializedQuoteItem = Omit<
   QuoteItem,
@@ -64,13 +71,18 @@ export type SerializedQuote = Omit<
   urgencyFee: number
   entryAmount: number
   status: ProjectStatus
+  signedAt: Date | null
+  signatureHash: string | null
+  signerName: string | null
 }
 
 export type QuoteWithClient = SerializedQuote & {
   client: Client | null
   items: SerializedQuoteItem[]
   organization?: {
+    name: string
     slug: string
+    logo: string | null
   }
 }
 
@@ -140,6 +152,23 @@ export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
     })
   }
 
+  const handleSign = async (id: string) => {
+    if (!confirm('Deseja assinar digitalmente este orçamento? Isso marcará a proposta como enviada e gerará um código de autenticidade.')) return
+
+    startTransition(async () => {
+      try {
+        const res = await signQuote({ id })
+        if (res.success) {
+          toast.success('Orçamento assinado com sucesso!')
+        } else {
+          toast.error(res.error)
+        }
+      } catch (_error) {
+        toast.error('Erro ao assinar orçamento.')
+      }
+    })
+  }
+
   const handleCopyLink = (id: string, slug?: string) => {
     const orgSlug = slug || 'proposta'
     const url = `${window.location.origin}/${orgSlug}/proposta/${id}`
@@ -148,49 +177,75 @@ export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
   }
 
   return (
-    <div className="px-8 pb-12">
-      <Header title="Orçamentos">
-        <Button
-          onClick={() => router.push('/dashboard/orcamentos/novo')}
-          className="bg-brand text-white hover:bg-brand-dark rounded-lg flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          Novo orçamento
-        </Button>
-      </Header>
+    <div className="min-h-screen bg-[#F8F7F3]">
+      {/* Hero Header */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-brand/90 px-8 pt-16 pb-28">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDM0djItSDI0di0yaDEyek0zNiAyNHYySDI0di0yaDEyeiIvPjwvZz48L2c+PC9zdmc+')] opacity-50" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-brand/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-light/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4" />
+        <div className="relative max-w-[1600px] mx-auto">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center ring-1 ring-white/20">
+                <FileText className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight">
+                  Orçamentos
+                </h1>
+                <p className="text-white/60 text-sm mt-1">
+                  Gerencie propostas comerciais e acompanhe o status dos seus
+                  orçamentos
+                </p>
+              </div>
+            </div>
 
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <div className="relative w-full md:max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <Input
-            placeholder="Buscar por projeto ou cliente..."
-            className="pl-10 bg-white border-gray-200 rounded-lg h-11"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
-          {filterOptions.map((option) => (
             <Button
-              key={option.value}
-              onClick={() => setStatusFilter(option.value)}
-              variant={statusFilter === option.value ? 'default' : 'outline'}
-              className={cn(
-                'rounded-full text-sm font-medium transition-all whitespace-nowrap',
-                statusFilter !== option.value &&
-                  'bg-white text-gray-600 hover:text-gray-700 hover:bg-gray-50',
-              )}
+              onClick={() => router.push('/dashboard/orcamentos/novo')}
+              className="bg-white text-gray-900 hover:bg-gray-50 rounded-xl flex items-center gap-2 px-5 py-2.5 font-medium transition-all shadow-lg shadow-brand/10"
             >
-              {option.label}
+              <Plus className="w-4 h-4" />
+              Novo orçamento
             </Button>
-          ))}
+          </div>
         </div>
       </div>
 
-      {/* Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      {/* Content */}
+      <div className="px-8 -mt-14 relative z-10 pb-12">
+        <div className="max-w-[1600px] mx-auto">
+          {/* Filters */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <div className="relative w-full md:max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                placeholder="Buscar por projeto ou cliente..."
+                className="pl-10 bg-white border-gray-200 rounded-lg h-11"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
+              {filterOptions.map((option) => (
+                <Button
+                  key={option.value}
+                  onClick={() => setStatusFilter(option.value)}
+                  variant={statusFilter === option.value ? 'default' : 'outline'}
+                  className={cn(
+                    'rounded-full text-sm font-medium transition-all whitespace-nowrap',
+                    statusFilter !== option.value &&
+                      'bg-white text-gray-600 hover:text-gray-700 hover:bg-gray-50',
+                  )}
+                >
+                  {option.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Grid */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {filteredQuotes.map((quote) => {
           const totalValue = Number(quote.totalValue)
           const totalHours = Number(quote.totalHours)
@@ -204,44 +259,54 @@ export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
           return (
             <Card
               key={quote.id}
-              className="bg-white border border-gray-200 rounded-xl overflow-hidden group hover:border-brand/30 transition-all shadow-sm hover:shadow-md"
+              className="bg-white border border-gray-200 rounded-[24px] overflow-hidden group hover:border-brand/20 hover:shadow-xl hover:shadow-brand/5 transition-all relative"
             >
-              <div className="p-6">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-brand/[0.02] to-transparent rounded-bl-full" />
+              <div className="p-6 relative">
                 <div className="flex items-start justify-between mb-4">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button className="flex items-center gap-1.5 hover:opacity-80 transition-opacity outline-none">
-                        <StatusBadge status={quote.status as ProjectStatus} />
-                        <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start">
-                      {statusOptions.map((option) => (
-                        <DropdownMenuItem
-                          key={option.value}
-                          onClick={() =>
-                            handleStatusUpdate(quote.id, option.value)
-                          }
-                          className={cn(
-                            'flex items-center gap-2',
-                            quote.status === option.value &&
-                              'bg-gray-50 font-medium',
-                          )}
-                        >
-                          <div
+                  <div className="flex items-center gap-2">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="flex items-center gap-1.5 hover:opacity-80 transition-opacity outline-none h-auto p-0">
+                          <StatusBadge status={quote.status as ProjectStatus} />
+                          <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start">
+                        {statusOptions.map((option) => (
+                          <DropdownMenuItem
+                            key={option.value}
+                            onClick={() =>
+                              handleStatusUpdate(quote.id, option.value)
+                            }
                             className={cn(
-                              'w-2 h-2 rounded-full',
-                              option.value === 'rascunho' && 'bg-gray-400',
-                              option.value === 'enviada' && 'bg-blue-400',
-                              option.value === 'aprovada' && 'bg-green-400',
-                              option.value === 'recusada' && 'bg-red-400',
+                              'flex items-center gap-2',
+                              quote.status === option.value &&
+                                ' font-medium',
                             )}
-                          />
-                          {option.label}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                          >
+                            <div
+                              className={cn(
+                                'w-2 h-2 rounded-full',
+                                option.value === 'rascunho' && 'bg-gray-400',
+                                option.value === 'enviada' && 'bg-blue-400',
+                                option.value === 'aprovada' && 'bg-green-400',
+                                option.value === 'recusada' && 'bg-red-400',
+                              )}
+                            />
+                            {option.label}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    {quote.signatureHash && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand/10 text-brand text-[10px] font-bold uppercase tracking-wider">
+                        <CheckCircle className="w-3 h-3" />
+                        Assinado
+                      </span>
+                    )}
+                  </div>
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -269,6 +334,14 @@ export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
                           <FileText className="w-4 h-4" /> Ver Proposta
                         </Link>
                       </DropdownMenuItem>
+                      {!quote.signatureHash && (
+                        <DropdownMenuItem
+                          onClick={() => handleSign(quote.id)}
+                          className="flex items-center gap-2 text-brand font-medium"
+                        >
+                          <CheckCircle className="w-4 h-4" /> Assinar Proposta
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem
                         onClick={() => handleCopyLink(quote.id, quote.organization?.slug)}
                         className="flex items-center gap-2"
@@ -286,31 +359,38 @@ export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
                 </div>
 
                 <div className="mb-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-1.5 group-hover:text-brand transition-colors">
+                  <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-brand transition-colors">
                     {quote.title}
                   </h3>
-                  <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-sm text-gray-500">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center">
-                        <Users className="w-3.5 h-3.5 text-gray-600" />
+                  <div className="flex flex-col gap-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full bg-brand-light/20 flex items-center justify-center">
+                        <Users className="w-3.5 h-3.5 text-brand" />
                       </div>
-                      <span className="font-medium text-gray-700">
-                        {quote.client?.name || 'Cliente Removido'}
-                      </span>
+                      <div>
+                        <p className="text-[10px] uppercase font-bold text-gray-400 leading-none mb-0.5">
+                          Cliente
+                        </p>
+                        <p className="font-semibold text-gray-800 leading-none">
+                          {quote.client?.name || 'Cliente Removido'}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <Calendar className="w-4 h-4 text-gray-400" />
-                      {new Date(quote.createdAt).toLocaleDateString('pt-BR', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric',
-                      })}
+                    <div className="flex items-center gap-2 ml-0.5">
+                      <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                      <span className="text-gray-500">
+                        {new Date(quote.createdAt).toLocaleDateString('pt-BR', {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric',
+                        })}
+                      </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50/50 rounded-lg mb-6 border border-gray-100">
-                  <div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                  <div className="p-4 bg-gradient-to-br from-gray-50 to-white rounded-2xl border border-gray-100">
                     <p className="text-[10px] uppercase tracking-wider font-bold text-gray-400 mb-1 flex items-center gap-1">
                       <CreditCard className="w-3 h-3" /> Valor
                     </p>
@@ -322,7 +402,7 @@ export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
                       })}
                     </p>
                   </div>
-                  <div>
+                  <div className="p-4 bg-gradient-to-br from-gray-50 to-white rounded-2xl border border-gray-100">
                     <p className="text-[10px] uppercase tracking-wider font-bold text-gray-400 mb-1 flex items-center gap-1">
                       <CalendarDays className="w-3 h-3" /> Prazo
                     </p>
@@ -330,7 +410,7 @@ export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
                       {prazoSemanas} {prazoSemanas === 1 ? 'semana' : 'semanas'}
                     </p>
                   </div>
-                  <div>
+                  <div className="p-4 bg-gradient-to-br from-gray-50 to-white rounded-2xl border border-gray-100">
                     <p className="text-[10px] uppercase tracking-wider font-bold text-gray-400 mb-1 flex items-center gap-1">
                       <Clock className="w-3 h-3" /> Horas
                     </p>
@@ -338,7 +418,7 @@ export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
                       {totalHours}h
                     </p>
                   </div>
-                  <div>
+                  <div className="p-4 bg-gradient-to-br from-gray-50 to-white rounded-2xl border border-gray-100">
                     <p className="text-[10px] uppercase tracking-wider font-bold text-gray-400 mb-1 flex items-center gap-1">
                       <Package className="w-3 h-3" /> Itens
                     </p>
@@ -349,17 +429,19 @@ export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
                 </div>
 
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="space-y-1">
-                    <p className="text-[11px] font-bold text-gray-400 uppercase tracking-tight">
+                  <div className="space-y-2">
+                    <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
                       Condições de pagamento
                     </p>
                     <div className="flex flex-wrap items-center gap-2">
                       {entryAmount > 0 && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700 border border-green-100">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-green-50 to-green-50/50 text-green-700 border border-green-100">
+                          <CreditCard className="w-3 h-3" />
                           Entrada: R$ {entryAmount.toLocaleString('pt-BR')}
                         </span>
                       )}
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-brand/5 to-brand/[0.02] text-brand border border-brand/10">
+                        <CalendarDays className="w-3 h-3" />
                         {installments}x de R${' '}
                         {installmentsValue.toLocaleString('pt-BR')}
                       </span>
@@ -370,7 +452,7 @@ export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
                       variant="outline"
                       size="sm"
                       asChild
-                      className="flex-1 sm:flex-none rounded-lg border-gray-200 text-gray-600 hover:bg-gray-50"
+                      className="flex-1 sm:flex-none rounded-xl border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all"
                     >
                       <Link href={`/dashboard/orcamentos/${quote.id}`}>
                         <Edit className="w-3.5 h-3.5 mr-1.5" />
@@ -380,13 +462,14 @@ export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
                     <Button
                       size="sm"
                       asChild
-                      className="flex-1 sm:flex-none bg-brand text-white hover:bg-brand-dark rounded-lg shadow-sm"
+                      className="flex-1 sm:flex-none bg-brand text-white hover:bg-brand-dark rounded-xl shadow-sm hover:shadow-md transition-all"
                     >
                       <Link href={`/dashboard/orcamentos/${quote.id}/proposta`}>
                         <FileText className="w-3.5 h-3.5 mr-1.5" />
                         Proposta
                       </Link>
                     </Button>
+                    <QuotePDFDownload quote={quote} />
                   </div>
                 </div>
               </div>
@@ -402,6 +485,8 @@ export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
           </p>
         </div>
       )}
+        </div>
+      </div>
     </div>
   )
 }

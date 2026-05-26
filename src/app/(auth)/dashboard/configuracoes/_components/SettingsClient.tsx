@@ -71,12 +71,14 @@ export function SettingsClient({ initialData, initialTab = 'perfil', paymentRequ
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors, isDirty },
   } = useForm<SettingsInput>({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
       name: initialData.user.name,
       email: initialData.user.email,
+      image: initialData.user.image || undefined,
       taxPercentage: initialData.organization.metadata.answers.taxPercentage,
       workHoursDay: initialData.organization.metadata.answers.workHoursDay,
       workDaysMonth: initialData.organization.metadata.answers.workDaysMonth,
@@ -96,6 +98,24 @@ export function SettingsClient({ initialData, initialTab = 'perfil', paymentRequ
   }, [paymentRequired])
 
   const formData = watch()
+  const fileInputRef = React.useRef<HTMLInputElement>(null)
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error('A imagem deve ter no máximo 2MB')
+        return
+      }
+
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const base64String = reader.result as string
+        setValue('image', base64String, { shouldDirty: true })
+      }
+      reader.readAsDataURL(file)
+    }
+  }
 
   const hourlyRate = useMemo(() => {
     const desiredSalary = Number(formData.desiredSalary) || 0
@@ -198,21 +218,34 @@ export function SettingsClient({ initialData, initialTab = 'perfil', paymentRequ
                   </div>
 
                   <div className="flex items-center gap-6">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                    />
                     <div className="w-20 h-20 rounded-2xl bg-brand-light flex items-center justify-center overflow-hidden border-2 border-white shadow-sm">
-                      {initialData.user.image ? (
+                      {formData.image ? (
                         <img
-                          src={initialData.user.image}
-                          alt={initialData.user.name}
+                          src={formData.image}
+                          alt={formData.name}
                           className="w-full h-full object-cover"
                         />
                       ) : (
                         <span className="text-brand font-bold text-2xl">
-                          {initialData.user.name.charAt(0)}
+                          {formData.name?.charAt(0) || 'U'}
                         </span>
                       )}
                     </div>
                     <div>
-                      <Button type="button" variant="outline" size="sm" className="mb-2">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm" 
+                        className="mb-2"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
                         Alterar foto
                       </Button>
                       <p className="text-[11px] text-gray-400">

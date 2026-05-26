@@ -70,7 +70,7 @@ export default async function AuthLayout({
     <div className="flex min-h-screen bg-background">
       <Sidebar user={user} userRole={userRole} />
       <main className="flex-1 lg:ml-64 min-h-screen">
-        <div className="mx-auto py-3">{children}</div>
+        <div className="mx-auto">{children}</div>
       </main>
     </div>
   )
