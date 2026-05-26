@@ -85,7 +85,7 @@ export function ClientsClient({
   }
 
   return (
-    <div className="px-8 pb-12">
+    <div className="min-h-screen bg-[#F8F7F3]">
       <ClientModal
         open={isModalOpen}
         onOpenChange={(open) => {
@@ -95,29 +95,34 @@ export function ClientsClient({
         initialData={editingClient || undefined}
       />
 
-      <Header title="Clientes">
+      <Header 
+        title="Clientes" 
+        subtitle="Gerencie sua base de clientes e acompanhe o histórico de orçamentos de cada um"
+      >
         <Button
           onClick={() => setIsModalOpen(true)}
-          className="bg-brand text-white hover:bg-brand-dark rounded-lg flex items-center gap-2"
+          className="bg-white text-gray-900 hover:bg-gray-50 rounded-xl flex items-center gap-2 h-11 px-5 font-medium transition-all shadow-lg shadow-brand/10"
         >
           <Plus className="w-4 h-4" />
           Novo cliente
         </Button>
       </Header>
 
-      <div className="mb-8">
-        <div className="relative w-full md:max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <Input
-            placeholder="Buscar por nome ou e-mail..."
-            className="pl-10 bg-white border-gray-200 rounded-lg h-11"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-      </div>
+      <div className="px-8 -mt-14 relative z-10 pb-12">
+        <div className="max-w-[1600px] mx-auto">
+          <div className="mb-8">
+            <div className="relative w-full md:max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                placeholder="Buscar por nome ou e-mail..."
+                className="pl-10 bg-white border-gray-200 rounded-lg h-11"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
 
-      <Card className="border border-gray-200 rounded-[14px] overflow-hidden shadow-sm">
+          <Card className="border border-gray-200 rounded-[24px] overflow-hidden shadow-sm bg-white">
         <Table>
           <TableHeader className="bg-gray-50/50">
             <TableRow className="border-b border-gray-100">

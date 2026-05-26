@@ -27,6 +27,7 @@ import { useRouter } from 'next/navigation'
 import type React from 'react'
 import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
+import { Header } from '@/components/shared/Header'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import {
@@ -98,196 +99,87 @@ const categoryIcons: Record<string, React.ElementType> = {
   'Marketing & SEO': Rocket,
   'Segurança & Auditoria': Lock,
   'Mobile & PWA': Smartphone,
-  'Infraestrutura & DevOps': Database,
-  Outro: Zap,
 }
 
-export default function CatalogClient({
+export function CatalogClient({
   initialFeatures,
   categories,
 }: CatalogClientProps) {
   const router = useRouter()
-  const [searchTerm, setSearchTerm] = useState('')
-  const [categoryFilter, setCategoryFilter] = useState('Todos')
   const [isPending, startTransition] = useTransition()
+  const [searchTerm, setSearchTerm] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('all')
 
-  // Feature States
-  const [open, setOpen] = useState(false)
+  // Modais
+  const [isFeatureModalOpen, setIsFeatureModalOpen] = useState(false)
   const [editingFeature, setEditingFeature] = useState<CatalogFeature | null>(
     null,
   )
 
-  // Category States
-  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
-  const [newCategoryName, setNewCategoryName] = useState('')
+  // Initialize Defaults Modal
+  const [initializeModalOpen, setInitializeModalOpen] = useState(false)
+  const [initStep, setInitStep] = useState(1)
+  const [selectedProfiles, setSelectedProfiles] = useState<string[]>([])
+  const [selectedFeatures, setSelectedFeatures] = useState<any[]>([])
+
+  // Category management
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(
     null,
   )
   const [editingCategoryName, setEditingCategoryName] = useState('')
-  const [quickCreateCategory, setQuickCreateCategory] = useState(false)
-
-  // Initialize Defaults States
-  const [initializeModalOpen, setInitializeModalOpen] = useState(false)
-  const [initStep, setInitStep] = useState(1)
-  const [selectedProfiles, setSelectedProfiles] = useState<string[]>([])
-  const [selectedInitFeatures, setSelectedInitFeatures] = useState<string[]>([])
-  const [hourMultiplier, setHourMultiplier] = useState(1)
-
-  const profileToCategories: Record<string, string[]> = {
-    frontend: [
-      'Sites & Landing Pages',
-      'Marketing & SEO',
-      'Dashboard & Interface',
-      'CMS & Conteúdo',
-    ],
-    backend: [
-      'API & Integrações',
-      'Autenticação',
-      'Segurança & Auditoria',
-      'Infraestrutura & DevOps',
-    ],
-    saas: [
-      'Autenticação',
-      'Dashboard & Interface',
-      'Pagamentos & Assinaturas',
-      'E-mail & Notificações',
-      'Arquivos & Upload',
-      'API & Integrações',
-      'CMS & Conteúdo',
-      'Segurança & Auditoria',
-      'Infraestrutura & DevOps',
-      'Sites & Landing Pages',
-      'Marketing & SEO',
-    ],
-    mobile: [
-      'Mobile & PWA',
-      'API & Integrações',
-      'Autenticação',
-      'E-mail & Notificações',
-    ],
-  }
-
-  const handleProfileToggle = (profileId: string) => {
-    setSelectedProfiles((prev) => {
-      const isSelected = prev.includes(profileId)
-      const next = isSelected
-        ? prev.filter((id) => id !== profileId)
-        : [...prev, profileId]
-
-      // Update selected features based on new profiles
-      const activeCats = new Set<string>()
-      next.forEach((p) =>
-        profileToCategories[p].forEach((cat) => activeCats.add(cat)),
-      )
-
-      const newFeatures = defaultFeatures
-        .filter((f) => activeCats.has(f.categoryName))
-        .map((f) => f.name)
-
-      setSelectedInitFeatures(newFeatures)
-      return next
-    })
-  }
-
-  const handleInitializeDefaults = async () => {
-    if (selectedInitFeatures.length === 0) return
-    startTransition(async () => {
-      try {
-        const res = await initializeDefaultsAction({
-          selectedFeatures: selectedInitFeatures,
-          hourMultiplier,
-        })
-        if (res.success) {
-          toast.success('Catálogo personalizado inicializado!')
-          setInitializeModalOpen(false)
-          setInitStep(1)
-          setSelectedProfiles([])
-          setSelectedInitFeatures([])
-        } else {
-          toast.error(res.error)
-        }
-      } catch (_error) {
-        toast.error('Erro ao inicializar padrões.')
-      }
-    })
-  }
 
   const filteredFeatures = initialFeatures.filter((feature) => {
-    const matchesSearch =
-      feature.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (feature.description?.toLowerCase() || '').includes(
-        searchTerm.toLowerCase(),
-      )
+    const matchesSearch = feature.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
     const matchesCategory =
-      categoryFilter === 'Todos' || feature.category?.name === categoryFilter
+      categoryFilter === 'all' || feature.categoryId === categoryFilter
     return matchesSearch && matchesCategory
   })
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-    const data = {
-      name: formData.get('name') as string,
-      description: formData.get('description') as string,
-      baseHours: Number(formData.get('baseHours')),
-      complexity: formData.get('complexity') as string,
-      monthlyFee: Number(formData.get('monthlyFee')),
-      monthlyDuration: Number(formData.get('monthlyDuration')),
-      categoryId:
-        formData.get('categoryId') === 'none'
-          ? null
-          : (formData.get('categoryId') as string),
+  const handleProfileToggle = (id: string) => {
+    setSelectedProfiles((prev) =>
+      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id],
+    )
+  }
+
+  const handleNextStep = () => {
+    const features: any[] = []
+    for (const profileId of selectedProfiles) {
+      const profile = defaultFeatures.profiles.find((p) => p.id === profileId)
+      if (profile) {
+        for (const cat of profile.categories) {
+          for (const feat of cat.features) {
+            features.push({
+              ...feat,
+              categoryName: cat.name,
+            })
+          }
+        }
+      }
     }
+    setSelectedFeatures(features)
+    setInitStep(2)
+  }
 
+  const handleInitialize = async () => {
     startTransition(async () => {
-      try {
-        let res
-        if (editingFeature) {
-          res = await updateFeatureAction(editingFeature.id, data)
-        } else {
-          res = await createFeatureAction(data)
-        }
-
-        if (res.success) {
-          toast.success(
-            editingFeature
-              ? 'Funcionalidade atualizada!'
-              : 'Funcionalidade criada!',
-          )
-          setOpen(false)
-          setEditingFeature(null)
-        } else {
-          toast.error(res.error)
-        }
-      } catch (_error) {
-        toast.error('Ocorreu um erro inesperado.')
+      const res = await initializeDefaultsAction(selectedFeatures)
+      if (res.success) {
+        toast.success('Catálogo inicializado com sucesso!')
+        setInitializeModalOpen(false)
+        router.refresh()
+      } else {
+        toast.error(res.error)
       }
     })
   }
 
   const handleDelete = async (id: string) => {
     startTransition(async () => {
-      try {
-        const res = await deleteFeatureAction(id)
-        if (res.success) {
-          toast.success('Funcionalidade excluída!')
-        } else {
-          toast.error(res.error)
-        }
-      } catch (_error) {
-        toast.error('Erro ao excluir funcionalidade.')
-      }
-    })
-  }
-
-  const handleCreateCategory = async () => {
-    if (!newCategoryName.trim()) return
-    startTransition(async () => {
-      const res = await createCategoryAction(newCategoryName)
+      const res = await deleteFeatureAction(id)
       if (res.success) {
-        toast.success('Categoria criada!')
-        setNewCategoryName('')
-        setQuickCreateCategory(false)
+        toast.success('Funcionalidade removida!')
       } else {
         toast.error(res.error)
       }
@@ -295,7 +187,6 @@ export default function CatalogClient({
   }
 
   const handleUpdateCategory = async (id: string) => {
-    if (!editingCategoryName.trim()) return
     startTransition(async () => {
       const res = await updateCategoryAction(id, editingCategoryName)
       if (res.success) {
@@ -318,759 +209,595 @@ export default function CatalogClient({
     })
   }
 
+  const FeatureModal = ({
+    open,
+    setOpen,
+    initialData,
+  }: {
+    open: boolean
+    setOpen: (o: boolean) => void
+    initialData?: CatalogFeature | null
+  }) => {
+    const [name, setName] = useState(initialData?.name || '')
+    const [description, setDescription] = useState(initialData?.description || '')
+    const [baseHours, setBaseHours] = useState(
+      initialData?.baseHours.toString() || '0',
+    )
+    const [complexity, setComplexity] = useState(
+      initialData?.complexity || 'media',
+    )
+    const [monthlyFee, setMonthlyFee] = useState(
+      initialData?.monthlyFee.toString() || '0',
+    )
+    const [monthlyDuration, setMonthlyDuration] = useState(
+      initialData?.monthlyDuration.toString() || '12',
+    )
+    const [categoryId, setCategoryId] = useState(initialData?.categoryId || '')
+
+    const handleSave = async () => {
+      startTransition(async () => {
+        const data = {
+          name,
+          description,
+          baseHours: Number(baseHours),
+          complexity,
+          monthlyFee: Number(monthlyFee),
+          monthlyDuration: Number(monthlyDuration),
+          categoryId: categoryId || null,
+        }
+
+        const res = initialData
+          ? await updateFeatureAction(initialData.id, data)
+          : await createFeatureAction(data)
+
+        if (res.success) {
+          toast.success(
+            initialData ? 'Atualizado com sucesso!' : 'Criado com sucesso!',
+          )
+          setOpen(false)
+        } else {
+          toast.error(res.error)
+        }
+      })
+    }
+
+    return (
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>
+              {initialData ? 'Editar Item' : 'Novo Item no Catálogo'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label>Nome</Label>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Ex: Autenticação Social"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Descrição</Label>
+              <Textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="O que está incluso nesta funcionalidade?"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Horas Base</Label>
+                <Input
+                  type="number"
+                  value={baseHours}
+                  onChange={(e) => setBaseHours(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Complexidade</Label>
+                <Select value={complexity} onValueChange={setComplexity}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="baixa">Baixa</SelectItem>
+                    <SelectItem value="media">Média</SelectItem>
+                    <SelectItem value="alta">Alta</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Mensalidade (R$)</Label>
+                <Input
+                  type="number"
+                  value={monthlyFee}
+                  onChange={(e) => setMonthlyFee(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Duração (Meses)</Label>
+                <Input
+                  type="number"
+                  value={monthlyDuration}
+                  onChange={(e) => setMonthlyDuration(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Categoria</Label>
+              <Select value={categoryId} onValueChange={setCategoryId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={handleSave} disabled={isPending}>
+              {isPending ? 'Salvando...' : 'Salvar no Catálogo'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-[#F8F7F3]">
-      {/* Header */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-brand/90 px-8 pt-16 pb-24">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDM0djItSDI0di0yaDEyek0zNiAyNHYySDI0di0yaDEyeiIvPjwvZz48L2c+PC9zdmc+')] opacity-50" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-brand/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-light/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4" />
-        <div className="relative max-w-[1600px] mx-auto">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center ring-1 ring-white/20">
-                <Database className="w-7 h-7 text-white" />
-              </div>
+      <Header 
+        title="Catálogo" 
+        subtitle="Gerencie módulos, horas e valores que compõem seus orçamentos"
+      >
+        <Dialog
+          open={initializeModalOpen}
+          onOpenChange={(val) => {
+            setInitializeModalOpen(val)
+            if (!val) {
+              setInitStep(1)
+              setSelectedProfiles([])
+            }
+          }}
+        >
+          <DialogTrigger asChild>
+            <Button
+              variant="ghost"
+              className="rounded-xl text-white/70 hover:text-white hover:bg-white/10 border border-white/10 gap-2 h-11 px-5"
+            >
+              <Zap className="w-4 h-4" />
+              Inicializar Padrões
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
               <div>
-                <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight">
-                  Catálogo de Funcionalidades
-                </h1>
-                <p className="text-white/60 text-sm mt-1">
-                  Gerencie módulos, horas e valores que compõem seus orçamentos
+                <DialogTitle className="text-xl font-bold">
+                  Personalizar Catálogo
+                </DialogTitle>
+                <p className="text-xs text-gray-400 mt-1">
+                  Passo {initStep} de 2:{' '}
+                  {initStep === 1
+                    ? 'Escolha seus perfis'
+                    : 'Refine as funcionalidades'}
                 </p>
               </div>
+              <div className="flex gap-1">
+                <div
+                  className={cn(
+                    'w-8 h-1.5 rounded-full transition-colors',
+                    initStep >= 1 ? 'bg-brand' : 'bg-gray-200',
+                  )}
+                />
+                <div
+                  className={cn(
+                    'w-8 h-1.5 rounded-full transition-colors',
+                    initStep >= 2 ? 'bg-brand' : 'bg-gray-200',
+                  )}
+                />
+              </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <Dialog
-                open={initializeModalOpen}
-                onOpenChange={(val) => {
-                  setInitializeModalOpen(val)
-                  if (!val) {
-                    setInitStep(1)
-                    setSelectedProfiles([])
-                  }
-                }}
-              >
-                <DialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="rounded-xl text-white/70 hover:text-white hover:bg-white/10 border border-white/10 gap-2"
-                  >
-                    <Zap className="w-4 h-4" />
-                    Inicializar Padrões
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden">
-                  <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-                    <div>
-                      <DialogTitle className="text-xl font-bold">
-                        Personalizar Catálogo
-                      </DialogTitle>
-                      <p className="text-xs text-gray-400 mt-1">
-                        Passo {initStep} de 2:{' '}
-                        {initStep === 1
-                          ? 'Escolha seus perfis'
-                          : 'Refine as funcionalidades'}
-                      </p>
-                    </div>
-                    <div className="flex gap-1">
-                      <div
+            <div className="p-6 max-h-[60vh] overflow-y-auto no-scrollbar">
+              {initStep === 1 ? (
+                <div className="grid grid-cols-2 gap-4">
+                  {[
+                    {
+                      id: 'frontend',
+                      name: 'Frontend',
+                      desc: 'Interfaces, Dashboards e CMS',
+                      icon: Monitor,
+                      color: 'text-blue-500',
+                      bg: 'bg-blue-50',
+                    },
+                    {
+                      id: 'backend',
+                      name: 'Backend',
+                      desc: 'APIs, Segurança e Infra',
+                      icon: Database,
+                      color: 'text-orange-500',
+                      bg: 'bg-orange-50',
+                    },
+                    {
+                      id: 'saas',
+                      name: 'SaaS / Full Stack',
+                      desc: 'Tudo incluso: Pagamentos, S3, etc',
+                      icon: Rocket,
+                      color: 'text-brand',
+                      bg: 'bg-brand/10',
+                    },
+                    {
+                      id: 'mobile',
+                      name: 'Mobile',
+                      desc: 'Apps, PWA e Sincronização',
+                      icon: Smartphone,
+                      color: 'text-purple-500',
+                      bg: 'bg-purple-50',
+                    },
+                  ].map((profile) => {
+                    const isSelected = selectedProfiles.includes(
+                      profile.id,
+                    )
+                    const Icon = profile.icon
+                    return (
+                      <button
+                        key={profile.id}
+                        type="button"
+                        onClick={() => handleProfileToggle(profile.id)}
                         className={cn(
-                          'w-8 h-1.5 rounded-full transition-colors',
-                          initStep >= 1 ? 'bg-brand' : 'bg-gray-200',
+                          'flex flex-col items-start gap-3 p-5 rounded-2xl border-2 transition-all text-left group',
+                          isSelected
+                            ? 'border-brand bg-brand/5 shadow-sm ring-1 ring-brand/20'
+                            : 'border-gray-100 hover:border-gray-200 bg-white',
                         )}
-                      />
-                      <div
-                        className={cn(
-                          'w-8 h-1.5 rounded-full transition-colors',
-                          initStep >= 2 ? 'bg-brand' : 'bg-gray-200',
-                        )}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="p-6 max-h-[60vh] overflow-y-auto no-scrollbar">
-                    {initStep === 1 ? (
-                      <div className="grid grid-cols-2 gap-4">
-                        {[
-                          {
-                            id: 'frontend',
-                            name: 'Frontend',
-                            desc: 'Interfaces, Dashboards e CMS',
-                            icon: Monitor,
-                            color: 'text-blue-500',
-                            bg: 'bg-blue-50',
-                          },
-                          {
-                            id: 'backend',
-                            name: 'Backend',
-                            desc: 'APIs, Segurança e Infra',
-                            icon: Database,
-                            color: 'text-orange-500',
-                            bg: 'bg-orange-50',
-                          },
-                          {
-                            id: 'saas',
-                            name: 'SaaS / Full Stack',
-                            desc: 'Tudo incluso: Pagamentos, S3, etc',
-                            icon: Rocket,
-                            color: 'text-brand',
-                            bg: 'bg-brand/10',
-                          },
-                          {
-                            id: 'mobile',
-                            name: 'Mobile',
-                            desc: 'Apps, PWA e Sincronização',
-                            icon: Smartphone,
-                            color: 'text-purple-500',
-                            bg: 'bg-purple-50',
-                          },
-                        ].map((profile) => {
-                          const isSelected = selectedProfiles.includes(
-                            profile.id,
-                          )
-                          const Icon = profile.icon
-                          return (
-                            <button
-                              key={profile.id}
-                              type="button"
-                              onClick={() => handleProfileToggle(profile.id)}
-                              className={cn(
-                                'flex flex-col items-start gap-3 p-5 rounded-2xl border-2 transition-all text-left group',
-                                isSelected
-                                  ? 'border-brand bg-brand/5 shadow-sm ring-1 ring-brand/20'
-                                  : 'border-gray-100 hover:border-gray-200 bg-white',
-                              )}
-                            >
-                              <div
-                                className={cn(
-                                  'w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-active:scale-95',
-                                  profile.bg,
-                                )}
-                              >
-                                <Icon
-                                  className={cn('w-6 h-6', profile.color)}
-                                />
-                              </div>
-                              <div>
-                                <span
-                                  className={cn(
-                                    'text-sm font-bold block',
-                                    isSelected ? 'text-brand' : 'text-gray-900',
-                                  )}
-                                >
-                                  {profile.name}
-                                </span>
-                                <span className="text-[10px] text-gray-400 font-medium leading-tight block mt-0.5">
-                                  {profile.desc}
-                                </span>
-                              </div>
-                            </button>
-                          )
-                        })}
-                      </div>
-                    ) : (
-                      <div className="space-y-6">
-                        <div className="bg-brand/5 p-4 rounded-2xl border border-brand/10">
-                          <div className="flex items-center justify-between mb-2">
-                            <Label className="text-xs font-bold uppercase text-brand tracking-wider">
-                              Ajuste de Experiência
-                            </Label>
-                            <span className="text-[10px] font-bold bg-brand text-white px-2 py-0.5 rounded-full">
-                              {hourMultiplier === 1
-                                ? 'Média'
-                                : hourMultiplier < 1
-                                  ? 'Sênior (-' +
-                                    Math.round((1 - hourMultiplier) * 100) +
-                                    '%)'
-                                  : 'Júnior (+' +
-                                    Math.round((hourMultiplier - 1) * 100) +
-                                    '%)'}
-                            </span>
-                          </div>
-                          <input
-                            type="range"
-                            min="0.5"
-                            max="1.5"
-                            step="0.1"
-                            value={hourMultiplier}
-                            onChange={(e) =>
-                              setHourMultiplier(Number(e.target.value))
-                            }
-                            className="w-full h-1.5 bg-brand/20 rounded-lg appearance-none cursor-pointer accent-brand"
-                          />
-                          <p className="text-[10px] text-brand-dark/60 mt-2">
-                            Ajuste as horas base de acordo com sua senioridade
-                            ou velocidade de entrega.
+                      >
+                        <div
+                          className={cn(
+                            'w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-active:scale-95',
+                            profile.bg,
+                          )}
+                        >
+                          <Icon className={cn('w-6 h-6', profile.color)} />
+                        </div>
+                        <div>
+                          <p className="font-bold text-gray-900 text-sm">
+                            {profile.name}
+                          </p>
+                          <p className="text-[10px] text-gray-400 leading-tight mt-1">
+                            {profile.desc}
                           </p>
                         </div>
-
-                        <div className="space-y-3">
-                          <Label className="text-xs font-bold uppercase text-gray-400 tracking-wider">
-                            Funcionalidades Incluídas
-                          </Label>
-                          <div className="grid grid-cols-1 gap-2">
-                            {defaultFeatures
-                              .filter((f) => {
-                                const activeCats = new Set<string>()
-                                selectedProfiles.forEach((p) =>
-                                  profileToCategories[p].forEach((cat) =>
-                                    activeCats.add(cat),
-                                  ),
-                                )
-                                return activeCats.has(f.categoryName)
-                              })
-                              .map((f) => (
-                                <div
-                                  key={f.name}
-                                  className="flex items-center justify-between p-3 rounded-xl border border-gray-100 bg-white hover:bg-gray-50 transition-colors"
-                                >
-                                  <div className="flex flex-col">
-                                    <span className="text-sm font-bold text-gray-700">
-                                      {f.name}
-                                    </span>
-                                    <span className="text-[10px] text-gray-400">
-                                      {f.categoryName} •{' '}
-                                      {Math.round(
-                                        f.baseHours * hourMultiplier * 10,
-                                      ) / 10}
-                                      h
-                                    </span>
-                                  </div>
-                                  <input
-                                    type="checkbox"
-                                    checked={selectedInitFeatures.includes(
-                                      f.name,
-                                    )}
-                                    onChange={() => {
-                                      setSelectedInitFeatures((prev) =>
-                                        prev.includes(f.name)
-                                          ? prev.filter((n) => n !== f.name)
-                                          : [...prev, f.name],
-                                      )
-                                    }}
-                                    className="w-4 h-4 rounded border-gray-300 text-brand focus:ring-brand"
-                                  />
-                                </div>
-                              ))}
-                          </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {selectedFeatures.map((f, idx) => (
+                    <div
+                      key={`${f.name}-${idx}`}
+                      className="flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-gray-50/50 group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-white border border-gray-100 flex items-center justify-center">
+                          <Check className="w-4 h-4 text-brand" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-gray-900">
+                            {f.name}
+                          </p>
+                          <p className="text-[10px] text-gray-400">
+                            {f.baseHours} horas •{' '}
+                            {f.categoryName}
+                          </p>
                         </div>
                       </div>
-                    )}
-                  </div>
-
-                  <DialogFooter className="p-6 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between">
-                    {initStep === 1 ? (
                       <Button
                         variant="ghost"
-                        onClick={() => setInitializeModalOpen(false)}
-                        className="rounded-xl"
+                        size="icon"
+                        className="h-8 w-8 text-gray-300 hover:text-red-500 hover:bg-red-50"
+                        onClick={() => {
+                          setSelectedFeatures((prev) =>
+                            prev.filter((_, i) => i !== idx),
+                          )
+                        }}
                       >
-                        Cancelar
+                        <X className="w-4 h-4" />
                       </Button>
-                    ) : (
-                      <Button
-                        variant="ghost"
-                        onClick={() => setInitStep(1)}
-                        className="rounded-xl flex items-center gap-2"
-                      >
-                        <ChevronLeft className="w-4 h-4" /> Voltar
-                      </Button>
-                    )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
-                    {initStep === 1 ? (
-                      <Button
-                        onClick={() => setInitStep(2)}
-                        disabled={selectedProfiles.length === 0}
-                        className="bg-brand text-white hover:bg-brand-dark rounded-xl px-8 flex items-center gap-2"
-                      >
-                        Avançar <ChevronRight className="w-4 h-4" />
-                      </Button>
-                    ) : (
-                      <Button
-                        onClick={handleInitializeDefaults}
-                        disabled={
-                          selectedInitFeatures.length === 0 || isPending
-                        }
-                        className="bg-brand text-white hover:bg-brand-dark rounded-xl px-8"
-                      >
-                        {isPending ? 'Carregando...' : 'Finalizar Configuração'}
-                      </Button>
-                    )}
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-
-              <Dialog
-                open={categoryDialogOpen}
-                onOpenChange={setCategoryDialogOpen}
-              >
-                <DialogTrigger asChild>
+            <DialogFooter className="p-4 bg-gray-50 border-t border-gray-100 sm:justify-between items-center">
+              <p className="text-[10px] text-gray-400 font-medium">
+                {initStep === 1
+                  ? 'Escolha ao menos um perfil para continuar'
+                  : `${selectedFeatures.length} funcionalidades selecionadas`}
+              </p>
+              <div className="flex gap-2">
+                {initStep === 2 && (
                   <Button
-                    variant="ghost"
-                    className="rounded-xl text-white/70 hover:text-white hover:bg-white/10 border border-white/10 gap-2"
+                    variant="outline"
+                    onClick={() => setInitStep(1)}
+                    className="rounded-xl"
                   >
-                    <Settings2 className="w-4 h-4" />
-                    Categorias
+                    Voltar
                   </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden max-h-[90vh] block">
-                  <div className="overflow-y-auto p-6">
-                    <DialogHeader className="mb-4">
-                      <DialogTitle>Gerenciar Categorias</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-6 pt-2">
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="Nova categoria..."
-                          value={newCategoryName}
-                          onChange={(e) => setNewCategoryName(e.target.value)}
-                        />
-                        <Button
-                          onClick={handleCreateCategory}
-                          disabled={isPending || !newCategoryName.trim()}
-                        >
-                          <Plus className="w-4 h-4" />
-                        </Button>
-                      </div>
+                )}
+                <Button
+                  onClick={
+                    initStep === 1
+                      ? handleNextStep
+                      : handleInitialize
+                  }
+                  disabled={
+                    isPending ||
+                    (initStep === 1 &&
+                      selectedProfiles.length === 0)
+                  }
+                  className="bg-brand hover:bg-brand-dark text-white rounded-xl px-8"
+                >
+                  {isPending
+                    ? 'Iniciando...'
+                    : initStep === 1
+                      ? 'Continuar'
+                      : 'Finalizar e Gerar'}
+                </Button>
+              </div>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
-                      <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
-                        {categories.map((cat) => (
-                          <div
-                            key={cat.id}
-                            className="flex items-center justify-between p-2 rounded-lg bg-gray-50 group"
-                          >
-                            {editingCategoryId === cat.id ? (
-                              <div className="flex items-center gap-2 flex-1">
-                                <Input
-                                  value={editingCategoryName}
-                                  onChange={(e) =>
-                                    setEditingCategoryName(e.target.value)
-                                  }
-                                  className="h-8 text-sm"
-                                  autoFocus
-                                />
-                                <Button
-                                  onClick={() => handleUpdateCategory(cat.id)}
-                                  className="text-brand"
-                                >
-                                  <Check className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  onClick={() => setEditingCategoryId(null)}
-                                  className="text-gray-400"
-                                >
-                                  <X className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            ) : (
-                              <>
-                                <span className="text-sm font-medium text-gray-700">
-                                  {cat.name}
-                                </span>
-                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <Button
-                                    onClick={() => {
-                                      setEditingCategoryId(cat.id)
-                                      setEditingCategoryName(cat.name)
-                                    }}
-                                    className="p-1 text-gray-400 hover:text-brand"
-                                  >
-                                    <Edit2 className="w-3.5 h-3.5" />
-                                  </Button>
-                                  <Button
-                                    onClick={() => handleDeleteCategory(cat.id)}
-                                    className="p-1 text-gray-400 hover:text-red-500"
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </Button>
-                                </div>
-                              </>
-                            )}
-                          </div>
-                        ))}
+        <Button
+          onClick={() => {
+            setEditingFeature(null)
+            setIsFeatureModalOpen(true)
+          }}
+          className="bg-white text-gray-900 hover:bg-gray-50 rounded-xl flex items-center gap-2 h-11 px-5 font-medium transition-all shadow-lg shadow-brand/10"
+        >
+          <Plus className="w-4 h-4" />
+          Novo Item
+        </Button>
+      </Header>
+
+      <div className="px-8 -mt-14 relative z-10 pb-12">
+        <div className="max-w-[1600px] mx-auto">
+          {/* Categorias */}
+          <div className="flex items-center gap-2 mb-8 overflow-x-auto pb-4 no-scrollbar">
+            <Button
+              onClick={() => setCategoryFilter('all')}
+              variant={categoryFilter === 'all' ? 'default' : 'outline'}
+              className={cn(
+                'rounded-full text-xs font-bold transition-all px-6',
+                categoryFilter !== 'all' &&
+                  'bg-white text-gray-500 hover:bg-gray-50',
+              )}
+            >
+              Todos
+            </Button>
+            {categories.map((cat) => (
+              <div key={cat.id} className="relative group">
+                <Button
+                  onClick={() => setCategoryFilter(cat.id)}
+                  variant={categoryFilter === cat.id ? 'default' : 'outline'}
+                  className={cn(
+                    'rounded-full text-xs font-bold transition-all px-6',
+                    categoryFilter !== cat.id &&
+                      'bg-white text-gray-500 hover:bg-gray-50',
+                  )}
+                >
+                  {cat.name}
+                </Button>
+                <div className="absolute -top-2 -right-2 hidden group-hover:flex items-center gap-1">
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className="w-6 h-6 rounded-full bg-white shadow-sm"
+                    onClick={() => {
+                      setEditingCategoryId(cat.id)
+                      setEditingCategoryName(cat.name)
+                    }}
+                  >
+                    <Edit2 className="w-3 h-3" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className="w-6 h-6 rounded-full bg-white shadow-sm text-red-500"
+                    onClick={() => handleDeleteCategory(cat.id)}
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="rounded-full w-10 h-10 p-0 border-dashed border-gray-300 text-gray-400 hover:text-brand hover:border-brand"
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[400px]">
+                <DialogHeader>
+                  <DialogTitle>Nova Categoria</DialogTitle>
+                </DialogHeader>
+                <div className="py-4 space-y-4">
+                  <div className="space-y-2">
+                    <Label>Nome da Categoria</Label>
+                    <Input
+                      placeholder="Ex: Integrações"
+                      value={editingCategoryName}
+                      onChange={(e) => setEditingCategoryName(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    className="bg-brand text-white"
+                    onClick={async () => {
+                      startTransition(async () => {
+                        const res = await createCategoryAction(
+                          editingCategoryName,
+                        )
+                        if (res.success) {
+                          toast.success('Categoria criada!')
+                          setEditingCategoryName('')
+                        } else {
+                          toast.error(res.error)
+                        }
+                      })
+                    }}
+                  >
+                    Criar Categoria
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <div className="relative w-full md:max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                placeholder="Buscar funcionalidade..."
+                className="pl-10 bg-white border-gray-200 rounded-lg h-11"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Grid de Itens */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <FeatureModal
+              open={isFeatureModalOpen}
+              setOpen={setIsFeatureModalOpen}
+              initialData={editingFeature}
+            />
+
+            {filteredFeatures.map((feature) => {
+              const Icon =
+                categoryIcons[feature.category?.name || ''] || Settings2
+              return (
+                <Card
+                  key={feature.id}
+                  className="p-6 bg-white border border-gray-200 rounded-[28px] hover:border-brand/20 hover:shadow-xl hover:shadow-brand/5 transition-all group relative overflow-hidden"
+                >
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-brand/[0.03] to-transparent rounded-bl-full" />
+                  <div className="relative flex flex-col h-full">
+                    <div className="flex items-start justify-between mb-4">
+                      <div
+                        className={cn(
+                          'w-12 h-12 rounded-2xl flex items-center justify-center transition-colors',
+                          'bg-gray-50 text-gray-400 group-hover:bg-brand-light group-hover:text-brand',
+                        )}
+                      >
+                        <Icon className="w-6 h-6" />
                       </div>
                     </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
 
-              <Dialog
-                open={open}
-                onOpenChange={(val) => {
-                  setOpen(val)
-                  if (!val) {
-                    setEditingFeature(null)
-                    setQuickCreateCategory(false)
-                  }
-                }}
-              >
-                <DialogTrigger asChild>
-                  <Button className="bg-white text-gray-900 hover:bg-gray-100 rounded-xl gap-2 shadow-xl shadow-black/20 font-bold">
-                    <Plus className="w-4 h-4" />
-                    Nova funcionalidade
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden max-h-[90vh] block">
-                  <div className="max-h-[85vh] overflow-y-auto p-6 md:p-8">
-                    <DialogHeader className="mb-6">
-                      <DialogTitle className="text-xl font-bold">
-                        {editingFeature ? 'Editar' : 'Nova'} Funcionalidade
-                      </DialogTitle>
-                    </DialogHeader>
-                    <form onSubmit={handleSubmit} className="space-y-6 pb-4">
-                      <div className="space-y-2">
-                        <Label
-                          htmlFor="name"
-                          className="text-xs font-bold uppercase text-gray-400 tracking-wider"
+                    <div className="mb-6 flex-1">
+                      <h3 className="font-bold text-gray-900 group-hover:text-brand transition-colors mb-1">
+                        {feature.name}
+                      </h3>
+                      <p className="text-[10px] text-gray-400 line-clamp-2 min-h-[30px]">
+                        {feature.description ||
+                          'Sem descrição disponível para este item.'}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-50">
+                      <div className="flex items-center gap-3">
+                        <div className="flex flex-col">
+                          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">
+                            Horas
+                          </span>
+                          <span className="text-sm font-mono font-black text-gray-900">
+                            {feature.baseHours}
+                          </span>
+                        </div>
+                        <span
+                          className={cn(
+                            'text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg',
+                            feature.complexity === 'baixa'
+                              ? 'bg-green-50 text-green-600'
+                              : feature.complexity === 'alta'
+                                ? 'bg-red-50 text-red-500'
+                                : 'bg-orange-50 text-orange-500',
+                          )}
                         >
-                          Nome
-                        </Label>
-                        <Input
-                          id="name"
-                          name="name"
-                          placeholder="Ex: Sistema de Login"
-                          defaultValue={editingFeature?.name}
-                          className="h-11 rounded-xl"
-                          required
-                        />
+                          {feature.complexity}
+                        </span>
                       </div>
-                      <div className="space-y-2">
-                        <Label
-                          htmlFor="description"
-                          className="text-xs font-bold uppercase text-gray-400 tracking-wider"
-                        >
-                          Descrição
-                        </Label>
-                        <Textarea
-                          id="description"
-                          name="description"
-                          placeholder="Descreva o que esta funcionalidade contempla..."
-                          defaultValue={editingFeature?.description || ''}
-                          className="min-h-[100px] rounded-xl resize-none"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label
-                            htmlFor="baseHours"
-                            className="text-xs font-bold uppercase text-gray-400 tracking-wider"
-                          >
-                            Horas Base
-                          </Label>
-                          <div className="relative">
-                            <Input
-                              id="baseHours"
-                              name="baseHours"
-                              type="number"
-                              step="0.5"
-                              defaultValue={editingFeature?.baseHours?.toString()}
-                              className="h-11 rounded-xl pr-8"
-                              required
-                            />
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">
-                              h
-                            </span>
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label
-                            htmlFor="complexity"
-                            className="text-xs font-bold uppercase text-gray-400 tracking-wider"
-                          >
-                            Complexidade
-                          </Label>
-                          <Select
-                            name="complexity"
-                            defaultValue={editingFeature?.complexity || 'media'}
-                          >
-                            <SelectTrigger className="h-11 rounded-xl capitalize">
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="baixa">Baixa</SelectItem>
-                              <SelectItem value="media">Média</SelectItem>
-                              <SelectItem value="alta">Alta</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label
-                            htmlFor="monthlyFee"
-                            className="text-xs font-bold uppercase text-gray-400 tracking-wider"
-                          >
-                            Mensalidade (R$)
-                          </Label>
-                          <div className="relative">
-                            <Input
-                              id="monthlyFee"
-                              name="monthlyFee"
-                              type="number"
-                              step="0.01"
-                              defaultValue={
-                                editingFeature?.monthlyFee?.toString() || '0'
-                              }
-                              className="h-11 rounded-xl pr-8"
-                            />
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-400">
-                              /mês
-                            </span>
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label
-                            htmlFor="monthlyDuration"
-                            className="text-xs font-bold uppercase text-gray-400 tracking-wider"
-                          >
-                            Duração (meses)
-                          </Label>
-                          <Input
-                            id="monthlyDuration"
-                            name="monthlyDuration"
-                            type="number"
-                            defaultValue={
-                              editingFeature?.monthlyDuration?.toString() ||
-                              '12'
-                            }
-                            className="h-11 rounded-xl"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between mb-1">
-                          <Label
-                            htmlFor="categoryId"
-                            className="text-xs font-bold uppercase text-gray-400 tracking-wider"
-                          >
-                            Categoria
-                          </Label>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setQuickCreateCategory(!quickCreateCategory)
-                            }
-                            className="text-[10px] font-bold text-brand hover:underline"
-                          >
-                            {quickCreateCategory
-                              ? 'Cancelar'
-                              : '+ Nova Categoria'}
-                          </button>
-                        </div>
-
-                        {quickCreateCategory ? (
-                          <div className="flex gap-2 animate-in fade-in slide-in-from-top-1">
-                            <Input
-                              placeholder="Nome da categoria..."
-                              value={newCategoryName}
-                              onChange={(e) =>
-                                setNewCategoryName(e.target.value)
-                              }
-                              className="h-11 rounded-xl"
-                              autoFocus
-                            />
-                            <Button
-                              type="button"
-                              onClick={handleCreateCategory}
-                              disabled={isPending || !newCategoryName.trim()}
-                              className="h-11 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200"
-                            >
-                              Criar
-                            </Button>
-                          </div>
-                        ) : (
-                          <Select
-                            name="categoryId"
-                            defaultValue={editingFeature?.categoryId || 'none'}
-                          >
-                            <SelectTrigger className="h-11 rounded-xl">
-                              <SelectValue placeholder="Selecione uma categoria" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="none">
-                                Sem categoria
-                              </SelectItem>
-                              {categories.map((cat) => (
-                                <SelectItem key={cat.id} value={cat.id}>
-                                  {cat.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                      </div>
-
-                      <div className="pt-4">
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0">
                         <Button
-                          type="submit"
-                          className="w-full h-12 bg-brand hover:bg-brand-dark rounded-xl text-white font-bold shadow-lg shadow-brand/10 transition-all active:scale-[0.98]"
+                          variant="ghost"
+                          size="icon"
+                          className="w-8 h-8 rounded-full text-gray-400 hover:text-brand hover:bg-brand/10 transition-all"
+                          onClick={() => {
+                            setEditingFeature(feature)
+                            setIsFeatureModalOpen(true)
+                          }}
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="w-8 h-8 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all"
+                          onClick={() => handleDelete(feature.id)}
                           disabled={isPending}
                         >
-                          {isPending
-                            ? 'Processando...'
-                            : editingFeature
-                              ? 'Salvar Alterações'
-                              : 'Criar Funcionalidade'}
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 px-4 rounded-full text-[9px] font-black uppercase border-brand/30 text-brand hover:bg-brand hover:text-white hover:border-brand transition-all ml-1"
+                          onClick={() =>
+                            router.push(
+                              `/dashboard/orcamentos/novo?featureId=${feature.id}`,
+                            )
+                          }
+                        >
+                          Usar
                         </Button>
                       </div>
-                    </form>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="max-w-[1600px] mx-auto px-8 -mt-14 relative z-10">
-        {/* Filters */}
-        <div className="flex flex-col gap-6 mb-10">
-          <div className="relative w-full md:max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input
-              placeholder="Buscar por nome ou descrição..."
-              className="pl-11 bg-white border-gray-100 rounded-xl h-12 shadow-sm focus:ring-brand"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
-            {['Todos', ...categories.map((c) => c.name)].map((cat) => (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => setCategoryFilter(cat)}
-                className={cn(
-                  'px-5 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap border-2',
-                  categoryFilter === cat
-                    ? 'bg-brand border-brand text-white shadow-md shadow-brand/20'
-                    : 'bg-white text-gray-400 border-transparent hover:border-gray-100 hover:text-gray-600',
-                )}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
-          {filteredFeatures.map((feature) => {
-            const Icon = categoryIcons[feature.category?.name || ''] || Zap
-            return (
-              <Card
-                key={feature.id}
-                className="group p-6 bg-white border border-gray-100 rounded-[24px] hover:border-brand/20 hover:shadow-xl hover:shadow-brand/5 transition-all flex flex-col relative overflow-hidden"
-              >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-brand/[0.02] to-transparent rounded-bl-full" />
-                <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center mb-6 transition-colors group-hover:bg-brand-light relative">
-                  <Icon className="w-6 h-6 text-gray-400 group-hover:text-brand" />
-                </div>
-
-                <div className="flex-1 relative">
-                  <div className="flex items-start justify-between mb-1">
-                    <h3 className="text-base font-bold text-gray-900 line-clamp-1 group-hover:text-brand transition-colors">
-                      {feature.name}
-                    </h3>
-                    {Number(feature.monthlyFee) > 0 && (
-                      <span className="shrink-0 ml-2 px-1.5 py-0.5 rounded-md bg-brand/10 text-brand text-[9px] font-black uppercase tracking-widest border border-brand/20">
-                        R$ {Number(feature.monthlyFee)}/mês
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[10px] uppercase font-black text-gray-300 tracking-widest mb-4 group-hover:text-brand/60 transition-colors">
-                    {feature.category?.name || 'Sem Categoria'}
-                  </p>
-                  <p className="text-sm text-gray-500 mb-8 line-clamp-3 leading-relaxed">
-                    {feature.description ||
-                      'Nenhuma descrição fornecida para esta funcionalidade.'}
-                  </p>
-                </div>
-
-                <div className="flex items-center justify-between pt-5 border-t border-gray-50 relative">
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 rounded-xl group-hover:bg-gray-100/50 transition-colors">
-                      <span className="text-[10px] font-bold text-gray-300 uppercase tracking-wider">
-                        Horas
-                      </span>
-                      <span className="text-sm font-mono font-black text-gray-900">
-                        {feature.baseHours}
-                      </span>
                     </div>
-                    <span
-                      className={cn(
-                        'text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg',
-                        feature.complexity === 'baixa'
-                          ? 'bg-green-50 text-green-600'
-                          : feature.complexity === 'alta'
-                            ? 'bg-red-50 text-red-500'
-                            : 'bg-orange-50 text-orange-500',
-                      )}
-                    >
-                      {feature.complexity}
-                    </span>
                   </div>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="w-8 h-8 rounded-full text-gray-400 hover:text-brand hover:bg-brand/10 transition-all"
-                      onClick={() => {
-                        setEditingFeature(feature)
-                        setOpen(true)
-                      }}
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="w-8 h-8 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all"
-                      onClick={() => {
-                        if (confirm('Excluir esta funcionalidade?'))
-                          handleDelete(feature.id)
-                      }}
-                      disabled={isPending}
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 px-4 rounded-full text-[9px] font-black uppercase border-brand/30 text-brand hover:bg-brand hover:text-white hover:border-brand transition-all ml-1"
-                      onClick={() =>
-                        router.push(
-                          `/dashboard/orcamentos/novo?featureId=${feature.id}`,
-                        )
-                      }
-                    >
-                      Usar
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            )
-          })}
+                </Card>
+              )
+            })}
 
-          {filteredFeatures.length === 0 && (
-            <div className="col-span-full py-20 flex flex-col items-center justify-center border-2 border-dashed border-gray-100 rounded-[32px] bg-gray-50/50">
-              <div className="w-16 h-16 rounded-3xl bg-white flex items-center justify-center shadow-sm mb-4">
-                <Search className="w-6 h-6 text-gray-200" />
+            {filteredFeatures.length === 0 && (
+              <div className="col-span-full py-20 flex flex-col items-center justify-center border-2 border-dashed border-gray-100 rounded-[32px] bg-gray-50/50">
+                <div className="w-16 h-16 rounded-3xl bg-white flex items-center justify-center shadow-sm mb-4">
+                  <Search className="w-6 h-6 text-gray-200" />
+                </div>
+                <p className="text-gray-400 font-medium">
+                  Nenhuma funcionalidade encontrada
+                </p>
+                <p className="text-xs text-gray-300">
+                  Tente ajustar seus filtros ou busca
+                </p>
               </div>
-              <p className="text-gray-400 font-medium">
-                Nenhuma funcionalidade encontrada
-              </p>
-              <p className="text-xs text-gray-300">
-                Tente ajustar seus filtros ou busca
-              </p>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>

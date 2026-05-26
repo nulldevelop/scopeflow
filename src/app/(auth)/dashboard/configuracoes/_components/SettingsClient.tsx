@@ -1,7 +1,14 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Bell, CheckCircle2, CreditCard, Save, Shield, User } from 'lucide-react'
+import {
+  Bell,
+  CheckCircle2,
+  CreditCard,
+  Save,
+  Shield,
+  User,
+} from 'lucide-react'
 import React, { useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -12,7 +19,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import { updateSettingsAction } from '../_actions/update-settings'
-import { settingsSchema, type SettingsInput } from '../_schemas/settings'
+import { type SettingsInput, settingsSchema } from '../_schemas/settings'
 
 interface SettingsClientProps {
   initialData: {
@@ -165,19 +172,23 @@ export function SettingsClient({ initialData, initialTab = 'perfil', paymentRequ
   }
 
   return (
-    <div className="px-8 pb-12">
-      <Header title="Configurações">
-        <Button 
+    <div className="min-h-screen bg-[#F8F7F3]">
+      <Header
+        title="Configurações"
+        subtitle="Gerencie seu perfil, preferências e detalhes da sua assinatura"
+      >
+        <Button
           onClick={handleSubmit(onSubmit)}
           disabled={!isDirty || isSaving}
-          className="bg-brand text-white hover:bg-brand-dark rounded-lg flex items-center gap-2"
+          className="bg-white text-gray-900 hover:bg-gray-50 rounded-xl flex items-center gap-2 px-5 py-2.5 font-medium transition-all shadow-lg shadow-brand/10"
         >
           <Save className="w-4 h-4" />
           {isSaving ? 'Salvando...' : 'Salvar alterações'}
         </Button>
       </Header>
 
-      <div className="flex flex-col lg:flex-row gap-8">
+      <div className="px-8 -mt-10 relative z-10 pb-12">
+        <div className="flex flex-col lg:flex-row gap-8 max-w-[1600px] mx-auto">
         {/* Sidebar Tabs */}
         <aside className="w-full lg:w-64 space-y-1">
           {tabs.map((tab) => (
@@ -239,10 +250,10 @@ export function SettingsClient({ initialData, initialTab = 'perfil', paymentRequ
                       )}
                     </div>
                     <div>
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
                         className="mb-2"
                         onClick={() => fileInputRef.current?.click()}
                       >
@@ -410,7 +421,7 @@ export function SettingsClient({ initialData, initialTab = 'perfil', paymentRequ
                             </div>
                             <p className="text-xs text-gray-500 mt-2 min-h-[32px]">{plan.description}</p>
                           </div>
-                          
+
                           <ul className="space-y-2 mb-8 flex-1">
                             {plan.features.map(f => (
                               <li key={f} className="flex items-center gap-2 text-[11px] text-gray-600">
@@ -424,7 +435,7 @@ export function SettingsClient({ initialData, initialTab = 'perfil', paymentRequ
                               Plano Atual
                             </div>
                           ) : plan.id === 'free' ? (
-                            <Button 
+                            <Button
                               type="button"
                               onClick={() => toast.info('Para retornar ao plano Grátis, cancele sua assinatura atual via painel de faturas.')}
                               className="w-full h-11 rounded-xl text-[11px] font-bold transition-all bg-gray-100 text-gray-500 hover:bg-gray-200"
@@ -432,7 +443,7 @@ export function SettingsClient({ initialData, initialTab = 'perfil', paymentRequ
                               Reverter para Grátis
                             </Button>
                           ) : (
-                            <Button 
+                            <Button
                               type="button"
                               onClick={() => handleUpgrade(plan.id)}
                               disabled={isRedirecting}
@@ -516,4 +527,3 @@ export function SettingsClient({ initialData, initialTab = 'perfil', paymentRequ
     </div>
   )
 }
-

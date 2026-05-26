@@ -1,6 +1,7 @@
 'use client'
 
 import {
+  ChevronRight,
   FileText,
   LayoutDashboard,
   Library,
@@ -10,7 +11,6 @@ import {
   Shield,
   Users,
   X,
-  ChevronRight,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -64,7 +64,13 @@ export function Sidebar({ user, userRole }: SidebarProps) {
     <div className="flex items-center gap-3 group px-2">
       <div className="relative">
         <div className="absolute inset-0 bg-brand/20 blur-lg rounded-full group-hover:bg-brand/40 transition-all" />
-        <svg width="32" height="32" viewBox="0 0 60 60" fill="none" className="relative">
+        <svg
+          width="32"
+          height="32"
+          viewBox="0 0 60 60"
+          fill="none"
+          className="relative"
+        >
           <rect width="60" height="60" rx="14" fill="#2A6B5C" />
           <rect
             x="13"
@@ -127,9 +133,9 @@ export function Sidebar({ user, userRole }: SidebarProps) {
           {/* Header */}
           <div className="p-8 flex items-center justify-between">
             <Logo />
-            <Button 
-              onClick={() => setIsOpen(false)} 
-              variant="ghost" 
+            <Button
+              onClick={() => setIsOpen(false)}
+              variant="ghost"
               className="lg:hidden p-1.5 text-gray-500 hover:text-white hover:bg-white/10 rounded-lg"
             >
               <X className="w-5 h-5" />
@@ -159,14 +165,20 @@ export function Sidebar({ user, userRole }: SidebarProps) {
                   )}
                 >
                   <div className="flex items-center gap-3 relative z-10">
-                    <div className={cn(
-                      "w-8 h-8 rounded-xl flex items-center justify-center transition-all",
-                      isActive ? "bg-white/20" : "bg-white/5 group-hover:bg-white/10"
-                    )}>
+                    <div
+                      className={cn(
+                        'w-8 h-8 rounded-xl flex items-center justify-center transition-all',
+                        isActive
+                          ? 'bg-white/20'
+                          : 'bg-white/5 group-hover:bg-white/10',
+                      )}
+                    >
                       <item.icon
                         className={cn(
                           'w-4 h-4',
-                          isActive ? 'text-white' : 'text-gray-400 group-hover:text-white',
+                          isActive
+                            ? 'text-white'
+                            : 'text-gray-400 group-hover:text-white',
                         )}
                       />
                     </div>

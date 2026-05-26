@@ -1,4 +1,4 @@
-import { Document, Page, StyleSheet, Text, View, Image, Svg, Rect } from '@react-pdf/renderer'
+import { Document, Page, StyleSheet, Text, View, Image, Svg, Rect, Path } from '@react-pdf/renderer'
 import type { QuoteWithClient } from '@/app/(auth)/dashboard/orcamentos/_components/quotes-client'
 
 const BRAND = '#2a6b5c'
@@ -345,6 +345,16 @@ function formatDate(date: Date | string | null | undefined): string {
   return d.toLocaleDateString('pt-BR')
 }
 
+function getAbsoluteUrl(url: string | null | undefined): string | null {
+  if (!url) return null
+  if (url.startsWith('http')) return url
+  if (url.startsWith('data:')) return url
+  if (typeof window !== 'undefined') {
+    return `${window.location.origin}${url.startsWith('/') ? '' : '/'}${url}`
+  }
+  return url
+}
+
 interface ProposalPDFProps {
   quote: QuoteWithClient
   organizationName?: string
@@ -354,6 +364,7 @@ export function ProposalPDF({
   quote,
   organizationName = 'ScopeFlow',
 }: ProposalPDFProps) {
+  const orgLogoUrl = getAbsoluteUrl(quote.organization?.logo)
   const grossValue = Number(quote.totalValue)
   const discountValue = (grossValue * Number(quote.discount)) / 100
   const urgencyValue = (grossValue * Number(quote.urgencyFee)) / 100
@@ -371,12 +382,24 @@ export function ProposalPDF({
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <View style={styles.logoContainer}>
-              {quote.organization?.logo && (
-                <Image src={quote.organization.logo} style={styles.orgLogo} />
+              {orgLogoUrl && (
+                <Image 
+                  src={orgLogoUrl} 
+                  style={[styles.orgLogo, { objectFit: 'contain' }]} 
+                />
               )}
-              <Svg viewBox="0 0 60 60" style={styles.scopeFlowLogo}>
-                <Rect width="60" height="60" rx="14" fill={BRAND} />
-                <Rect x="33" y="17" width="7" height="30" rx="2" fill="white" />
+              <Svg width={24} height={24} viewBox="0 0 60 60">
+                <Rect width={60} height={60} rx={14} fill={BRAND} />
+                <Rect x={13} y={34} width={7} height={13} rx={2} fill="white" opacity={0.4} />
+                <Rect x={23} y={26} width={7} height={21} rx={2} fill="white" opacity={0.65} />
+                <Rect x={33} y={17} width={7} height={30} rx={2} fill="white" />
+                <Path 
+                  d="M39 14 L46 8 M46 8 L41.5 8 M46 8 L46 12.5" 
+                  stroke="white" 
+                  strokeWidth={1.8} 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                />
               </Svg>
               <Text style={styles.companyName}>
                 {quote.organization?.name || organizationName}

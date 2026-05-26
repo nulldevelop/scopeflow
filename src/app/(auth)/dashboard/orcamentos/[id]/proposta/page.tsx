@@ -59,6 +59,9 @@ export default async function ProposalPreviewPage({
     discount: Number(quoteData.discount),
     urgencyFee: Number(quoteData.urgencyFee),
     entryAmount: Number(quoteData.entryAmount),
+    signedAt: quoteData.signedAt,
+    signatureHash: quoteData.signatureHash,
+    signerName: quoteData.signerName,
     items: quoteData.items.map((item) => {
       return {
         ...item,

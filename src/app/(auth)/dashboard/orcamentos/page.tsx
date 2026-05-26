@@ -49,6 +49,9 @@ export default async function QuotesPage() {
       discount: Number(quote.discount),
       urgencyFee: Number(quote.urgencyFee),
       entryAmount: Number(quote.entryAmount),
+      signedAt: quote.signedAt,
+      signatureHash: quote.signatureHash,
+      signerName: quote.signerName,
       items: quote.items.map((item) => {
         return {
           ...item,
