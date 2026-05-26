@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
+import type { QuoteWithClient } from '@/app/(auth)/dashboard/orcamentos/_components/quotes-client'
 import { getPublicQuoteById } from '@/app/(auth)/dashboard/orcamentos/_data-access/get-public-quote'
 import { ProposalClient } from '@/app/(auth)/dashboard/orcamentos/[id]/proposta/_components/proposal-client'
-import type { QuoteWithClient } from '@/app/(auth)/dashboard/orcamentos/_components/quotes-client'
 import type { ProjectStatus } from '@/types'
 
 export default async function PublicProposalPage({

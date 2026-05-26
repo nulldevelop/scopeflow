@@ -8,7 +8,7 @@ export async function middleware(req: NextRequest) {
   // 1. Ignorar arquivos estáticos e API
   if (
     pathname.startsWith('/_next') ||
-    pathname.startsWith('/api/auth') ||
+    pathname.startsWith('/api') ||
     pathname.includes('.')
   ) {
     return NextResponse.next()
@@ -19,7 +19,7 @@ export async function middleware(req: NextRequest) {
     req.cookies.get('scopeflow.session_token')?.value || 
     req.cookies.get('__Secure-scopeflow.session_token')?.value
 
-  const isPublic = publicRoutes.includes(pathname)
+  const isPublic = publicRoutes.includes(pathname) || pathname.startsWith('/proposta/')
 
   if (!sessionToken) {
     if (isPublic) return NextResponse.next()
