@@ -8,19 +8,26 @@ import { defaultFeatures } from '../../../../../../prisma/seed-data'
 export const initializeDefaultsAction = withPermission(
   'create',
   'features',
-  async (ctx, { 
-    selectedFeatures, 
-    hourMultiplier = 1 
-  }: { 
-    selectedFeatures: string[], 
-    hourMultiplier?: number 
-  }) => {
+  async (
+    ctx,
+    {
+      selectedFeatures,
+      hourMultiplier = 1,
+    }: {
+      selectedFeatures: string[]
+      hourMultiplier?: number
+    },
+  ) => {
     try {
       // 1. Get the feature data for selected names
-      const featuresToImport = defaultFeatures.filter(f => selectedFeatures.includes(f.name))
+      const featuresToImport = defaultFeatures.filter((f) =>
+        selectedFeatures.includes(f.name),
+      )
 
       // 2. Identify and create missing categories
-      const categoryNames = Array.from(new Set(featuresToImport.map(f => f.categoryName)))
+      const categoryNames = Array.from(
+        new Set(featuresToImport.map((f) => f.categoryName)),
+      )
       const createdCategories: Record<string, string> = {}
 
       for (const catName of categoryNames) {
@@ -45,7 +52,7 @@ export const initializeDefaultsAction = withPermission(
       // 3. Create Features
       for (const f of featuresToImport) {
         const categoryId = createdCategories[f.categoryName]
-        
+
         // Check if feature already exists
         const existingFeature = await prisma.feature.findFirst({
           where: {

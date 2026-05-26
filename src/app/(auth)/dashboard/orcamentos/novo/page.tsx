@@ -19,8 +19,7 @@ function calcHourlyRate(answers: Record<string, string | undefined>) {
   const workHoursDay = Number(answers.workHoursDay) || 0
   const workDaysMonth = Number(answers.workDaysMonth) || 22
   const monthlyGoal =
-    (desiredSalary + fixedCosts) /
-    (1 - (taxPercentage + profitMargin) / 100)
+    (desiredSalary + fixedCosts) / (1 - (taxPercentage + profitMargin) / 100)
   const hoursPerMonth = workHoursDay * workDaysMonth
   return hoursPerMonth > 0 ? Math.ceil(monthlyGoal / hoursPerMonth) : 0
 }

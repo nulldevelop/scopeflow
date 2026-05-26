@@ -15,11 +15,12 @@ export async function middleware(req: NextRequest) {
   }
 
   // 2. Verificar token de sessão (suportando localhost e produção HTTPS)
-  const sessionToken = 
-    req.cookies.get('scopeflow.session_token')?.value || 
+  const sessionToken =
+    req.cookies.get('scopeflow.session_token')?.value ||
     req.cookies.get('__Secure-scopeflow.session_token')?.value
 
-  const isPublic = publicRoutes.includes(pathname) || pathname.includes('/proposta/')
+  const isPublic =
+    publicRoutes.includes(pathname) || pathname.includes('/proposta/')
 
   if (!sessionToken) {
     if (isPublic) return NextResponse.next()

@@ -4,7 +4,11 @@ import type { ProjectStatus } from '@/types'
 import { getAllFeatures } from '../../catalogo/_data-access/get-features'
 import { getClients } from '../../clientes/_data-access/get-clients'
 import { getQuoteById } from '../_data-access/get-quotes'
-import { QuoteEditorClient, type EditorFeature, type EditorQuote } from './_components/quote-editor-client'
+import {
+  QuoteEditorClient,
+  type EditorFeature,
+  type EditorQuote,
+} from './_components/quote-editor-client'
 
 export default async function QuoteEditorPage({
   params,
@@ -67,7 +71,9 @@ export default async function QuoteEditorPage({
       installments: q.installments,
       expirationDate: q.expirationDate
         ? new Date(q.expirationDate).toISOString().split('T')[0]
-        : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+            .toISOString()
+            .split('T')[0],
       items: (q.items || []).map((item) => ({
         id: item.id,
         name: item.name,

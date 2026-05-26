@@ -13,9 +13,9 @@ export const createQuote = withPermission(
     // 1. Verificar limites do plano
     const { isWithinLimits, plan } = await checkPlanLimit(ctx.organizationId)
     if (!isWithinLimits) {
-      return { 
-        success: false, 
-        error: `Você atingiu o limite de orçamentos do seu plano ${plan.toUpperCase()}. Faça upgrade para continuar.` 
+      return {
+        success: false,
+        error: `Você atingiu o limite de orçamentos do seu plano ${plan.toUpperCase()}. Faça upgrade para continuar.`,
       }
     }
 

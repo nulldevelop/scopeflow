@@ -17,11 +17,16 @@ import {
   Zap,
 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Suspense, useEffect, useMemo, useState } from 'react'
+import React, { Suspense, useEffect, useMemo, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { Field, FieldContent, FieldError, FieldLabel } from '@/components/ui/field'
+import {
+  Field,
+  FieldContent,
+  FieldError,
+  FieldLabel,
+} from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import {
   Popover,
@@ -323,7 +328,10 @@ const helpTexts: Record<string, { title: string; description: string }> = {
 function HelpTooltip({
   title,
   description,
-}: { title: string; description: string }) {
+}: {
+  title: string
+  description: string
+}) {
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -850,7 +858,8 @@ function OnboardingContent() {
                             </span>
                           </div>
                           <p className="text-[10px] text-gray-400 font-mono">
-                            R$ {calc.baseCost} &divide; {calc.adjustmentFactor.toFixed(2)}
+                            R$ {calc.baseCost} &divide;{' '}
+                            {calc.adjustmentFactor.toFixed(2)}
                           </p>
                           <div className="flex gap-3 mt-1 text-[10px] text-gray-400 font-mono">
                             <span>Imposto: {calc.taxPercentage}%</span>
@@ -868,7 +877,8 @@ function OnboardingContent() {
                             </span>
                           </div>
                           <p className="text-[10px] text-gray-400 font-mono">
-                            {calc.workHoursDay}h/dia &times; {calc.workDaysMonth} dias
+                            {calc.workHoursDay}h/dia &times;{' '}
+                            {calc.workDaysMonth} dias
                           </p>
                         </div>
 
@@ -882,7 +892,8 @@ function OnboardingContent() {
                             </span>
                           </div>
                           <p className="text-[10px] text-gray-500 font-mono mt-0.5">
-                            R$ {Math.round(calc.adjustedMonthlyGoal)} &divide; {calc.hoursPerMonth}h
+                            R$ {Math.round(calc.adjustedMonthlyGoal)} &divide;{' '}
+                            {calc.hoursPerMonth}h
                           </p>
                         </div>
                       </div>

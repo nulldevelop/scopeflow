@@ -96,8 +96,8 @@ export function ClientsClient({
         initialData={editingClient || undefined}
       />
 
-      <Header 
-        title="Clientes" 
+      <Header
+        title="Clientes"
         subtitle="Gerencie sua base de clientes e acompanhe o histórico de orçamentos de cada um"
         icon={Users}
       >
@@ -125,119 +125,121 @@ export function ClientsClient({
           </div>
 
           <Card className="border border-gray-200 rounded-[24px] overflow-hidden shadow-sm bg-white">
-        <Table>
-          <TableHeader className="bg-gray-50/50">
-            <TableRow className="border-b border-gray-100">
-              <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-gray-400 pl-6">
-                Cliente
-              </TableHead>
-              <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-gray-400">
-                Contato
-              </TableHead>
-              <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-gray-400">
-                Orçamentos
-              </TableHead>
-              <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-gray-400">
-                Total Aprovado
-              </TableHead>
-              <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-gray-400 text-right pr-6">
-                Ações
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredClients.map((client) => (
-              <TableRow
-                key={client.id}
-                className="border-b border-gray-50 hover:bg-gray-50/30 transition-colors group"
-              >
-                <TableCell className="pl-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 group-hover:bg-brand-light group-hover:text-brand transition-colors">
-                      <User className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-gray-900 leading-none mb-1">
-                        {client.name}
-                      </p>
-                      <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">
-                        {client.document || 'Sem documento'}
-                      </p>
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell className="py-4">
-                  <div className="space-y-1">
-                    {client.email && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Mail className="w-3.5 h-3.5 text-gray-400" />
-                        {client.email}
+            <Table>
+              <TableHeader className="bg-gray-50/50">
+                <TableRow className="border-b border-gray-100">
+                  <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-gray-400 pl-6">
+                    Cliente
+                  </TableHead>
+                  <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-gray-400">
+                    Contato
+                  </TableHead>
+                  <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-gray-400">
+                    Orçamentos
+                  </TableHead>
+                  <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-gray-400">
+                    Total Aprovado
+                  </TableHead>
+                  <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-gray-400 text-right pr-6">
+                    Ações
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredClients.map((client) => (
+                  <TableRow
+                    key={client.id}
+                    className="border-b border-gray-50 hover:bg-gray-50/30 transition-colors group"
+                  >
+                    <TableCell className="pl-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 group-hover:bg-brand-light group-hover:text-brand transition-colors">
+                          <User className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-gray-900 leading-none mb-1">
+                            {client.name}
+                          </p>
+                          <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">
+                            {client.document || 'Sem documento'}
+                          </p>
+                        </div>
                       </div>
-                    )}
-                    {client.phone && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Phone className="w-3.5 h-3.5 text-gray-400" />
-                        {client.phone}
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <div className="space-y-1">
+                        {client.email && (
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <Mail className="w-3.5 h-3.5 text-gray-400" />
+                            {client.email}
+                          </div>
+                        )}
+                        {client.phone && (
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <Phone className="w-3.5 h-3.5 text-gray-400" />
+                            {client.phone}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell className="py-4 text-gray-600">
-                  <div className="flex items-center gap-2 font-mono text-sm">
-                    <FileText className="w-4 h-4 text-gray-300" />
-                    {client.totalQuotes}
-                  </div>
-                </TableCell>
-                <TableCell className="py-4 font-mono text-sm font-bold text-gray-900">
-                  {client.totalApproved.toLocaleString('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                  })}
-                </TableCell>
-                <TableCell className="text-right pr-6 py-4">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-                        variant="ghost"
-                      >
-                        <MoreHorizontal className="w-5 h-5" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-40">
-                      <DropdownMenuItem
-                        onClick={() => handleEdit(client)}
-                        className="gap-2 cursor-pointer"
-                      >
-                        <Edit2 className="w-4 h-4" /> Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleDelete(client.id)}
-                        className="gap-2 text-red-600 focus:text-red-600 cursor-pointer"
-                        disabled={isPending}
-                      >
-                        <Trash2 className="w-4 h-4" /> Excluir
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Card>
+                    </TableCell>
+                    <TableCell className="py-4 text-gray-600">
+                      <div className="flex items-center gap-2 font-mono text-sm">
+                        <FileText className="w-4 h-4 text-gray-300" />
+                        {client.totalQuotes}
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-4 font-mono text-sm font-bold text-gray-900">
+                      {client.totalApproved.toLocaleString('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                      })}
+                    </TableCell>
+                    <TableCell className="text-right pr-6 py-4">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                            variant="ghost"
+                          >
+                            <MoreHorizontal className="w-5 h-5" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40">
+                          <DropdownMenuItem
+                            onClick={() => handleEdit(client)}
+                            className="gap-2 cursor-pointer"
+                          >
+                            <Edit2 className="w-4 h-4" /> Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleDelete(client.id)}
+                            className="gap-2 text-red-600 focus:text-red-600 cursor-pointer"
+                            disabled={isPending}
+                          >
+                            <Trash2 className="w-4 h-4" /> Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
 
-      {filteredClients.length === 0 && (
-        <div className="py-24 flex flex-col items-center justify-center border-2 border-dashed border-gray-100 rounded-[32px] bg-gray-50/50 mt-8">
-          <div className="w-16 h-16 rounded-3xl bg-white flex items-center justify-center shadow-sm mb-4">
-            <User className="w-6 h-6 text-gray-200" />
-          </div>
-          <p className="text-gray-400 font-medium">Nenhum cliente encontrado</p>
-          <p className="text-xs text-gray-300">
-            Tente ajustar sua busca ou crie um novo cliente
-          </p>
-        </div>
-      )}
+          {filteredClients.length === 0 && (
+            <div className="py-24 flex flex-col items-center justify-center border-2 border-dashed border-gray-100 rounded-[32px] bg-gray-50/50 mt-8">
+              <div className="w-16 h-16 rounded-3xl bg-white flex items-center justify-center shadow-sm mb-4">
+                <User className="w-6 h-6 text-gray-200" />
+              </div>
+              <p className="text-gray-400 font-medium">
+                Nenhum cliente encontrado
+              </p>
+              <p className="text-xs text-gray-300">
+                Tente ajustar sua busca ou crie um novo cliente
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

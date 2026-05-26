@@ -12,29 +12,32 @@ export async function getSettings() {
       return null
     }
 
-    const [user, organization, subscription, billingHistory] = await Promise.all([
-      prisma.user.findUnique({
-        where: { id: session.user.id },
-      }),
-      prisma.organization.findUnique({
-        where: { id: session.session.activeOrganizationId },
-      }),
-      prisma.subscription.findFirst({
-        where: { organizationId: session.session.activeOrganizationId },
-        orderBy: { createdAt: 'desc' }
-      }),
-      prisma.billingHistory.findMany({
-        where: { organizationId: session.session.activeOrganizationId },
-        orderBy: { createdAt: 'desc' },
-        take: 5
-      })
-    ])
+    const [user, organization, subscription, billingHistory] =
+      await Promise.all([
+        prisma.user.findUnique({
+          where: { id: session.user.id },
+        }),
+        prisma.organization.findUnique({
+          where: { id: session.session.activeOrganizationId },
+        }),
+        prisma.subscription.findFirst({
+          where: { organizationId: session.session.activeOrganizationId },
+          orderBy: { createdAt: 'desc' },
+        }),
+        prisma.billingHistory.findMany({
+          where: { organizationId: session.session.activeOrganizationId },
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+        }),
+      ])
 
     if (!user || !organization) {
       return null
     }
 
-    const metadata = organization.metadata ? JSON.parse(organization.metadata) : {}
+    const metadata = organization.metadata
+      ? JSON.parse(organization.metadata)
+      : {}
 
     return {
       user: {
@@ -59,12 +62,15 @@ export async function getSettings() {
           },
           plan: metadata.plan || 'free',
         },
-        subscription: subscription ? {
-          plan: subscription.plan,
-          status: subscription.status,
-          currentPeriodEnd: subscription.currentPeriodEnd?.toISOString() || null,
-        } : null,
-        billingHistory: billingHistory.map(bh => ({
+        subscription: subscription
+          ? {
+              plan: subscription.plan,
+              status: subscription.status,
+              currentPeriodEnd:
+                subscription.currentPeriodEnd?.toISOString() || null,
+            }
+          : null,
+        billingHistory: billingHistory.map((bh) => ({
           id: bh.id,
           amount: bh.amount.toString(),
           status: bh.status,

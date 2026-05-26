@@ -268,9 +268,12 @@ export function QuoteEditorClient({
       (acc: number, item) => acc + (Number(item?.unitValue) || 0),
       0,
     )
-    const valorDesconto = (valorBruto * (Number(formValues.discount) || 0)) / 100
-    const valorUrgencia = (valorBruto * (Number(formValues.urgencyFee) || 0)) / 100
-    const valorEntrada = (valorBruto * (Number(formValues.entryAmount) || 0)) / 100
+    const valorDesconto =
+      (valorBruto * (Number(formValues.discount) || 0)) / 100
+    const valorUrgencia =
+      (valorBruto * (Number(formValues.urgencyFee) || 0)) / 100
+    const valorEntrada =
+      (valorBruto * (Number(formValues.entryAmount) || 0)) / 100
     const totalValor = valorBruto - valorDesconto + valorUrgencia
 
     const monthlyTotal = Number(formValues.monthlyTotal) || 0
@@ -322,7 +325,8 @@ export function QuoteEditorClient({
     const currentItem = fields[index]
     const updatedItem = { ...currentItem, ...updates }
     if (updates.hours !== undefined) {
-      updatedItem.unitValue = updatedItem.hours * (Number(formValues.hourlyRate) || 150)
+      updatedItem.unitValue =
+        updatedItem.hours * (Number(formValues.hourlyRate) || 150)
     }
     update(index, updatedItem)
   }
@@ -418,7 +422,8 @@ export function QuoteEditorClient({
                     {isNew ? 'Novo Orçamento' : 'Editar Orçamento'}
                   </h1>
                   <p className="text-white/60 text-sm mt-1">
-                    Monte o escopo, defina valores e gere uma proposta profissional para seu cliente
+                    Monte o escopo, defina valores e gere uma proposta
+                    profissional para seu cliente
                   </p>
                 </div>
               </div>
@@ -445,7 +450,6 @@ export function QuoteEditorClient({
       </div>
 
       <div className="max-w-7xl mx-auto px-8 -mt-14 relative z-10">
-
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Main Editor */}
           <div className="lg:col-span-8 space-y-6">
@@ -462,7 +466,9 @@ export function QuoteEditorClient({
                     placeholder="Ex: Desenvolvimento de App Mobile"
                     className="h-12 bg-gray-50 border-none rounded-xl font-bold text-gray-900 focus-visible:ring-1 focus-visible:ring-brand"
                   />
-                  {errors.title && <FieldError>{errors.title.message}</FieldError>}
+                  {errors.title && (
+                    <FieldError>{errors.title.message}</FieldError>
+                  )}
                 </Field>
 
                 <Field>
@@ -483,7 +489,10 @@ export function QuoteEditorClient({
                     control={control}
                     name="clientId"
                     render={({ field }) => (
-                      <Select value={field.value ?? undefined} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value ?? undefined}
+                        onValueChange={field.onChange}
+                      >
                         <SelectTrigger className="h-12 bg-gray-50 border-none rounded-xl text-gray-900 font-medium">
                           <SelectValue placeholder="Selecione um cliente" />
                         </SelectTrigger>
@@ -543,11 +552,13 @@ export function QuoteEditorClient({
                         className="pl-9 h-12 bg-gray-50 border-none rounded-xl font-mono font-bold text-gray-900 focus-visible:ring-1 focus-visible:ring-brand"
                       />
                     </div>
-                    {(suggestedHourlyRate && Number(formValues.hourlyRate) === suggestedHourlyRate) ? (
+                    {suggestedHourlyRate &&
+                    Number(formValues.hourlyRate) === suggestedHourlyRate ? (
                       <span className="text-[10px] text-brand font-medium mt-1 px-1">
                         Do seu perfil configurado
                       </span>
-                    ) : suggestedHourlyRate && Number(formValues.hourlyRate) !== suggestedHourlyRate ? (
+                    ) : suggestedHourlyRate &&
+                      Number(formValues.hourlyRate) !== suggestedHourlyRate ? (
                       <span className="text-[10px] text-orange-500 font-medium mt-1 px-1">
                         Personalizado · seu perfil: R$ {suggestedHourlyRate}
                       </span>
@@ -587,7 +598,9 @@ export function QuoteEditorClient({
                         type="date"
                         value={
                           formValues.expirationDate instanceof Date
-                            ? formValues.expirationDate.toISOString().split('T')[0]
+                            ? formValues.expirationDate
+                                .toISOString()
+                                .split('T')[0]
                             : typeof formValues.expirationDate === 'string'
                               ? formValues.expirationDate
                               : ''
@@ -822,113 +835,120 @@ export function QuoteEditorClient({
                 </Dialog>
               </div>
 
-                {fields.length === 0 ? (
-                  <div className="relative overflow-hidden py-24 text-center bg-gradient-to-b from-gray-50 to-white rounded-3xl border-2 border-dashed border-gray-200 group hover:border-brand/30 hover:bg-brand/[0.02] transition-all duration-300">
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand/[0.03] via-transparent to-transparent" />
-                    <div className="relative">
-                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-brand/10 to-brand/5 flex items-center justify-center mx-auto mb-6 ring-1 ring-brand/10 group-hover:ring-brand/20 group-hover:scale-110 transition-all duration-300">
-                        <Layers className="w-10 h-10 text-brand/40 group-hover:text-brand/60 transition-colors" />
-                      </div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">
-                        Nenhum módulo adicionado
-                      </h3>
-                      <p className="text-gray-400 max-w-sm mx-auto mb-8 leading-relaxed">
-                        Adicione funcionalidades do catálogo para compor o escopo do projeto
-                      </p>
-                      <Button
-                        onClick={() => setIsModalOpen(true)}
-                        className="bg-brand text-white hover:bg-brand-dark rounded-xl gap-2 shadow-lg shadow-brand/20"
-                      >
-                        <Plus className="w-4 h-4" /> Adicionar Módulo
-                      </Button>
+              {fields.length === 0 ? (
+                <div className="relative overflow-hidden py-24 text-center bg-gradient-to-b from-gray-50 to-white rounded-3xl border-2 border-dashed border-gray-200 group hover:border-brand/30 hover:bg-brand/[0.02] transition-all duration-300">
+                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand/[0.03] via-transparent to-transparent" />
+                  <div className="relative">
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-brand/10 to-brand/5 flex items-center justify-center mx-auto mb-6 ring-1 ring-brand/10 group-hover:ring-brand/20 group-hover:scale-110 transition-all duration-300">
+                      <Layers className="w-10 h-10 text-brand/40 group-hover:text-brand/60 transition-colors" />
                     </div>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {fields.map((item, index) => (
-                      <div
-                        key={item.id}
-                        className="group relative flex items-center gap-4 p-5 bg-white border border-gray-100 rounded-2xl hover:border-brand/20 hover:shadow-md hover:shadow-brand/[0.02] transition-all duration-200"
-                      >
-                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-transparent via-gray-200 to-transparent rounded-full group-hover:via-brand/40 transition-all duration-300" />
-                        <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => moveItem(index, 'up')}
-                            className="h-6 w-6 p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 rounded-lg"
-                          >
-                            <ChevronUp className="w-3 h-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => moveItem(index, 'down')}
-                            className="h-6 w-6 p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 rounded-lg"
-                          >
-                            <ChevronDown className="w-3 h-3" />
-                          </Button>
-                        </div>
-
-                        <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                          <div className="md:col-span-5">
-                            <Input
-                              {...register(`items.${index}.name`)}
-                              className="w-full font-bold text-gray-900 bg-transparent border-none outline-none focus-visible:ring-0 focus:text-brand p-0 h-auto"
-                            />
-                            <p className="text-xs text-gray-400 truncate mt-0.5">
-                              {item.description || 'Sem descrição'}
-                            </p>
-                          </div>
-                          <div className="md:col-span-6 flex items-center justify-end gap-4">
-                            <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-xl group-hover:bg-gray-100/50 transition-colors">
-                              <Clock className="w-3.5 h-3.5 text-gray-300" />
-                              <div className="relative w-20">
-                                <Input
-                                  type="number"
-                                  {...register(`items.${index}.hours`, {
-                                    onChange: (e) =>
-                                      updateItem(index, {
-                                        hours: Number(e.target.value),
-                                      }),
-                                  })}
-                                  className="w-full h-8 pl-2 pr-6 bg-transparent border-none rounded-lg text-sm font-mono font-bold text-gray-700 outline-none focus-visible:ring-0 p-0"
-                                />
-                                <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-medium pointer-events-none">
-                                  h
-                                </span>
-                              </div>
-                              <span className="text-xs text-gray-300 font-mono border-l border-gray-200 pl-2">
-                                {((Number(item.hours) || 0) * (Number(formValues.hourlyRate) || 0)).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="md:col-span-1 flex justify-end">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => removeItem(index)}
-                              className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all rounded-xl"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {fields.length > 0 && (
-                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                      Nenhum módulo adicionado
+                    </h3>
+                    <p className="text-gray-400 max-w-sm mx-auto mb-8 leading-relaxed">
+                      Adicione funcionalidades do catálogo para compor o escopo
+                      do projeto
+                    </p>
                     <Button
-                      variant="ghost"
                       onClick={() => setIsModalOpen(true)}
-                      className="w-full rounded-2xl border-2 border-dashed border-gray-200 py-6 text-gray-400 hover:text-brand hover:border-brand/30 hover:bg-brand/[0.02] transition-all gap-2"
+                      className="bg-brand text-white hover:bg-brand-dark rounded-xl gap-2 shadow-lg shadow-brand/20"
                     >
-                      <Plus className="w-4 h-4" /> Adicionar mais módulos
+                      <Plus className="w-4 h-4" /> Adicionar Módulo
                     </Button>
                   </div>
-                )}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {fields.map((item, index) => (
+                    <div
+                      key={item.id}
+                      className="group relative flex items-center gap-4 p-5 bg-white border border-gray-100 rounded-2xl hover:border-brand/20 hover:shadow-md hover:shadow-brand/[0.02] transition-all duration-200"
+                    >
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-transparent via-gray-200 to-transparent rounded-full group-hover:via-brand/40 transition-all duration-300" />
+                      <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => moveItem(index, 'up')}
+                          className="h-6 w-6 p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 rounded-lg"
+                        >
+                          <ChevronUp className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => moveItem(index, 'down')}
+                          className="h-6 w-6 p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 rounded-lg"
+                        >
+                          <ChevronDown className="w-3 h-3" />
+                        </Button>
+                      </div>
+
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                        <div className="md:col-span-5">
+                          <Input
+                            {...register(`items.${index}.name`)}
+                            className="w-full font-bold text-gray-900 bg-transparent border-none outline-none focus-visible:ring-0 focus:text-brand p-0 h-auto"
+                          />
+                          <p className="text-xs text-gray-400 truncate mt-0.5">
+                            {item.description || 'Sem descrição'}
+                          </p>
+                        </div>
+                        <div className="md:col-span-6 flex items-center justify-end gap-4">
+                          <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-xl group-hover:bg-gray-100/50 transition-colors">
+                            <Clock className="w-3.5 h-3.5 text-gray-300" />
+                            <div className="relative w-20">
+                              <Input
+                                type="number"
+                                {...register(`items.${index}.hours`, {
+                                  onChange: (e) =>
+                                    updateItem(index, {
+                                      hours: Number(e.target.value),
+                                    }),
+                                })}
+                                className="w-full h-8 pl-2 pr-6 bg-transparent border-none rounded-lg text-sm font-mono font-bold text-gray-700 outline-none focus-visible:ring-0 p-0"
+                              />
+                              <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-medium pointer-events-none">
+                                h
+                              </span>
+                            </div>
+                            <span className="text-xs text-gray-300 font-mono border-l border-gray-200 pl-2">
+                              {(
+                                (Number(item.hours) || 0) *
+                                (Number(formValues.hourlyRate) || 0)
+                              ).toLocaleString('pt-BR', {
+                                style: 'currency',
+                                currency: 'BRL',
+                              })}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="md:col-span-1 flex justify-end">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeItem(index)}
+                            className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all rounded-xl"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {fields.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <Button
+                    variant="ghost"
+                    onClick={() => setIsModalOpen(true)}
+                    className="w-full rounded-2xl border-2 border-dashed border-gray-200 py-6 text-gray-400 hover:text-brand hover:border-brand/30 hover:bg-brand/[0.02] transition-all gap-2"
+                  >
+                    <Plus className="w-4 h-4" /> Adicionar mais módulos
+                  </Button>
+                </div>
+              )}
             </Card>
           </div>
 
@@ -940,21 +960,33 @@ export function QuoteEditorClient({
                 <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                   <div className="flex items-center gap-2 text-gray-400 mb-3">
                     <Clock className="w-4 h-4" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider">Esforço</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider">
+                      Esforço
+                    </span>
                   </div>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-black text-gray-900 font-mono">{totals.totalHoras}</span>
-                    <span className="text-sm text-gray-400 font-medium">horas</span>
+                    <span className="text-2xl font-black text-gray-900 font-mono">
+                      {totals.totalHoras}
+                    </span>
+                    <span className="text-sm text-gray-400 font-medium">
+                      horas
+                    </span>
                   </div>
                 </div>
                 <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                   <div className="flex items-center gap-2 text-gray-400 mb-3">
                     <Calendar className="w-4 h-4" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider">Prazo</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider">
+                      Prazo
+                    </span>
                   </div>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-black text-gray-900 font-mono">{totals.prazoSemanas}</span>
-                    <span className="text-sm text-gray-400 font-medium">semanas</span>
+                    <span className="text-2xl font-black text-gray-900 font-mono">
+                      {totals.prazoSemanas}
+                    </span>
+                    <span className="text-sm text-gray-400 font-medium">
+                      semanas
+                    </span>
                   </div>
                 </div>
               </div>
@@ -973,7 +1005,9 @@ export function QuoteEditorClient({
                       <h3 className="text-sm font-bold uppercase tracking-widest text-brand-light">
                         Resumo Financeiro
                       </h3>
-                      <p className="text-[10px] text-gray-500">Projeção de valores</p>
+                      <p className="text-[10px] text-gray-500">
+                        Projeção de valores
+                      </p>
                     </div>
                   </div>
 
@@ -1004,7 +1038,8 @@ export function QuoteEditorClient({
                         </div>
                       </div>
                       <span className="font-mono text-green-400 font-medium">
-                        - {totals.valorDesconto.toLocaleString('pt-BR', {
+                        -{' '}
+                        {totals.valorDesconto.toLocaleString('pt-BR', {
                           style: 'currency',
                           currency: 'BRL',
                         })}
@@ -1027,7 +1062,8 @@ export function QuoteEditorClient({
                         </div>
                       </div>
                       <span className="font-mono text-orange-400 font-medium">
-                        + {totals.valorUrgencia.toLocaleString('pt-BR', {
+                        +{' '}
+                        {totals.valorUrgencia.toLocaleString('pt-BR', {
                           style: 'currency',
                           currency: 'BRL',
                         })}
@@ -1036,9 +1072,15 @@ export function QuoteEditorClient({
 
                     <div className="pt-4 border-t border-white/10">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">Subtotal</span>
+                        <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">
+                          Subtotal
+                        </span>
                         <span className="font-mono text-gray-300">
-                          {(totals.valorBruto - totals.valorDesconto + totals.valorUrgencia).toLocaleString('pt-BR', {
+                          {(
+                            totals.valorBruto -
+                            totals.valorDesconto +
+                            totals.valorUrgencia
+                          ).toLocaleString('pt-BR', {
                             style: 'currency',
                             currency: 'BRL',
                           })}
@@ -1108,23 +1150,27 @@ export function QuoteEditorClient({
                           </p>
                           {Number(formValues.entryAmount) > 0 && (
                             <p className="text-[9px] text-gray-400">
-                              Entrada de {totals.valorEntrada.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                              Entrada de{' '}
+                              {totals.valorEntrada.toLocaleString('pt-BR', {
+                                style: 'currency',
+                                currency: 'BRL',
+                              })}
                             </p>
                           )}
                         </div>
                       </div>
                       <div className="text-right">
                         <p className="text-base font-mono font-bold">
-                          {Number(formValues.installments)}× {totals.valorParcela.toLocaleString('pt-BR', {
+                          {Number(formValues.installments)}×{' '}
+                          {totals.valorParcela.toLocaleString('pt-BR', {
                             style: 'currency',
                             currency: 'BRL',
                           })}
                         </p>
                         <p className="text-[9px] text-gray-400">
                           {totals.valorEntrada > 0
-                            ? `Entrada de ${((Number(formValues.entryAmount) || 0))}% + ${Number(formValues.installments)}×`
-                            : `${Number(formValues.installments)} parcelas`
-                          }
+                            ? `Entrada de ${Number(formValues.entryAmount) || 0}% + ${Number(formValues.installments)}×`
+                            : `${Number(formValues.installments)} parcelas`}
                         </p>
                       </div>
                     </div>

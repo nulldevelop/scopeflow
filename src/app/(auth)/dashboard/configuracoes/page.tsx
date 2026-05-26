@@ -16,14 +16,15 @@ export default async function SettingsPage({
   }
 
   const resolvedParams = await searchParams
-  const initialTab = typeof resolvedParams.tab === 'string' ? resolvedParams.tab : 'perfil'
+  const initialTab =
+    typeof resolvedParams.tab === 'string' ? resolvedParams.tab : 'perfil'
   const paymentRequired = resolvedParams.payment_required === 'true'
 
   return (
-    <SettingsClient 
-      initialData={settings} 
-      initialTab={initialTab} 
-      paymentRequired={paymentRequired} 
+    <SettingsClient
+      initialData={settings}
+      initialTab={initialTab}
+      paymentRequired={paymentRequired}
     />
   )
 }

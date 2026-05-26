@@ -4,10 +4,7 @@ import type { ProjectStatus } from '@/types'
 import { Header } from '@/components/shared/Header'
 import { FileText, Plus } from 'lucide-react'
 import Link from 'next/link'
-import {
-  QuotesClient,
-  type QuoteWithClient,
-} from './_components/quotes-client'
+import { QuotesClient, type QuoteWithClient } from './_components/quotes-client'
 import { getQuotes } from './_data-access/get-quotes'
 
 export const dynamic = 'force-dynamic'

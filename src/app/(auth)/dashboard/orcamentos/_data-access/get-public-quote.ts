@@ -29,7 +29,10 @@ export async function getPublicQuoteById(id: string, slug?: string) {
 
     // Se um slug for fornecido, validar se bate com a organização do orçamento
     if (slug && quote.organization.slug !== slug) {
-      return { success: false as const, error: 'Link inválido para esta organização' }
+      return {
+        success: false as const,
+        error: 'Link inválido para esta organização',
+      }
     }
 
     return { success: true as const, quote }

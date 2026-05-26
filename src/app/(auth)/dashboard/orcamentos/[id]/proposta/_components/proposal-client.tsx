@@ -1,9 +1,21 @@
 'use client'
 
-import { ArrowLeft, Check, Link as LinkIcon, Printer, X, CheckCircle } from 'lucide-react'
+import {
+  ArrowLeft,
+  Check,
+  CheckCircle,
+  Link as LinkIcon,
+  Printer,
+  X,
+} from 'lucide-react'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
+import type {
+  QuoteWithClient,
+  SerializedQuoteItem,
+} from '@/app/(auth)/dashboard/orcamentos/_components/quotes-client'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import {
@@ -25,13 +37,8 @@ import {
 } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
 import type { ProjectStatus } from '@/types'
-import dynamic from 'next/dynamic'
 import { publicUpdateQuoteStatus } from '../../../_actions/public-quote-actions'
 import { updateQuoteStatus } from '../../../_actions/update-quote-status'
-import type {
-  QuoteWithClient,
-  SerializedQuoteItem,
-} from '@/app/(auth)/dashboard/orcamentos/_components/quotes-client'
 
 const ProposalPDFDownload = dynamic(
   () => import('@/components/proposal-pdf/download-inner'),
@@ -325,60 +332,60 @@ export function ProposalClient({
                   <div className="section-label mb-4 print:mb-2">
                     Condições de Pagamento
                   </div>
-                    <div className="space-y-3 print:space-y-1">
+                  <div className="space-y-3 print:space-y-1">
+                    <div className="flex justify-between items-center p-4 bg-gradient-to-r from-gray-50 to-white border border-gray-100 rounded-2xl print:p-2 print:bg-white print:border">
+                      <span className="text-sm text-gray-500 print:text-[10px]">
+                        Entrada
+                      </span>
+                      <span className="font-mono font-bold text-gray-900 print:text-[10px]">
+                        {Number(quote.entryAmount).toLocaleString('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL',
+                        })}
+                      </span>
+                    </div>
+                    {quote.installments > 0 && (
                       <div className="flex justify-between items-center p-4 bg-gradient-to-r from-gray-50 to-white border border-gray-100 rounded-2xl print:p-2 print:bg-white print:border">
                         <span className="text-sm text-gray-500 print:text-[10px]">
-                          Entrada
+                          {quote.installments}× Mensais
                         </span>
                         <span className="font-mono font-bold text-gray-900 print:text-[10px]">
-                          {Number(quote.entryAmount).toLocaleString('pt-BR', {
+                          {valorParcela.toLocaleString('pt-BR', {
                             style: 'currency',
                             currency: 'BRL',
                           })}
                         </span>
                       </div>
-                      {quote.installments > 0 && (
-                        <div className="flex justify-between items-center p-4 bg-gradient-to-r from-gray-50 to-white border border-gray-100 rounded-2xl print:p-2 print:bg-white print:border">
-                          <span className="text-sm text-gray-500 print:text-[10px]">
-                            {quote.installments}× Mensais
-                          </span>
-                          <span className="font-mono font-bold text-gray-900 print:text-[10px]">
-                            {valorParcela.toLocaleString('pt-BR', {
-                              style: 'currency',
-                              currency: 'BRL',
-                            })}
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                    )}
+                  </div>
                 </div>
 
                 <div>
                   <div className="section-label mb-4 print:mb-2">
                     Prazos & Validade
                   </div>
-                    <div className="grid grid-cols-2 gap-4 print:gap-2">
-                      <div className="p-4 border border-gray-100 rounded-2xl bg-gradient-to-br from-white to-gray-50/50 print:p-2">
-                        <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">
-                          Execução
-                        </p>
-                        <p className="text-sm font-semibold text-gray-900 print:text-[10px]">
-                          {Math.ceil(Number(quote.totalHours) / 20)} semanas
-                        </p>
-                      </div>
-                      <div className="p-4 border border-gray-100 rounded-2xl bg-gradient-to-br from-white to-gray-50/50 print:p-2">
-                        <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">
-                          Válido até
-                        </p>
-                        <p className="text-sm font-semibold text-gray-900 print:text-[10px]">
-                          {quote.expirationDate
-                            ? new Date(quote.expirationDate).toLocaleDateString(
-                                'pt-BR',
-                              )
-                            : 'Sem validade'}
-                        </p>
-                      </div>
+                  <div className="grid grid-cols-2 gap-4 print:gap-2">
+                    <div className="p-4 border border-gray-100 rounded-2xl bg-gradient-to-br from-white to-gray-50/50 print:p-2">
+                      <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">
+                        Execução
+                      </p>
+                      <p className="text-sm font-semibold text-gray-900 print:text-[10px]">
+                        {Math.ceil(Number(quote.totalHours) / 20)} semanas
+                      </p>
                     </div>
+                    <div className="p-4 border border-gray-100 rounded-2xl bg-gradient-to-br from-white to-gray-50/50 print:p-2">
+                      <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">
+                        Válido até
+                      </p>
+                      <p className="text-sm font-semibold text-gray-900 print:text-[10px]">
+                        {quote.expirationDate
+                          ? new Date(quote.expirationDate).toLocaleDateString(
+                              'pt-BR',
+                            )
+                          : 'Sem validade'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -388,11 +395,14 @@ export function ProposalClient({
                     <p className="text-[10px] uppercase font-bold text-gray-400 mb-2 tracking-widest print:text-[8px]">
                       Setup do Projeto
                     </p>
-                    
+
                     {Number(quote.discount) > 0 && (
                       <div className="mb-2 space-y-1">
                         <p className="text-sm font-mono text-gray-400 line-through">
-                          {(Number(quote.totalValue) / (1 - Number(quote.discount) / 100)).toLocaleString('pt-BR', {
+                          {(
+                            Number(quote.totalValue) /
+                            (1 - Number(quote.discount) / 100)
+                          ).toLocaleString('pt-BR', {
                             style: 'currency',
                             currency: 'BRL',
                           })}
@@ -449,7 +459,9 @@ export function ProposalClient({
                       <CheckCircle className="w-3.5 h-3.5 text-brand" />
                       Assinado Digitalmente
                     </p>
-                    <p className="text-sm font-semibold text-gray-700">{quote.signerName}</p>
+                    <p className="text-sm font-semibold text-gray-700">
+                      {quote.signerName}
+                    </p>
                     <p className="text-[10px] text-gray-400 font-mono mt-2">
                       AUTENTICIDADE: {quote.signatureHash}
                     </p>
@@ -476,9 +488,12 @@ export function ProposalClient({
                       <Check className="w-3.5 h-3.5 text-green-600" />
                       Aprovado pelo Cliente
                     </p>
-                    <p className="text-sm font-semibold text-gray-700">{quote.client?.name}</p>
+                    <p className="text-sm font-semibold text-gray-700">
+                      {quote.client?.name}
+                    </p>
                     <p className="text-[10px] text-gray-400 mt-2">
-                      Aceite digital em {new Date(quote.updatedAt).toLocaleDateString('pt-BR')}
+                      Aceite digital em{' '}
+                      {new Date(quote.updatedAt).toLocaleDateString('pt-BR')}
                     </p>
                   </div>
                 ) : (
@@ -501,10 +516,14 @@ export function ProposalClient({
               <span
                 className={cn(
                   'px-3 py-1.5 rounded-full text-[10px] uppercase tracking-wider font-bold',
-                  quote.status === 'aprovada' && 'bg-green-100 text-green-700 ring-1 ring-green-200',
-                  quote.status === 'recusada' && 'bg-red-100 text-red-700 ring-1 ring-red-200',
-                  quote.status === 'rascunho' && 'bg-gray-100 text-gray-700 ring-1 ring-gray-200',
-                  quote.status === 'enviada' && 'bg-blue-100 text-blue-700 ring-1 ring-blue-200',
+                  quote.status === 'aprovada' &&
+                    'bg-green-100 text-green-700 ring-1 ring-green-200',
+                  quote.status === 'recusada' &&
+                    'bg-red-100 text-red-700 ring-1 ring-red-200',
+                  quote.status === 'rascunho' &&
+                    'bg-gray-100 text-gray-700 ring-1 ring-gray-200',
+                  quote.status === 'enviada' &&
+                    'bg-blue-100 text-blue-700 ring-1 ring-blue-200',
                 )}
               >
                 {quote.status}

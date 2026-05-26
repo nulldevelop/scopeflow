@@ -23,15 +23,15 @@ export const createFeatureAction = withPermission(
     try {
       // 1. Verificação de Limite de Plano
       const planInfo = await checkPlanLimit(ctx.organizationId)
-      
+
       const currentFeaturesCount = await prisma.feature.count({
-        where: { organizationId: ctx.organizationId }
+        where: { organizationId: ctx.organizationId },
       })
 
       if (currentFeaturesCount >= planInfo.limits.featuresCount) {
-        return { 
-          success: false, 
-          error: `Você atingiu o limite de ${planInfo.limits.featuresCount} itens no catálogo para o plano ${planInfo.limits.name}. Faça upgrade para adicionar mais itens.` 
+        return {
+          success: false,
+          error: `Você atingiu o limite de ${planInfo.limits.featuresCount} itens no catálogo para o plano ${planInfo.limits.name}. Faça upgrade para adicionar mais itens.`,
         }
       }
 

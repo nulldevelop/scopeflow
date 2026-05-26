@@ -17,28 +17,32 @@ export const defaultFeatures = [
   // Sites & Landing Pages
   {
     name: 'Landing Page de Alta Conversão',
-    description: 'Página única focada em venda/lead com seções de hero, benefícios, prova social e CTA.',
+    description:
+      'Página única focada em venda/lead com seções de hero, benefícios, prova social e CTA.',
     baseHours: 12,
     complexity: 'media',
     categoryName: 'Sites & Landing Pages',
   },
   {
     name: 'Site Institucional (5+ páginas)',
-    description: 'Estrutura completa com Home, Sobre, Serviços, Blog e Contato.',
+    description:
+      'Estrutura completa com Home, Sobre, Serviços, Blog e Contato.',
     baseHours: 24,
     complexity: 'media',
     categoryName: 'Sites & Landing Pages',
   },
   {
     name: 'Blog Integrado',
-    description: 'Sistema de publicação de artigos com categorias, tags e busca.',
+    description:
+      'Sistema de publicação de artigos com categorias, tags e busca.',
     baseHours: 16,
     complexity: 'media',
     categoryName: 'Sites & Landing Pages',
   },
   {
     name: 'Formulário de Contato Avançado',
-    description: 'Integração com CRM, validação de campos e proteção anti-spam (reCAPTCHA).',
+    description:
+      'Integração com CRM, validação de campos e proteção anti-spam (reCAPTCHA).',
     baseHours: 6,
     complexity: 'baixa',
     categoryName: 'Sites & Landing Pages',
@@ -47,21 +51,24 @@ export const defaultFeatures = [
   // Marketing & SEO
   {
     name: 'Otimização de SEO (On-page)',
-    description: 'Configuração de Meta Tags, OpenGraph, Sitemap e estruturação de dados (JSON-LD).',
+    description:
+      'Configuração de Meta Tags, OpenGraph, Sitemap e estruturação de dados (JSON-LD).',
     baseHours: 8,
     complexity: 'baixa',
     categoryName: 'Marketing & SEO',
   },
   {
     name: 'Google Analytics & Tag Manager',
-    description: 'Configuração completa de rastreamento de eventos e conversões.',
+    description:
+      'Configuração completa de rastreamento de eventos e conversões.',
     baseHours: 4,
     complexity: 'baixa',
     categoryName: 'Marketing & SEO',
   },
   {
     name: 'Integração com Pixel de Conversão',
-    description: 'Implementação de Facebook Pixel e Google Ads Conversion Tracking.',
+    description:
+      'Implementação de Facebook Pixel e Google Ads Conversion Tracking.',
     baseHours: 4,
     complexity: 'baixa',
     categoryName: 'Marketing & SEO',
@@ -93,7 +100,8 @@ export const defaultFeatures = [
   // Dashboard
   {
     name: 'Dashboard Analítico',
-    description: 'Visualização de métricas com gráficos interativos (Recharts).',
+    description:
+      'Visualização de métricas com gráficos interativos (Recharts).',
     baseHours: 12,
     complexity: 'alta',
     categoryName: 'Dashboard & Interface',

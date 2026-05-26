@@ -1,6 +1,6 @@
 'use server'
 
-import { createHash } from 'crypto'
+import { createHash } from 'node:crypto'
 import { revalidatePath } from 'next/cache'
 import { withPermission } from '@/lib/permissions/with-permission'
 import { prisma } from '@/lib/prisma'
@@ -28,10 +28,14 @@ export const signQuote = withPermission(
 
       const signedAt = new Date()
       const signerName = user.name
-      
+
       // Generate hash: sha256(quoteId + orgId + userId + signedAt + totalValue)
       const hashContent = `${quote.id}-${ctx.organizationId}-${ctx.userId}-${signedAt.toISOString()}-${quote.totalValue.toString()}`
-      const signatureHash = createHash('sha256').update(hashContent).digest('hex').toUpperCase().slice(0, 16) // Short hash for display
+      const signatureHash = createHash('sha256')
+        .update(hashContent)
+        .digest('hex')
+        .toUpperCase()
+        .slice(0, 16) // Short hash for display
 
       await prisma.quote.update({
         where: { id },

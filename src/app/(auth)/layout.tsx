@@ -40,10 +40,14 @@ export default async function AuthLayout({
 
   // === PROTEÇÃO DE PAGAMENTO (PAYWALL) ===
   // Se o usuário está acessando o dashboard (não o onboarding) e tem organização ativa
-  if (activeOrgId && !pathname.includes('/onboarding') && !pathname.includes('/dashboard/configuracoes')) {
+  if (
+    activeOrgId &&
+    !pathname.includes('/onboarding') &&
+    !pathname.includes('/dashboard/configuracoes')
+  ) {
     const org = await prisma.organization.findUnique({
       where: { id: activeOrgId },
-      include: { subscriptions: { where: { status: 'active' } } }
+      include: { subscriptions: { where: { status: 'active' } } },
     })
 
     if (org?.metadata) {
@@ -51,7 +55,10 @@ export default async function AuthLayout({
       const intendedPlan = metadata.plan
 
       // Se ele escolheu um plano pago no onboarding, mas não tem assinatura ativa
-      if ((intendedPlan === 'pro' || intendedPlan === 'equipe') && org.subscriptions.length === 0) {
+      if (
+        (intendedPlan === 'pro' || intendedPlan === 'equipe') &&
+        org.subscriptions.length === 0
+      ) {
         // Bloqueia e manda para a tela de pagamento
         redirect('/dashboard/configuracoes?tab=pagamento&payment_required=true')
       }
@@ -67,10 +74,10 @@ export default async function AuthLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen bg-[#F8F7F3]">
       <Sidebar user={user} userRole={userRole} />
-      <main className="flex-1 lg:ml-64 min-h-screen">
-        <div className="mx-auto px-4">{children}</div>
+      <main className="flex-1 lg:ml-72 min-h-screen">
+        {children}
       </main>
     </div>
   )

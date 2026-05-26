@@ -46,22 +46,22 @@ export async function getActivePlan(organizationId: string): Promise<Plan> {
   const subscription = await prisma.subscription.findFirst({
     where: {
       organizationId,
-      status: 'active'
+      status: 'active',
     },
-    orderBy: { createdAt: 'desc' }
+    orderBy: { createdAt: 'desc' },
   })
 
   if (!subscription) {
     // Verificar se existe plano definido no metadata da organização (legado onboarding)
     const org = await prisma.organization.findUnique({
       where: { id: organizationId },
-      select: { metadata: true }
+      select: { metadata: true },
     })
 
     if (org?.metadata) {
       const metadata = JSON.parse(org.metadata)
       if (metadata.plan === 'basic' || metadata.plan === 'pro') {
-         return metadata.plan as Plan
+        return metadata.plan as Plan
       }
     }
     return 'free'
@@ -82,8 +82,8 @@ export async function checkPlanLimit(organizationId: string) {
   const quotesCount = await prisma.quote.count({
     where: {
       organizationId,
-      createdAt: { gte: startOfMonth }
-    }
+      createdAt: { gte: startOfMonth },
+    },
   })
 
   return {
@@ -92,6 +92,6 @@ export async function checkPlanLimit(organizationId: string) {
     usage: {
       quotesCount,
     },
-    isWithinLimits: quotesCount < limits.quotesPerMonth
+    isWithinLimits: quotesCount < limits.quotesPerMonth,
   }
 }

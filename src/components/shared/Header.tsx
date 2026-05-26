@@ -35,7 +35,7 @@ export function Header({
       <div className="absolute top-0 right-0 w-96 h-96 bg-brand/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-light/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
 
-      <div className="relative max-w-[1600px] mx-auto">
+      <div className="relative max-w-[1900px]">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="flex items-center gap-4">
             {Icon && (
@@ -56,9 +56,7 @@ export function Header({
           </div>
 
           {children && (
-            <div className="flex items-center gap-3">
-              {children}
-            </div>
+            <div className="flex items-center gap-3">{children}</div>
           )}
         </div>
       </div>

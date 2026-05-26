@@ -123,7 +123,9 @@ export default async function DashboardPage() {
 
             <Card className="p-6 bg-white border border-gray-200 rounded-[24px] flex flex-col hover:shadow-xl hover:shadow-brand/5 transition-all">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-sm font-semibold text-gray-900">Recentes</h3>
+                <h3 className="text-sm font-semibold text-gray-900">
+                  Recentes
+                </h3>
                 <Link
                   href="/orcamentos"
                   className="text-xs text-brand font-medium hover:underline flex items-center gap-1"
@@ -133,8 +135,11 @@ export default async function DashboardPage() {
               </div>
 
               <div className="space-y-6 flex-1">
-                {recentQuotes.map((quote) => (
-                  <div key={quote.id} className="flex items-center justify-between">
+                {recentQuotes.map((quote, idx) => (
+                  <div
+                    key={`${quote.id}-${idx}`}
+                    className="flex items-center justify-between"
+                  >
                     <div>
                       <p className="text-sm font-medium text-gray-900 truncate max-w-[150px]">
                         {quote.title}
@@ -184,9 +189,9 @@ export default async function DashboardPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {recentQuotes.map((quote) => (
+                  {recentQuotes.map((quote, idx) => (
                     <TableRow
-                      key={quote.id}
+                      key={`${quote.id}-${idx}`}
                       className="border-b border-gray-50 hover:bg-gray-50/30 transition-colors"
                     >
                       <TableCell className="font-medium text-gray-900">

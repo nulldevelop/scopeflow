@@ -34,7 +34,7 @@ export const updateSettingsAction = withPermission<[SettingsInput], null>(
       })
 
       const existingMetadata = org?.metadata ? JSON.parse(org.metadata) : {}
-      
+
       const newMetadata = {
         ...existingMetadata,
         answers: {

@@ -117,18 +117,21 @@ export async function completeOnboardingAction(values: OnboardingInput) {
     if (data.plan === 'pro' || data.plan === 'equipe') {
       const PRODUCT_IDS: Record<string, string | undefined> = {
         pro: process.env.ABACATEPAY_PRODUCT_PRO,
-        equipe: process.env.ABACATEPAY_PRODUCT_EQUIPE
+        equipe: process.env.ABACATEPAY_PRODUCT_EQUIPE,
       }
 
       const abacateProductId = PRODUCT_IDS[data.plan]
-      
+
       if (abacateProductId && abacateCustomerId) {
         try {
           const products = await abacatePay.products.list()
           const product = products.find((p) => p.id === abacateProductId)
 
           if (product) {
-            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_AUTH_URL || 'http://localhost:3000'
+            const baseUrl =
+              process.env.NEXT_PUBLIC_APP_URL ||
+              process.env.NEXT_PUBLIC_AUTH_URL ||
+              'http://localhost:3000'
             const checkout = await abacatePay.checkouts.create({
               customerId: abacateCustomerId,
               externalId: `checkout_${org.id}_${Date.now()}`,

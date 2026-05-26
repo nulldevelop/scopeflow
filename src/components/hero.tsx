@@ -108,7 +108,6 @@ export function Hero() {
             Ver Demo
           </Button>
         </motion.div>
-
       </motion.div>
     </section>
   )

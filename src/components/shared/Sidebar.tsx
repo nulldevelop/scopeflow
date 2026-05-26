@@ -37,6 +37,47 @@ const menuItems = [
   { label: 'Configurações', href: '/dashboard/configuracoes', icon: Settings },
 ]
 
+const Logo = () => (
+  <div className="flex items-center gap-3 group px-2">
+    <div className="relative">
+      <div className="absolute inset-0 bg-brand/20 blur-lg rounded-full group-hover:bg-brand/40 transition-all" />
+      <svg
+        width="32"
+        height="32"
+        viewBox="0 0 60 60"
+        fill="none"
+        className="relative"
+        aria-hidden="true"
+      >
+        <title>ScopeFlow</title>
+        <rect width="60" height="60" rx="14" fill="#2A6B5C" />
+        <rect
+          x="13"
+          y="34"
+          width="7"
+          height="13"
+          rx="2"
+          fill="white"
+          opacity="0.40"
+        />
+        <rect
+          x="23"
+          y="26"
+          width="7"
+          height="21"
+          rx="2"
+          fill="white"
+          opacity="0.65"
+        />
+        <rect x="33" y="17" width="7" height="30" rx="2" fill="white" />
+      </svg>
+    </div>
+    <span className="font-black text-xl tracking-tight text-white uppercase group-hover:text-brand-light transition-colors">
+      ScopeFlow
+    </span>
+  </div>
+)
+
 export function Sidebar({ user, userRole }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
@@ -59,46 +100,6 @@ export function Sidebar({ user, userRole }: SidebarProps) {
       },
     })
   }
-
-  const Logo = () => (
-    <div className="flex items-center gap-3 group px-2">
-      <div className="relative">
-        <div className="absolute inset-0 bg-brand/20 blur-lg rounded-full group-hover:bg-brand/40 transition-all" />
-        <svg
-          width="32"
-          height="32"
-          viewBox="0 0 60 60"
-          fill="none"
-          className="relative"
-        >
-          <rect width="60" height="60" rx="14" fill="#2A6B5C" />
-          <rect
-            x="13"
-            y="34"
-            width="7"
-            height="13"
-            rx="2"
-            fill="white"
-            opacity="0.40"
-          />
-          <rect
-            x="23"
-            y="26"
-            width="7"
-            height="21"
-            rx="2"
-            fill="white"
-            opacity="0.65"
-          />
-          <rect x="33" y="17" width="7" height="30" rx="2" fill="white" />
-          <title>ScopeFlow</title>
-        </svg>
-      </div>
-      <span className="font-black text-xl tracking-tight text-white uppercase group-hover:text-brand-light transition-colors">
-        ScopeFlow
-      </span>
-    </div>
-  )
 
   return (
     <>

@@ -18,7 +18,6 @@ function SigninForm() {
     await signIn.social({
       provider,
       callbackURL,
-
     })
   }
 

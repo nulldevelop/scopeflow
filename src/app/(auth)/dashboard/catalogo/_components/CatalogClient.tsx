@@ -1,7 +1,8 @@
 'use client'
 
 import {
-  Check, CreditCard,
+  Check,
+  CreditCard,
   Database,
   Edit2,
   Globe,
@@ -19,7 +20,7 @@ import {
   Trash2,
   Upload,
   X,
-  Zap
+  Zap,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import type React from 'react'

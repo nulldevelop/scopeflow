@@ -22,7 +22,9 @@ export const abacatePay = {
 
     const data = await response.json()
     if (!response.ok || !data.success) {
-      throw new Error(data.error || `AbacatePay API Error: ${response.statusText}`)
+      throw new Error(
+        data.error || `AbacatePay API Error: ${response.statusText}`,
+      )
     }
 
     return data.data
