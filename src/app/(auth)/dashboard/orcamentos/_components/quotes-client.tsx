@@ -69,6 +69,9 @@ export type SerializedQuote = Omit<
 export type QuoteWithClient = SerializedQuote & {
   client: Client | null
   items: SerializedQuoteItem[]
+  organization?: {
+    slug: string
+  }
 }
 
 const filterOptions: { label: string; value: ProjectStatus | 'Todos' }[] = [
@@ -137,8 +140,9 @@ export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
     })
   }
 
-  const handleCopyLink = (id: string) => {
-    const url = `${window.location.origin}/proposta/${id}`
+  const handleCopyLink = (id: string, slug?: string) => {
+    const orgSlug = slug || 'proposta'
+    const url = `${window.location.origin}/${orgSlug}/proposta/${id}`
     navigator.clipboard.writeText(url)
     toast.success('Link da proposta copiado!')
   }
@@ -266,7 +270,7 @@ export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        onClick={() => handleCopyLink(quote.id)}
+                        onClick={() => handleCopyLink(quote.id, quote.organization?.slug)}
                         className="flex items-center gap-2"
                       >
                         <LinkIcon className="w-4 h-4" /> Copiar Link Público

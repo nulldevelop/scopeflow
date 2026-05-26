@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 
-export async function getPublicQuoteById(id: string) {
+export async function getPublicQuoteById(id: string, slug?: string) {
   try {
     const quote = await prisma.quote.findUnique({
       where: {
@@ -16,6 +16,7 @@ export async function getPublicQuoteById(id: string) {
         organization: {
           select: {
             name: true,
+            slug: true,
             logo: true,
           },
         },
@@ -24,6 +25,11 @@ export async function getPublicQuoteById(id: string) {
 
     if (!quote) {
       return { success: false as const, error: 'Orçamento não encontrado' }
+    }
+
+    // Se um slug for fornecido, validar se bate com a organização do orçamento
+    if (slug && quote.organization.slug !== slug) {
+      return { success: false as const, error: 'Link inválido para esta organização' }
     }
 
     return { success: true as const, quote }

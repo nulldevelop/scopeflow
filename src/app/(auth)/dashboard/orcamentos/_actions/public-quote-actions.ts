@@ -21,9 +21,16 @@ export async function publicUpdateQuoteStatus(
         // We could store the signature in metadata or a new field if needed
         // For now, let's just update the status
       },
+      include: {
+        organization: {
+          select: {
+            slug: true,
+          },
+        },
+      },
     })
 
-    revalidatePath(`/proposta/${id}`)
+    revalidatePath(`/${updatedQuote.organization.slug}/proposta/${id}`)
     revalidatePath(`/dashboard/orcamentos/${id}/proposta`)
     revalidatePath('/dashboard/orcamentos')
 

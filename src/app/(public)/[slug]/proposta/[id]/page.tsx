@@ -7,10 +7,10 @@ import type { ProjectStatus } from '@/types'
 export default async function PublicProposalPage({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string; slug: string }>
 }) {
-  const { id } = await params
-  const { quote: quoteData, success } = await getPublicQuoteById(id)
+  const { id, slug } = await params
+  const { quote: quoteData, success } = await getPublicQuoteById(id, slug)
 
   if (!success || !quoteData) {
     redirect('/signin')

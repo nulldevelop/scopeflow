@@ -14,7 +14,7 @@ export default async function ProposalPreviewPage({
   const sessionResponse = await getSessionClient()
 
   if (!sessionResponse.success) {
-    redirect('/sign-in')
+    redirect('/signin')
   }
 
   const { session } = sessionResponse

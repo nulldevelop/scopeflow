@@ -93,7 +93,8 @@ export function ProposalClient({
   }
 
   const handleCopyLink = () => {
-    const url = `${window.location.origin}/proposta/${quote.id}`
+    const orgSlug = quote.organization?.slug || 'proposta'
+    const url = `${window.location.origin}/${orgSlug}/proposta/${quote.id}`
     navigator.clipboard.writeText(url)
     toast.success('Link da proposta copiado!')
   }

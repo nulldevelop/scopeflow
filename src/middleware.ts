@@ -19,7 +19,7 @@ export async function middleware(req: NextRequest) {
     req.cookies.get('scopeflow.session_token')?.value || 
     req.cookies.get('__Secure-scopeflow.session_token')?.value
 
-  const isPublic = publicRoutes.includes(pathname) || pathname.startsWith('/proposta/')
+  const isPublic = publicRoutes.includes(pathname) || pathname.includes('/proposta/')
 
   if (!sessionToken) {
     if (isPublic) return NextResponse.next()

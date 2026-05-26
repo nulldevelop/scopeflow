@@ -13,7 +13,15 @@ export async function getSessionQuotes() {
 
   return prisma.quote.findMany({
     where: { organizationId: activeOrgId },
-    include: { client: true, items: true },
+    include: {
+      client: true,
+      items: true,
+      organization: {
+        select: {
+          slug: true,
+        },
+      },
+    },
     orderBy: { createdAt: 'desc' },
     take: 10,
   })

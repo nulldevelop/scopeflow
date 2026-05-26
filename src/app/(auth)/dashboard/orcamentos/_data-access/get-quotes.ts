@@ -9,6 +9,11 @@ export async function getQuotes(organizationId: string) {
       include: {
         client: true,
         items: true,
+        organization: {
+          select: {
+            slug: true,
+          },
+        },
       },
       orderBy: {
         createdAt: 'desc',
@@ -33,6 +38,11 @@ export async function getQuoteById(organizationId: string, id: string) {
         items: {
           orderBy: {
             order: 'asc',
+          },
+        },
+        organization: {
+          select: {
+            slug: true,
           },
         },
       },
