@@ -1,4 +1,14 @@
-import { Document, Page, StyleSheet, Text, View, Image, Svg, Rect, Path } from '@react-pdf/renderer'
+import {
+  Document,
+  Image,
+  Page,
+  Path,
+  Rect,
+  StyleSheet,
+  Svg,
+  Text,
+  View,
+} from '@react-pdf/renderer'
 import type { QuoteWithClient } from '@/app/(auth)/dashboard/orcamentos/_components/quotes-client'
 
 const BRAND = '#2a6b5c'
@@ -383,22 +393,38 @@ export function ProposalPDF({
           <View style={styles.headerLeft}>
             <View style={styles.logoContainer}>
               {orgLogoUrl && (
-                <Image 
-                  src={orgLogoUrl} 
-                  style={[styles.orgLogo, { objectFit: 'contain' }]} 
+                <Image
+                  src={orgLogoUrl}
+                  style={[styles.orgLogo, { objectFit: 'contain' }]}
                 />
               )}
               <Svg width={24} height={24} viewBox="0 0 60 60">
                 <Rect width={60} height={60} rx={14} fill={BRAND} />
-                <Rect x={13} y={34} width={7} height={13} rx={2} fill="white" opacity={0.4} />
-                <Rect x={23} y={26} width={7} height={21} rx={2} fill="white" opacity={0.65} />
+                <Rect
+                  x={13}
+                  y={34}
+                  width={7}
+                  height={13}
+                  rx={2}
+                  fill="white"
+                  opacity={0.4}
+                />
+                <Rect
+                  x={23}
+                  y={26}
+                  width={7}
+                  height={21}
+                  rx={2}
+                  fill="white"
+                  opacity={0.65}
+                />
                 <Rect x={33} y={17} width={7} height={30} rx={2} fill="white" />
-                <Path 
-                  d="M39 14 L46 8 M46 8 L41.5 8 M46 8 L46 12.5" 
-                  stroke="white" 
-                  strokeWidth={1.8} 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
+                <Path
+                  d="M39 14 L46 8 M46 8 L41.5 8 M46 8 L46 12.5"
+                  stroke="white"
+                  strokeWidth={1.8}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
               </Svg>
               <Text style={styles.companyName}>

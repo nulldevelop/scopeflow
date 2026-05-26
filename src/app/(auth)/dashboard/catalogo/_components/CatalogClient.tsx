@@ -1,14 +1,12 @@
 'use client'
 
 import {
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  CreditCard,
+  Check, CreditCard,
   Database,
   Edit2,
   Globe,
   Layout,
+  Library,
   Lock,
   Mail,
   Monitor,
@@ -21,7 +19,7 @@ import {
   Trash2,
   Upload,
   X,
-  Zap,
+  Zap
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import type React from 'react'
@@ -144,27 +142,26 @@ export function CatalogClient({
   }
 
   const handleNextStep = () => {
-    const features: any[] = []
-    for (const profileId of selectedProfiles) {
-      const profile = defaultFeatures.profiles.find((p) => p.id === profileId)
-      if (profile) {
-        for (const cat of profile.categories) {
-          for (const feat of cat.features) {
-            features.push({
-              ...feat,
-              categoryName: cat.name,
-            })
-          }
-        }
-      }
-    }
+    // Para simplificar, quando o usuário seleciona perfis, adicionamos as features base.
+    // Como defaultFeatures é um array plano, pegamos todas ou filtramos por categorias.
+    // Aqui pegamos todas para permitir a revisão no Passo 2.
+    const features: any[] = defaultFeatures.map((feat: any, index: number) => ({
+      id: String(index),
+      nome: feat.name,
+      descricao: feat.description,
+      horasEstimadas: feat.baseHours,
+      categoria: feat.categoryName,
+    }))
+
     setSelectedFeatures(features)
     setInitStep(2)
   }
 
   const handleInitialize = async () => {
     startTransition(async () => {
-      const res = await initializeDefaultsAction(selectedFeatures)
+      const res = await initializeDefaultsAction({
+        selectedFeatures: selectedFeatures.map((f: any) => f.nome),
+      })
       if (res.success) {
         toast.success('Catálogo inicializado com sucesso!')
         setInitializeModalOpen(false)
@@ -219,7 +216,9 @@ export function CatalogClient({
     initialData?: CatalogFeature | null
   }) => {
     const [name, setName] = useState(initialData?.name || '')
-    const [description, setDescription] = useState(initialData?.description || '')
+    const [description, setDescription] = useState(
+      initialData?.description || '',
+    )
     const [baseHours, setBaseHours] = useState(
       initialData?.baseHours.toString() || '0',
     )
@@ -355,9 +354,10 @@ export function CatalogClient({
 
   return (
     <div className="min-h-screen bg-[#F8F7F3]">
-      <Header 
-        title="Catálogo" 
+      <Header
+        title="Catálogo"
         subtitle="Gerencie módulos, horas e valores que compõem seus orçamentos"
+        icon={Library}
       >
         <Dialog
           open={initializeModalOpen}
@@ -444,9 +444,7 @@ export function CatalogClient({
                       bg: 'bg-purple-50',
                     },
                   ].map((profile) => {
-                    const isSelected = selectedProfiles.includes(
-                      profile.id,
-                    )
+                    const isSelected = selectedProfiles.includes(profile.id)
                     const Icon = profile.icon
                     return (
                       <button
@@ -496,8 +494,7 @@ export function CatalogClient({
                             {f.name}
                           </p>
                           <p className="text-[10px] text-gray-400">
-                            {f.baseHours} horas •{' '}
-                            {f.categoryName}
+                            {f.baseHours} horas • {f.categoryName}
                           </p>
                         </div>
                       </div>
@@ -536,15 +533,10 @@ export function CatalogClient({
                   </Button>
                 )}
                 <Button
-                  onClick={
-                    initStep === 1
-                      ? handleNextStep
-                      : handleInitialize
-                  }
+                  onClick={initStep === 1 ? handleNextStep : handleInitialize}
                   disabled={
                     isPending ||
-                    (initStep === 1 &&
-                      selectedProfiles.length === 0)
+                    (initStep === 1 && selectedProfiles.length === 0)
                   }
                   className="bg-brand hover:bg-brand-dark text-white rounded-xl px-8"
                 >
@@ -651,9 +643,8 @@ export function CatalogClient({
                     className="bg-brand text-white"
                     onClick={async () => {
                       startTransition(async () => {
-                        const res = await createCategoryAction(
-                          editingCategoryName,
-                        )
+                        const res =
+                          await createCategoryAction(editingCategoryName)
                         if (res.success) {
                           toast.success('Categoria criada!')
                           setEditingCategoryName('')

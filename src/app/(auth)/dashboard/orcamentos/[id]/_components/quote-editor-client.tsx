@@ -444,7 +444,7 @@ export function QuoteEditorClient({
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-8 -mt-10 relative z-10">
+      <div className="max-w-7xl mx-auto px-8 -mt-14 relative z-10">
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Main Editor */}

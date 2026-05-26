@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getSessionClient } from '@/lib/getSession'
-import CatalogClient, {
+import {
+  CatalogClient,
   type CatalogFeature,
 } from './_components/CatalogClient'
 import { getAllCategories } from './_data-access/get-categories'

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { IBM_Plex_Mono, Sora } from 'next/font/google'
+import type React from 'react'
 import '@/styles/globals.css'
 import { Toaster } from '@/components/ui/sonner'
 import { cn } from '@/lib/utils'

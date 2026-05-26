@@ -183,24 +183,9 @@ export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F7F3]">
-      <Header
-        title="Orçamentos"
-        subtitle="Gerencie propostas comerciais e acompanhe o status dos seus orçamentos"
-      >
-        <Button
-          onClick={() => router.push('/dashboard/orcamentos/novo')}
-          className="bg-white text-gray-900 hover:bg-gray-50 rounded-xl flex items-center gap-2 px-5 py-2.5 font-medium transition-all shadow-lg shadow-brand/10"
-        >
-          <Plus className="w-4 h-4" />
-          Novo orçamento
-        </Button>
-      </Header>
-
-      {/* Content */}
-      <div className="px-8 -mt-14 relative z-10 pb-12">
-        <div className="max-w-[1600px] mx-auto">
-          {/* Filters */}
+    <div className="px-8 -mt-14 relative z-10 pb-12">
+      <div className="max-w-[1600px] mx-auto">
+        {/* Filters */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div className="relative w-full md:max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -491,6 +476,5 @@ export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
           )}
         </div>
       </div>
-    </div>
   )
 }

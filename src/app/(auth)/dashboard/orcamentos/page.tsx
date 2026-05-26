@@ -1,6 +1,9 @@
 import { redirect } from 'next/navigation'
 import { getSessionClient } from '@/lib/getSession'
 import type { ProjectStatus } from '@/types'
+import { Header } from '@/components/shared/Header'
+import { FileText, Plus } from 'lucide-react'
+import Link from 'next/link'
 import {
   QuotesClient,
   type QuoteWithClient,
@@ -64,5 +67,22 @@ export default async function QuotesPage() {
     }
   })
 
-  return <QuotesClient quotes={quotes} />
+  return (
+    <div className="min-h-screen bg-[#F8F7F3]">
+      <Header
+        title="Orçamentos"
+        subtitle="Gerencie propostas comerciais e acompanhe o status dos seus orçamentos"
+        icon={FileText}
+      >
+        <Link
+          href="/dashboard/orcamentos/novo"
+          className="bg-white text-gray-900 hover:bg-gray-50 rounded-xl flex items-center gap-2 px-5 py-2.5 font-medium transition-all shadow-lg shadow-brand/10"
+        >
+          <Plus className="w-4 h-4" />
+          Novo orçamento
+        </Link>
+      </Header>
+      <QuotesClient quotes={quotes} />
+    </div>
+  )
 }

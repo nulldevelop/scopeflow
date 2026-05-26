@@ -43,12 +43,12 @@ export const signQuote = withPermission(
         },
       })
 
-      ctx.log({ entityId: id, metadata: { signatureHash } })
+      ctx.log({ entityId: id })
       revalidatePath('/dashboard/orcamentos')
       revalidatePath(`/dashboard/orcamentos/${id}`)
       revalidatePath(`/dashboard/orcamentos/${id}/proposta`)
 
-      return { success: true }
+      return { success: true, data: null }
     } catch (error) {
       console.error('[signQuote Error]', error)
       return { success: false, error: 'Erro ao assinar o orçamento.' }

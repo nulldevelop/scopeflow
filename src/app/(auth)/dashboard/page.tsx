@@ -8,6 +8,7 @@ import {
   TrendingUp,
 } from 'lucide-react'
 import Link from 'next/link'
+import { Header } from '@/components/shared/Header'
 import { MetricCard } from '@/components/shared/MetricCard'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { Card } from '@/components/ui/card'
@@ -70,37 +71,19 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#F8F7F3]">
-      {/* Hero Header */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-brand/90 px-8 pt-16 pb-28">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDM0djItSDI0di0yaDEyek0zNiAyNHYySDI0di0yaDEyeiIvPjwvZz48L2c+PC9zdmc+')] opacity-50" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-brand/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-light/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4" />
-        <div className="relative max-w-[1600px] mx-auto">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center ring-1 ring-white/20">
-                <LayoutDashboard className="w-7 h-7 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight">
-                  Dashboard
-                </h1>
-                <p className="text-white/60 text-sm mt-1">
-                  Acompanhe seus orçamentos, conversões e métricas
-                </p>
-              </div>
-            </div>
-
-            <Link
-              href="dashboard/orcamentos/novo"
-              className="bg-white text-gray-900 hover:bg-gray-50 rounded-xl flex items-center gap-2 px-5 py-2.5 font-medium transition-all shadow-lg shadow-brand/10"
-            >
-              <Plus className="w-4 h-4" />
-              Novo orçamento
-            </Link>
-          </div>
-        </div>
-      </div>
+      <Header
+        title="Dashboard"
+        subtitle="Acompanhe seus orçamentos, conversões e métricas"
+        icon={LayoutDashboard}
+      >
+        <Link
+          href="dashboard/orcamentos/novo"
+          className="bg-white text-gray-900 hover:bg-gray-50 rounded-xl flex items-center gap-2 px-5 py-2.5 font-medium transition-all shadow-lg shadow-brand/10"
+        >
+          <Plus className="w-4 h-4" />
+          Novo orçamento
+        </Link>
+      </Header>
 
       {/* Content */}
       <div className="px-8 -mt-14 relative z-10 pb-12">

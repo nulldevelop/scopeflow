@@ -10,6 +10,7 @@ import {
   Search,
   Trash2,
   User,
+  Users,
 } from 'lucide-react'
 import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
@@ -98,6 +99,7 @@ export function ClientsClient({
       <Header 
         title="Clientes" 
         subtitle="Gerencie sua base de clientes e acompanhe o histórico de orçamentos de cada um"
+        icon={Users}
       >
         <Button
           onClick={() => setIsModalOpen(true)}
@@ -236,6 +238,8 @@ export function ClientsClient({
           </p>
         </div>
       )}
+        </div>
+      </div>
     </div>
   )
 }
