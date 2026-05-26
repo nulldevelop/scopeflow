@@ -113,9 +113,11 @@ export function Sidebar({ user, userRole }: SidebarProps) {
 
       {/* Sidebar Overlay */}
       {isOpen && (
-        <div
-          className="fixed inset-0 bg-gray-950/40 backdrop-blur-sm z-40 lg:hidden"
+        <button
+          type="button"
+          className="fixed inset-0 bg-gray-950/40 backdrop-blur-sm z-40 lg:hidden w-full h-full border-none p-0 cursor-default"
           onClick={() => setIsOpen(false)}
+          aria-label="Fechar menu"
         />
       )}
 

@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noImplicitAnyLet: dev */
 'use client'
 
 import {
