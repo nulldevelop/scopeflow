@@ -4,7 +4,7 @@ import { PDFDownloadLink } from '@react-pdf/renderer'
 import { Download } from 'lucide-react'
 import type { QuoteWithClient } from '@/app/(auth)/dashboard/orcamentos/_components/quotes-client'
 import { Button } from '@/components/ui/button'
-import { organization } from '@/lib/auth-client'
+import { useActiveOrganization } from '@/lib/auth-client'
 import { ProposalPDF } from './document'
 
 export default function ProposalPDFDownloadInner({
@@ -12,7 +12,7 @@ export default function ProposalPDFDownloadInner({
 }: {
   quote: QuoteWithClient
 }) {
-  const { data: activeOrg } = organization.useActiveOrganization()
+  const { data: activeOrg } = useActiveOrganization()
 
   return (
     <PDFDownloadLink

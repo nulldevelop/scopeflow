@@ -370,7 +370,7 @@ interface ProposalPDFProps {
   organizationName?: string
   activeOrg?: {
     name: string
-    logo: string | null
+    logo?: string | null
   } | null
 }
 
