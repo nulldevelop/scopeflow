@@ -18,7 +18,7 @@ function SigninForm() {
     await signIn.social({
       provider,
       callbackURL,
-      openWindow: true,
+
     })
   }
 
