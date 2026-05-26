@@ -1,7 +1,7 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -17,6 +17,30 @@ import { Label } from '@/components/ui/label'
 import { createClient } from '../_actions/create-client'
 import { updateClient } from '../_actions/update-client'
 import { type CreateClientInput, createClientSchema } from '../_schemas/client'
+
+function formatCPF(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 11)
+  let formatted = ''
+  for (let i = 0; i < digits.length; i++) {
+    if (i === 3 || i === 6) formatted += '.'
+    if (i === 9) formatted += '-'
+    formatted += digits[i]
+  }
+  return formatted
+}
+
+function formatPhone(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 11)
+  let formatted = ''
+  for (let i = 0; i < digits.length; i++) {
+    if (i === 0) formatted += '('
+    if (i === 2) formatted += ') '
+    if (i === 7 && digits.length > 10) formatted += '-'
+    if (i === 6 && digits.length <= 10) formatted += '-'
+    formatted += digits[i]
+  }
+  return formatted
+}
 
 interface ClientModalProps {
   open: boolean
@@ -44,8 +68,9 @@ export function ClientModal({
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
-  } = useForm<CreateClientInput>({
+  } = useForm({
     resolver: zodResolver(createClientSchema),
     defaultValues: {
       name: initialData?.name || '',
@@ -66,6 +91,22 @@ export function ClientModal({
       })
     }
   }, [initialData, reset, open])
+
+  const handleDocumentChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const formatted = formatCPF(e.target.value)
+      setValue('document', formatted, { shouldValidate: true })
+    },
+    [setValue],
+  )
+
+  const handlePhoneChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const formatted = formatPhone(e.target.value)
+      setValue('phone', formatted, { shouldValidate: true })
+    },
+    [setValue],
+  )
 
   // Reseta form quando abre/fecha
   const handleOpenChange = (isOpen: boolean) => {
@@ -138,12 +179,17 @@ export function ClientModal({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="document">Documento (CPF/CNPJ)</Label>
+            <Label htmlFor="document">CPF</Label>
             <Input
               id="document"
               {...register('document')}
+              onChange={handleDocumentChange}
               placeholder="000.000.000-00"
+              inputMode="numeric"
             />
+            {errors.document && (
+              <p className="text-sm text-red-500">{errors.document.message}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -151,8 +197,13 @@ export function ClientModal({
             <Input
               id="phone"
               {...register('phone')}
+              onChange={handlePhoneChange}
               placeholder="(00) 00000-0000"
+              inputMode="numeric"
             />
+            {errors.phone && (
+              <p className="text-sm text-red-500">{errors.phone.message}</p>
+            )}
           </div>
 
           <DialogFooter className="pt-4">

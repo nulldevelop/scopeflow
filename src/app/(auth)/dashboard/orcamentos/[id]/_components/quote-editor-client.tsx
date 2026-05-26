@@ -1,5 +1,6 @@
 'use client'
 
+import { zodResolver } from '@hookform/resolvers/zod'
 import {
   Calculator,
   Calendar,
@@ -33,6 +34,7 @@ import {
 import { useRouter } from 'next/navigation'
 import type { ElementType } from 'react'
 import { useEffect, useMemo, useState } from 'react'
+import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -43,7 +45,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Field, FieldLabel } from '@/components/ui/field'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -61,7 +63,12 @@ import type { ProjectStatus } from '@/types'
 import { ClientModal } from '../../../clientes/_components/client-modal'
 import { createQuote } from '../../_actions/create-quote'
 import { updateQuote } from '../../_actions/update-quote'
-import type { CreateQuoteInput, UpdateQuoteInput } from '../../_schemas/quote'
+import {
+  type CreateQuoteInput,
+  createQuoteSchema,
+  type UpdateQuoteInput,
+  updateQuoteSchema,
+} from '../../_schemas/quote'
 
 // Mapeamentos e dados mantidos como no original
 const _profileInfo: Record<string, { name: string; icon: ElementType }> = {
@@ -148,11 +155,13 @@ export function QuoteEditorClient({
   clients: initialClients,
   initialFeature,
   initialFeatures = [],
+  suggestedHourlyRate,
 }: {
   initialQuote?: EditorQuote | null
   clients: Client[]
   initialFeature?: EditorFeature | null
   initialFeatures?: EditorFeature[]
+  suggestedHourlyRate?: number
 }) {
   const router = useRouter()
   const { profile, getHours } = useDevProfile()
@@ -167,26 +176,48 @@ export function QuoteEditorClient({
 
   const isNew = !initialQuote
 
-  const [quote, setQuote] = useState<EditorQuote>({
-    title: initialQuote?.title || '',
-    clientId: initialQuote?.clientId || '',
-    status: initialQuote?.status || 'rascunho',
-    hourlyRate: initialQuote?.hourlyRate || 150,
-    totalHours: initialQuote?.totalHours || 0,
-    totalValue: initialQuote?.totalValue || 0,
-    monthlyTotal: initialQuote?.monthlyTotal || 0,
-    items: initialQuote?.items || [],
-    discount: initialQuote?.discount || 0,
-    urgencyFee: initialQuote?.urgencyFee || 0,
-    entryAmount: initialQuote?.entryAmount || 0,
-    installments: initialQuote?.installments || 1,
-    expirationDate:
-      initialQuote?.expirationDate ||
-      new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-        .toISOString()
-        .split('T')[0],
-    description: initialQuote?.description || '',
+  const {
+    register,
+    handleSubmit,
+    control,
+    setValue,
+    reset,
+    trigger,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(updateQuoteSchema),
+    defaultValues: {
+      id: initialQuote?.id || '',
+      title: initialQuote?.title || '',
+      clientId: initialQuote?.clientId || '',
+      status: initialQuote?.status || 'rascunho',
+      hourlyRate: initialQuote?.hourlyRate || suggestedHourlyRate || 150,
+      totalHours: initialQuote?.totalHours || 0,
+      totalValue: initialQuote?.totalValue || 0,
+      monthlyTotal: initialQuote?.monthlyTotal || undefined,
+      items: (initialQuote?.items || []).map((item) => ({
+        ...item,
+        hours: Number(item.hours),
+        unitValue: Number(item.unitValue),
+        monthlyFee: Number(item.monthlyFee),
+      })),
+      discount: initialQuote?.discount || undefined,
+      urgencyFee: initialQuote?.urgencyFee || undefined,
+      entryAmount: initialQuote?.entryAmount || undefined,
+      installments: initialQuote?.installments || 1,
+      expirationDate: initialQuote?.expirationDate
+        ? new Date(initialQuote.expirationDate)
+        : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      description: initialQuote?.description || '',
+    },
   })
+
+  const { fields, append, remove, move, update } = useFieldArray({
+    control,
+    name: 'items',
+  })
+
+  const formValues = useWatch({ control })
 
   const [loading, setLoading] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState('Todos')
@@ -197,52 +228,58 @@ export function QuoteEditorClient({
 
   useEffect(() => {
     if (isNew && initialFeature && features.length > 0) {
-      const exists = quote.items.some(
-        (item) => item.featureId === initialFeature.id,
-      )
+      const exists = fields.some((item) => item.featureId === initialFeature.id)
       if (!exists) {
         const hours = getHours(initialFeature)
-        const newItem: EditorQuoteItem = {
-          id: `temp-${Date.now()}-init`,
+        const newItem = {
           name: initialFeature.nome,
           description: initialFeature.descricao,
           hours: hours,
-          unitValue: hours * (quote.hourlyRate || 0),
+          unitValue: hours * (Number(formValues.hourlyRate) || 150),
           monthlyFee: 0,
           monthlyDuration: 0,
           featureId: initialFeature.id,
           order: 0,
         }
-        setQuote((prev) => ({
-          ...prev,
-          items: [newItem],
-          // Se o recurso inicial tiver uma mensalidade sugerida, podemos usar como valor global inicial
-          monthlyTotal: prev.monthlyTotal || initialFeature.monthlyFee || 0,
-        }))
+        append(newItem)
+        if (!formValues.monthlyTotal) {
+          setValue('monthlyTotal', initialFeature.monthlyFee || 0)
+        }
       }
     }
-  }, [initialFeature, isNew, features, getHours, quote.hourlyRate, quote.items])
+  }, [
+    initialFeature,
+    isNew,
+    features,
+    getHours,
+    formValues.hourlyRate,
+    formValues.monthlyTotal,
+    fields,
+    append,
+    setValue,
+  ])
 
   const totals = useMemo(() => {
-    const totalHoras = (quote.items || []).reduce(
-      (acc: number, item) => acc + Number(item.hours),
+    const totalHoras = (formValues.items || []).reduce(
+      (acc: number, item) => acc + (Number(item?.hours) || 0),
       0,
     )
-    const valorBruto = (quote.items || []).reduce(
-      (acc: number, item) => acc + Number(item.unitValue || 0),
+    const valorBruto = (formValues.items || []).reduce(
+      (acc: number, item) => acc + (Number(item?.unitValue) || 0),
       0,
     )
-    const valorDesconto = (valorBruto * (quote.discount || 0)) / 100
-    const valorUrgencia = (valorBruto * (quote.urgencyFee || 0)) / 100
+    const valorDesconto = (valorBruto * (Number(formValues.discount) || 0)) / 100
+    const valorUrgencia = (valorBruto * (Number(formValues.urgencyFee) || 0)) / 100
+    const valorEntrada = (valorBruto * (Number(formValues.entryAmount) || 0)) / 100
     const totalValor = valorBruto - valorDesconto + valorUrgencia
 
-    const monthlyTotal = quote.monthlyTotal || 0
+    const monthlyTotal = Number(formValues.monthlyTotal) || 0
 
     const prazoSemanas = Math.ceil(totalHoras / 20)
-    const modulos = (quote.items || []).length
+    const modulos = (formValues.items || []).length
     const valorParcela =
-      quote.installments && quote.installments > 1
-        ? (totalValor - (quote.entryAmount || 0)) / quote.installments
+      formValues.installments && Number(formValues.installments) > 1
+        ? (totalValor - valorEntrada) / Number(formValues.installments)
         : 0
 
     return {
@@ -250,86 +287,64 @@ export function QuoteEditorClient({
       valorBruto,
       valorDesconto,
       valorUrgencia,
+      valorEntrada,
       totalValor,
       monthlyTotal,
       prazoSemanas,
       modulos,
       valorParcela,
     }
-  }, [quote])
+  }, [formValues])
 
   const handleAddFeatures = () => {
-    const newItems: EditorQuoteItem[] = features
+    const newItems = features
       .filter((f) => selectedFeatureIds.includes(f.id))
       .map((f, index) => {
         const hours = getHours(f)
         return {
-          id: `temp-${Date.now()}-${f.id}-${index}`,
           name: f.nome,
           description: f.descricao,
           hours: hours,
-          unitValue: hours * (quote.hourlyRate || 0),
+          unitValue: hours * (Number(formValues.hourlyRate) || 150),
           monthlyFee: 0,
           monthlyDuration: 0,
           featureId: f.id,
-          order: quote.items.length + index,
+          order: fields.length + index,
         }
       })
 
-    setQuote((prev) => ({
-      ...prev,
-      items: [...(prev.items || []), ...newItems],
-    }))
+    append(newItems)
     setIsModalOpen(false)
     setSelectedFeatureIds([])
   }
 
-  const updateItem = (itemId: string, updates: Partial<EditorQuoteItem>) => {
-    setQuote((prev) => ({
-      ...prev,
-      items: prev.items.map((item) => {
-        if (item.id === itemId) {
-          const updatedItem = { ...item, ...updates }
-          // If hours changed, recalculate unitValue based on current hourlyRate
-          if (updates.hours !== undefined) {
-            updatedItem.unitValue = updatedItem.hours * (prev.hourlyRate || 0)
-          }
-          return updatedItem
-        }
-        return item
-      }),
-    }))
+  const updateItem = (index: number, updates: any) => {
+    const currentItem = fields[index]
+    const updatedItem = { ...currentItem, ...updates }
+    if (updates.hours !== undefined) {
+      updatedItem.unitValue = updatedItem.hours * (Number(formValues.hourlyRate) || 150)
+    }
+    update(index, updatedItem)
   }
 
   const moveItem = (index: number, direction: 'up' | 'down') => {
-    const newItems = [...quote.items]
     const targetIndex = direction === 'up' ? index - 1 : index + 1
-    if (targetIndex < 0 || targetIndex >= newItems.length) return
-    ;[newItems[index], newItems[targetIndex]] = [
-      newItems[targetIndex],
-      newItems[index],
-    ]
-
-    const finalItems = newItems.map((item, idx) => ({ ...item, order: idx }))
-    setQuote((prev) => ({ ...prev, items: finalItems }))
+    if (targetIndex < 0 || targetIndex >= fields.length) return
+    move(index, targetIndex)
   }
 
-  const removeItem = (itemId: string) => {
-    setQuote((prev) => ({
-      ...prev,
-      items: (prev.items || []).filter((i) => i.id !== itemId),
-    }))
+  const removeItem = (index: number) => {
+    remove(index)
   }
 
-  const handleSave = async () => {
+  const handleSave = async (data: UpdateQuoteInput) => {
     setLoading(true)
     try {
       const finalQuote = {
-        ...quote,
+        ...data,
         totalHours: totals.totalHoras,
         totalValue: totals.totalValor,
         monthlyTotal: totals.monthlyTotal,
-        expirationDate: new Date(quote.expirationDate),
       }
 
       if (isNew) {
@@ -397,7 +412,7 @@ export function QuoteEditorClient({
               Cancelar
             </Button>
             <Button
-              onClick={handleSave}
+              onClick={handleSubmit(handleSave)}
               disabled={loading}
               className="bg-brand text-white hover:bg-brand-dark rounded-xl px-8 shadow-lg shadow-brand/20"
             >
@@ -418,11 +433,11 @@ export function QuoteEditorClient({
                     Título do Projeto
                   </FieldLabel>
                   <Input
-                    value={quote.title}
-                    onChange={(e) => setQuote({ ...quote, title: e.target.value })}
+                    {...register('title')}
                     placeholder="Ex: Desenvolvimento de App Mobile"
                     className="h-12 bg-gray-50 border-none rounded-xl font-bold text-gray-900 focus-visible:ring-1 focus-visible:ring-brand"
                   />
+                  {errors.title && <FieldError>{errors.title.message}</FieldError>}
                 </Field>
 
                 <Field>
@@ -439,21 +454,27 @@ export function QuoteEditorClient({
                       + Novo Cliente
                     </Button>
                   </div>
-                  <Select
-                    value={quote.clientId}
-                    onValueChange={(val) => setQuote({ ...quote, clientId: val })}
-                  >
-                    <SelectTrigger className="h-12 bg-gray-50 border-none rounded-xl text-gray-900 font-medium">
-                      <SelectValue placeholder="Selecione um cliente" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {initialClients.map((client) => (
-                        <SelectItem key={client.id} value={client.id}>
-                          {client.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    control={control}
+                    name="clientId"
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger className="h-12 bg-gray-50 border-none rounded-xl text-gray-900 font-medium">
+                          <SelectValue placeholder="Selecione um cliente" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {initialClients.map((client) => (
+                            <SelectItem key={client.id} value={client.id}>
+                              {client.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.clientId && (
+                    <FieldError>{errors.clientId.message}</FieldError>
+                  )}
                 </Field>
               </div>
 
@@ -464,86 +485,133 @@ export function QuoteEditorClient({
                     <Settings className="w-5 h-5 text-orange-500" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-900">Configurações Financeiras</h3>
-                    <p className="text-xs text-gray-400">Taxas, mensalidade e prazos</p>
+                    <h3 className="font-bold text-gray-900">
+                      Configurações Financeiras
+                    </h3>
+                    <p className="text-xs text-gray-400">
+                      Taxas, mensalidade e prazos
+                    </p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   <Field>
-                    <FieldLabel className="text-[10px] font-bold uppercase text-gray-400 tracking-wider mb-2 px-1">Valor da Hora</FieldLabel>
+                    <FieldLabel className="text-[10px] font-bold uppercase text-gray-400 tracking-wider mb-2 px-1">
+                      Valor da Hora
+                    </FieldLabel>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">R$</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">
+                        R$
+                      </span>
                       <Input
                         type="number"
-                        value={quote.hourlyRate}
-                        onChange={(e) => {
-                          const newRate = Number(e.target.value)
-                          setQuote((prev) => ({
-                            ...prev,
-                            hourlyRate: newRate,
-                            items: prev.items.map((item) => ({
+                        {...register('hourlyRate', {
+                          onChange: (e) => {
+                            const newRate = Number(e.target.value)
+                            const currentItems = fields.map((item, idx) => ({
                               ...item,
-                              unitValue: item.hours * newRate,
-                            })),
-                          }))
-                        }}
+                              unitValue: (item.hours || 0) * newRate,
+                            }))
+                            setValue('items', currentItems as any)
+                          },
+                        })}
                         className="pl-9 h-12 bg-gray-50 border-none rounded-xl font-mono font-bold text-gray-900 focus-visible:ring-1 focus-visible:ring-brand"
                       />
                     </div>
+                    {(suggestedHourlyRate && Number(formValues.hourlyRate) === suggestedHourlyRate) ? (
+                      <span className="text-[10px] text-brand font-medium mt-1 px-1">
+                        Do seu perfil configurado
+                      </span>
+                    ) : suggestedHourlyRate && Number(formValues.hourlyRate) !== suggestedHourlyRate ? (
+                      <span className="text-[10px] text-orange-500 font-medium mt-1 px-1">
+                        Personalizado · seu perfil: R$ {suggestedHourlyRate}
+                      </span>
+                    ) : null}
+                    {errors.hourlyRate && (
+                      <FieldError>{errors.hourlyRate.message}</FieldError>
+                    )}
                   </Field>
 
                   <Field>
-                    <FieldLabel className="text-[10px] font-bold uppercase text-gray-400 tracking-wider mb-2 px-1">Mensalidade Recurrente</FieldLabel>
+                    <FieldLabel className="text-[10px] font-bold uppercase text-gray-400 tracking-wider mb-2 px-1">
+                      Mensalidade Recurrente
+                    </FieldLabel>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-brand text-sm font-bold">R$</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-brand text-sm font-bold">
+                        R$
+                      </span>
                       <Input
                         type="number"
-                        value={quote.monthlyTotal}
-                        onChange={(e) => setQuote({ ...quote, monthlyTotal: Number(e.target.value) })}
+                        {...register('monthlyTotal')}
+                        placeholder="0"
                         className="pl-9 h-12 bg-gray-50 border-none rounded-xl font-mono font-bold text-brand focus-visible:ring-1 focus-visible:ring-brand"
                       />
                     </div>
+                    {errors.monthlyTotal && (
+                      <FieldError>{errors.monthlyTotal.message}</FieldError>
+                    )}
                   </Field>
 
                   <Field>
-                    <FieldLabel className="text-[10px] font-bold uppercase text-gray-400 tracking-wider mb-2 px-1">Validade da Proposta</FieldLabel>
+                    <FieldLabel className="text-[10px] font-bold uppercase text-gray-400 tracking-wider mb-2 px-1">
+                      Validade da Proposta
+                    </FieldLabel>
                     <div className="relative">
                       <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4" />
                       <Input
                         type="date"
-                        value={quote.expirationDate}
-                        onChange={(e) => setQuote({ ...quote, expirationDate: e.target.value })}
+                        value={
+                          formValues.expirationDate instanceof Date
+                            ? formValues.expirationDate.toISOString().split('T')[0]
+                            : formValues.expirationDate
+                        }
+                        onChange={(e) =>
+                          setValue('expirationDate', new Date(e.target.value))
+                        }
                         className="pl-10 h-12 bg-gray-50 border-none rounded-xl font-bold text-gray-700 focus-visible:ring-1 focus-visible:ring-brand"
                       />
                     </div>
+                    {errors.expirationDate && (
+                      <FieldError>{errors.expirationDate.message}</FieldError>
+                    )}
                   </Field>
 
                   <Field>
-                    <FieldLabel className="text-[10px] font-bold uppercase text-gray-400 tracking-wider mb-2 px-1">Entrada (Setup)</FieldLabel>
+                    <FieldLabel className="text-[10px] font-bold uppercase text-gray-400 tracking-wider mb-2 px-1">
+                      Entrada (Setup)
+                    </FieldLabel>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">R$</span>
                       <Input
                         type="number"
-                        value={quote.entryAmount}
-                        onChange={(e) => setQuote({ ...quote, entryAmount: Number(e.target.value) })}
-                        className="pl-9 h-12 bg-gray-50 border-none rounded-xl font-bold text-gray-700 focus-visible:ring-1 focus-visible:ring-brand"
+                        {...register('entryAmount')}
+                        placeholder="0"
+                        className="h-12 bg-gray-50 border-none rounded-xl font-bold text-gray-700 focus-visible:ring-1 focus-visible:ring-brand pr-8"
                       />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold pointer-events-none">
+                        %
+                      </span>
                     </div>
+                    {errors.entryAmount && (
+                      <FieldError>{errors.entryAmount.message}</FieldError>
+                    )}
                   </Field>
 
                   <Field>
-                    <FieldLabel className="text-[10px] font-bold uppercase text-gray-400 tracking-wider mb-2 px-1">Parcelas</FieldLabel>
+                    <FieldLabel className="text-[10px] font-bold uppercase text-gray-400 tracking-wider mb-2 px-1">
+                      Parcelas
+                    </FieldLabel>
                     <div className="relative">
                       <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4" />
                       <Input
                         type="number"
                         min="1"
-                        value={quote.installments}
-                        onChange={(e) => setQuote({ ...quote, installments: Number(e.target.value) })}
+                        {...register('installments')}
                         className="pl-10 h-12 bg-gray-50 border-none rounded-xl font-bold text-gray-700 focus-visible:ring-1 focus-visible:ring-brand"
                       />
                     </div>
+                    {errors.installments && (
+                      <FieldError>{errors.installments.message}</FieldError>
+                    )}
                   </Field>
                 </div>
               </div>
@@ -555,11 +623,13 @@ export function QuoteEditorClient({
                     Descrição do Escopo (visível na proposta)
                   </FieldLabel>
                   <Textarea
-                    value={quote.description}
-                    onChange={(e) => setQuote({ ...quote, description: e.target.value })}
+                    {...register('description')}
                     placeholder="Descreva detalhes gerais do projeto que aparecerão para o cliente..."
                     className="min-h-[100px] bg-gray-50 border-none rounded-2xl resize-none focus-visible:ring-1 focus-visible:ring-brand text-sm leading-relaxed"
                   />
+                  {errors.description && (
+                    <FieldError>{errors.description.message}</FieldError>
+                  )}
                 </Field>
               </div>
             </Card>
@@ -725,8 +795,7 @@ export function QuoteEditorClient({
                 </Dialog>
               </div>
 
-              <div className="space-y-3">
-                {quote.items.length === 0 ? (
+                {fields.length === 0 ? (
                   <div className="py-20 text-center bg-gray-50 rounded-3xl border-2 border-dashed border-gray-100">
                     <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
                       <Plus className="w-8 h-8 text-gray-300" />
@@ -737,7 +806,7 @@ export function QuoteEditorClient({
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {quote.items.map((item, index) => (
+                    {fields.map((item, index) => (
                       <div
                         key={item.id}
                         className="flex items-center gap-4 p-4 bg-white border border-gray-100 rounded-2xl hover:border-brand/20 hover:shadow-sm transition-all group"
@@ -764,10 +833,7 @@ export function QuoteEditorClient({
                         <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
                           <div className="md:col-span-6">
                             <Input
-                              value={item.name}
-                              onChange={(e) =>
-                                updateItem(item.id, { name: e.target.value })
-                              }
+                              {...register(`items.${index}.name`)}
                               className="w-full font-bold text-gray-900 bg-transparent border-none outline-none focus-visible:ring-0 focus:text-brand p-0 h-auto"
                             />
                             <p className="text-xs text-gray-400 truncate">
@@ -778,12 +844,12 @@ export function QuoteEditorClient({
                             <div className="relative w-24">
                               <Input
                                 type="number"
-                                value={item.hours}
-                                onChange={(e) =>
-                                  updateItem(item.id, {
-                                    hours: Number(e.target.value),
-                                  })
-                                }
+                                {...register(`items.${index}.hours`, {
+                                  onChange: (e) =>
+                                    updateItem(index, {
+                                      hours: Number(e.target.value),
+                                    }),
+                                })}
                                 className="w-full h-9 pl-3 pr-7 bg-gray-50 border-none rounded-lg text-sm font-mono font-bold text-gray-700 outline-none focus-visible:ring-1 focus-visible:ring-brand"
                               />
                               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold">
@@ -795,7 +861,7 @@ export function QuoteEditorClient({
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => removeItem(item.id)}
+                              onClick={() => removeItem(index)}
                               className="p-2 text-gray-300 hover:text-red-500 transition-colors"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -806,7 +872,6 @@ export function QuoteEditorClient({
                     ))}
                   </div>
                 )}
-              </div>
             </Card>
           </div>
 
@@ -861,13 +926,8 @@ export function QuoteEditorClient({
                         <div className="relative w-14">
                           <Input
                             type="number"
-                            value={quote.discount}
-                            onChange={(e) =>
-                              setQuote({
-                                ...quote,
-                                discount: Number(e.target.value),
-                              })
-                            }
+                            {...register('discount')}
+                            placeholder="0"
                             className="w-full bg-white/5 border-none rounded h-6 text-center text-xs font-bold text-green-400 outline-none focus-visible:ring-1 focus-visible:ring-green-400/50 p-0"
                           />
                           <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-gray-500 pointer-events-none">
@@ -890,13 +950,8 @@ export function QuoteEditorClient({
                         <div className="relative w-14">
                           <Input
                             type="number"
-                            value={quote.urgencyFee}
-                            onChange={(e) =>
-                              setQuote({
-                                ...quote,
-                                urgencyFee: Number(e.target.value),
-                              })
-                            }
+                            {...register('urgencyFee')}
+                            placeholder="0"
                             className="w-full bg-white/5 border-none rounded h-6 text-center text-xs font-bold text-orange-400 outline-none focus-visible:ring-1 focus-visible:ring-orange-400/50 p-0"
                           />
                           <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-gray-500 pointer-events-none">
@@ -947,15 +1002,28 @@ export function QuoteEditorClient({
                 </div>
               </div>
 
-              {quote.installments > 1 && (
-                <div className="px-8 py-6 bg-brand/10 border-t border-brand/10">
+              {formValues.installments && Number(formValues.installments) > 1 && (
+                <div className="px-8 py-6 bg-brand/10 border-t border-brand/10 space-y-3">
+                  {(Number(formValues.entryAmount) || 0) > 0 && (
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-[10px] font-bold text-brand-light uppercase">
+                        Entrada ({formValues.entryAmount}%)
+                      </span>
+                      <span className="font-mono font-medium">
+                        {totals.valorEntrada.toLocaleString('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL',
+                        })}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex justify-between items-center">
                     <div>
                       <p className="text-[10px] font-bold text-brand-light uppercase">
                         Parcelamento
                       </p>
                       <p className="text-sm font-medium">
-                        {quote.installments}× de{' '}
+                        {formValues.installments}× de{' '}
                         {totals.valorParcela.toLocaleString('pt-BR', {
                           style: 'currency',
                           currency: 'BRL',
@@ -975,7 +1043,7 @@ export function QuoteEditorClient({
         open={isClientModalOpen}
         onOpenChange={setIsClientModalOpen}
         onSuccess={(client) => {
-          setQuote((prev) => ({ ...prev, clientId: client.id }))
+          setValue('clientId', client.id)
           setIsClientModalOpen(false)
         }}
       />

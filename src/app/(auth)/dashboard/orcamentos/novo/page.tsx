@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getSessionClient } from '@/lib/getSession'
+import { prisma } from '@/lib/prisma'
 import {
   getAllFeatures,
   getFeatureById,
@@ -9,6 +10,20 @@ import {
   type EditorFeature,
   QuoteEditorClient,
 } from '../[id]/_components/quote-editor-client'
+
+function calcHourlyRate(answers: Record<string, string | undefined>) {
+  const desiredSalary = Number(answers.desiredSalary) || 0
+  const fixedCosts = Number(answers.fixedCosts) || 0
+  const taxPercentage = Number(answers.taxPercentage) || 0
+  const profitMargin = Number(answers.profitMargin) || 0
+  const workHoursDay = Number(answers.workHoursDay) || 0
+  const workDaysMonth = Number(answers.workDaysMonth) || 22
+  const monthlyGoal =
+    (desiredSalary + fixedCosts) /
+    (1 - (taxPercentage + profitMargin) / 100)
+  const hoursPerMonth = workHoursDay * workDaysMonth
+  return hoursPerMonth > 0 ? Math.ceil(monthlyGoal / hoursPerMonth) : 0
+}
 
 export default async function NewQuotePage({
   searchParams,
@@ -33,7 +48,11 @@ export default async function NewQuotePage({
     )
   }
 
-  const [{ clients }, featuresData] = await Promise.all([
+  const [org, { clients }, featuresData] = await Promise.all([
+    prisma.organization.findUnique({
+      where: { id: activeOrgId },
+      select: { metadata: true },
+    }),
     getClients(activeOrgId),
     getAllFeatures(activeOrgId),
   ])
@@ -67,11 +86,17 @@ export default async function NewQuotePage({
     }
   }
 
+  const metadata = org?.metadata ? JSON.parse(org.metadata) : null
+  const suggestedHourlyRate = metadata?.answers
+    ? calcHourlyRate(metadata.answers)
+    : undefined
+
   return (
     <QuoteEditorClient
       clients={clients || []}
       initialFeature={initialFeature}
       initialFeatures={features}
+      suggestedHourlyRate={suggestedHourlyRate}
     />
   )
 }

@@ -8,6 +8,7 @@ import {
   Crown,
   Database,
   Globe,
+  HelpCircle,
   Layout,
   Rocket,
   Sparkles,
@@ -21,8 +22,16 @@ import { Suspense, useEffect, useMemo, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { Field, FieldError, FieldLabel } from '@/components/ui/field'
+import { Field, FieldContent, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import {
+  Popover,
+  PopoverContent,
+  PopoverDescription,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -275,6 +284,69 @@ const steps = [
   { id: 4, name: 'Plano', description: 'Escolha inicial' },
 ]
 
+const helpTexts: Record<string, { title: string; description: string }> = {
+  taxRegime: {
+    title: 'Regime Tributário',
+    description:
+      'O regime define como você paga impostos. Se não souber, MEI é o padrão para quem começa sozinho.',
+  },
+  taxPercentage: {
+    title: '% Imposto',
+    description:
+      'A porcentagem que sai direto de cada nota emitida. MEI costuma ser fixo (valor baixo), Simples Nacional começa em ~6%.',
+  },
+  workHoursDay: {
+    title: 'Horas/dia',
+    description:
+      'Quantas horas você realmente senta para codar por dia (foco total). Recomendamos 4 a 6 horas úteis.',
+  },
+  desiredSalary: {
+    title: 'Remuneração desejada',
+    description:
+      'Quanto você quer tirar de "salário" livre para você no final do mês.',
+  },
+  fixedCosts: {
+    title: 'Custos fixos',
+    description:
+      'Soma de aluguel, internet, softwares, contador e tudo que você paga todo mês para trabalhar.',
+  },
+  workDaysMonth: {
+    title: 'Dias trabalhados/mês',
+    description: 'Média de dias úteis. Padrão é 22 (segunda a sexta).',
+  },
+  profitMargin: {
+    title: 'Margem de Lucro Alvo',
+    description:
+      'Além do seu salário, quanto a sua empresa deve lucrar para reserva e reinvestimento.',
+  },
+}
+
+function HelpTooltip({
+  title,
+  description,
+}: { title: string; description: string }) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="inline-flex items-center justify-center rounded-full w-4 h-4 bg-gray-100 text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-colors ml-1"
+        >
+          <HelpCircle className="w-3 h-3" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent side="top" align="center" className="w-64">
+        <PopoverHeader>
+          <PopoverTitle className="text-sm font-bold">{title}</PopoverTitle>
+          <PopoverDescription className="text-xs leading-relaxed">
+            {description}
+          </PopoverDescription>
+        </PopoverHeader>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
 function OnboardingContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -320,20 +392,38 @@ function OnboardingContent() {
   const formData = useWatch({ control })
   const activeProfile = profiles.find((p) => p.id === formData.profile)
 
-  const hourlyRate = useMemo(() => {
-    if (!formData.answers) return 0
-    const desiredSalary = Number(formData.answers.desiredSalary) || 0
-    const fixedCosts = Number(formData.answers.fixedCosts) || 0
-    const taxPercentage = Number(formData.answers.taxPercentage) || 0
-    const profitMargin = Number(formData.answers.profitMargin) || 0
-    const workHoursDay = Number(formData.answers.workHoursDay) || 0
-    const workDaysMonth = Number(formData.answers.workDaysMonth) || 22
+  const calc = useMemo(() => {
+    const desiredSalary = Number(formData.answers?.desiredSalary) || 0
+    const fixedCosts = Number(formData.answers?.fixedCosts) || 0
+    const taxPercentage = Number(formData.answers?.taxPercentage) || 0
+    const profitMargin = Number(formData.answers?.profitMargin) || 0
+    const workHoursDay = Number(formData.answers?.workHoursDay) || 0
+    const workDaysMonth = Number(formData.answers?.workDaysMonth) || 22
 
-    const monthlyGoal =
-      (desiredSalary + fixedCosts) / (1 - (taxPercentage + profitMargin) / 100)
+    const baseCost = desiredSalary + fixedCosts
+    const totalDeductionsPct = taxPercentage + profitMargin
+    const adjustmentFactor =
+      totalDeductionsPct < 100 ? 1 - totalDeductionsPct / 100 : 0.01
+    const adjustedMonthlyGoal =
+      adjustmentFactor > 0 ? baseCost / adjustmentFactor : 0
     const hoursPerMonth = workHoursDay * workDaysMonth
+    const hourlyRate =
+      hoursPerMonth > 0 ? Math.ceil(adjustedMonthlyGoal / hoursPerMonth) : 0
 
-    return hoursPerMonth > 0 ? Math.ceil(monthlyGoal / hoursPerMonth) : 0
+    return {
+      desiredSalary,
+      fixedCosts,
+      baseCost,
+      taxPercentage,
+      profitMargin,
+      totalDeductionsPct,
+      adjustmentFactor,
+      adjustedMonthlyGoal,
+      workHoursDay,
+      workDaysMonth,
+      hoursPerMonth,
+      hourlyRate,
+    }
   }, [formData.answers])
 
   const nextStep = async () => {
@@ -623,131 +713,199 @@ function OnboardingContent() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="bg-white p-8 md:p-12 rounded-[32px] shadow-xl border border-gray-100"
+                className="bg-white p-6 md:p-8 rounded-[32px] shadow-xl border border-gray-100"
               >
-                <div className="flex flex-col md:flex-row gap-12">
-                  <div className="flex-1">
-                    <div className="mb-8">
-                      <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand/5 text-brand rounded-full mb-4">
+                <div className="flex flex-col lg:flex-row gap-6">
+                  <div className="flex-1 min-w-0">
+                    <div className="mb-5">
+                      <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand/5 text-brand rounded-full mb-3">
                         <Crown className="w-4 h-4" />
                         <span className="text-[10px] font-bold uppercase tracking-widest">
                           Passo 03: Calibragem
                         </span>
                       </div>
-                      <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                      <h1 className="text-2xl font-bold text-gray-900">
                         Vamos calcular seu valor hora
                       </h1>
-                      <p className="text-gray-500">
+                      <p className="text-sm text-gray-500 mt-1">
                         Responda as perguntas abaixo para calibrarmos sua
                         lucratividade.
                       </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {activeProfile.questions.map((q) => (
                         <Field key={q.id}>
-                          <FieldLabel>{q.label}</FieldLabel>
-                          {q.type === 'select' ? (
-                            <Controller
-                              control={control}
-                              name={`answers.${q.id}`}
-                              render={({ field }) => (
-                                <Select
-                                  onValueChange={field.onChange}
-                                  defaultValue={field.value}
-                                >
-                                  <SelectTrigger className="h-12 rounded-xl bg-gray-50/50 border-gray-100">
-                                    <SelectValue placeholder="Selecione..." />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {q.options?.map((opt) => (
-                                      <SelectItem key={opt} value={opt}>
-                                        {opt}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              )}
-                            />
-                          ) : (
-                            <Input
-                              type={q.type}
-                              {...register(`answers.${q.id}`)}
-                              placeholder={q.placeholder}
-                              className="h-12 rounded-xl bg-gray-50/50 border-gray-100 focus:bg-white"
-                            />
-                          )}
+                          <FieldLabel className="flex items-center gap-1">
+                            {q.label}
+                            {helpTexts[q.id] && (
+                              <HelpTooltip
+                                title={helpTexts[q.id].title}
+                                description={helpTexts[q.id].description}
+                              />
+                            )}
+                          </FieldLabel>
+                          <FieldContent>
+                            {q.type === 'select' ? (
+                              <Controller
+                                control={control}
+                                name={`answers.${q.id}`}
+                                render={({ field }) => (
+                                  <Select
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                  >
+                                    <SelectTrigger className="h-10 rounded-xl bg-gray-50/50 border-gray-100">
+                                      <SelectValue placeholder="Selecione..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {q.options?.map((opt) => (
+                                        <SelectItem key={opt} value={opt}>
+                                          {opt}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                )}
+                              />
+                            ) : (
+                              <Input
+                                type={q.type}
+                                {...register(`answers.${q.id}`)}
+                                placeholder={q.placeholder}
+                                className="h-10 rounded-xl bg-gray-50/50 border-gray-100 focus:bg-white py-2"
+                              />
+                            )}
+                          </FieldContent>
                         </Field>
                       ))}
                       <Field>
-                        <FieldLabel>Dias trabalhados por mês</FieldLabel>
-                        <Input
-                          type="number"
-                          {...register('answers.workDaysMonth')}
-                          placeholder="22"
-                          className="h-12 rounded-xl bg-gray-50/50 border-gray-100 focus:bg-white"
-                        />
+                        <FieldLabel className="flex items-center gap-1">
+                          Dias trabalhados por mês
+                          <HelpTooltip
+                            title={helpTexts.workDaysMonth.title}
+                            description={helpTexts.workDaysMonth.description}
+                          />
+                        </FieldLabel>
+                        <FieldContent>
+                          <Input
+                            type="number"
+                            {...register('answers.workDaysMonth')}
+                            placeholder="22"
+                            className="h-10 rounded-xl bg-gray-50/50 border-gray-100 focus:bg-white py-2"
+                          />
+                        </FieldContent>
                       </Field>
                       <Field>
-                        <FieldLabel>Margem de Lucro Alvo (%)</FieldLabel>
-                        <Input
-                          type="number"
-                          {...register('answers.profitMargin')}
-                          className="h-12 rounded-xl bg-gray-50/50 border-gray-100 focus:bg-white"
-                        />
+                        <FieldLabel className="flex items-center gap-1">
+                          Margem de Lucro (%)
+                          <HelpTooltip
+                            title={helpTexts.profitMargin.title}
+                            description={helpTexts.profitMargin.description}
+                          />
+                        </FieldLabel>
+                        <FieldContent>
+                          <Input
+                            type="number"
+                            {...register('answers.profitMargin')}
+                            className="h-10 rounded-xl bg-gray-50/50 border-gray-100 focus:bg-white py-2"
+                          />
+                        </FieldContent>
                       </Field>
                     </div>
                   </div>
 
-                  <div className="w-full md:w-80">
-                    <div className="sticky top-8 p-6 bg-brand/5 rounded-[24px] border border-brand/10">
-                      <div className="text-center mb-6">
-                        <p className="text-[10px] font-bold text-brand uppercase tracking-[0.2em] mb-2">
-                          Seu Valor Hora Sugerido
+                  <div className="w-full lg:w-80 shrink-0">
+                    <div className="lg:sticky lg:top-8 p-5 bg-brand/[0.04] rounded-[20px] border border-brand/10">
+                      <div className="text-center mb-4">
+                        <p className="text-[10px] font-bold text-brand uppercase tracking-[0.2em] mb-1">
+                          Seu Valor Hora
                         </p>
-                        <h2 className="text-5xl font-black text-gray-900 font-mono tracking-tighter">
-                          R$ {hourlyRate}
+                        <h2 className="text-4xl font-black text-gray-900 font-mono tracking-tighter">
+                          R$ {calc.hourlyRate}
                         </h2>
                       </div>
-                      <div className="space-y-4 pt-6 border-t border-brand/10">
-                        <div className="flex justify-between text-xs">
-                          <span className="text-gray-500">
-                            Custo Base p/ Mês
-                          </span>
-                          <span className="font-bold text-gray-900">
-                            R${' '}
-                            {(Number(formData.answers?.desiredSalary) || 0) +
-                              (Number(formData.answers?.fixedCosts) || 0)}
-                          </span>
+
+                      <div className="space-y-3 pt-4 border-t border-brand/10">
+                        <div className="rounded-xl bg-white/60 px-3 py-2 border border-brand/5">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                              Custo Base
+                            </span>
+                            <span className="text-xs font-bold text-gray-900 font-mono">
+                              R$ {calc.baseCost}
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-gray-400 font-mono">
+                            R$ {calc.desiredSalary} + R$ {calc.fixedCosts}
+                          </p>
                         </div>
-                        <div className="flex justify-between text-xs">
-                          <span className="text-gray-500">Horas Vendáveis</span>
-                          <span className="font-bold text-gray-900">
-                            {(Number(formData.answers?.workHoursDay) || 0) *
-                              (Number(formData.answers?.workDaysMonth) || 22)}
-                            h
-                          </span>
+
+                        <div className="rounded-xl bg-white/60 px-3 py-2 border border-brand/5">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                              Ajuste ({calc.totalDeductionsPct}%)
+                            </span>
+                            <span className="text-xs font-bold text-gray-900 font-mono">
+                              R$ {Math.round(calc.adjustedMonthlyGoal)}
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-gray-400 font-mono">
+                            R$ {calc.baseCost} &divide; {calc.adjustmentFactor.toFixed(2)}
+                          </p>
+                          <div className="flex gap-3 mt-1 text-[10px] text-gray-400 font-mono">
+                            <span>Imposto: {calc.taxPercentage}%</span>
+                            <span>Margem: {calc.profitMargin}%</span>
+                          </div>
+                        </div>
+
+                        <div className="rounded-xl bg-white/60 px-3 py-2 border border-brand/5">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                              Horas Vendáveis
+                            </span>
+                            <span className="text-xs font-bold text-gray-900 font-mono">
+                              {calc.hoursPerMonth}h
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-gray-400 font-mono">
+                            {calc.workHoursDay}h/dia &times; {calc.workDaysMonth} dias
+                          </p>
+                        </div>
+
+                        <div className="rounded-lg bg-brand/10 px-3 py-2.5">
+                          <div className="flex justify-between items-center">
+                            <span className="text-[10px] font-semibold text-brand uppercase tracking-wider">
+                              Fórmula Final
+                            </span>
+                            <span className="text-xs font-bold text-gray-900 font-mono">
+                              R$ {calc.hourlyRate}/h
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-gray-500 font-mono mt-0.5">
+                            R$ {Math.round(calc.adjustedMonthlyGoal)} &divide; {calc.hoursPerMonth}h
+                          </p>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-10 flex justify-between">
+                <div className="mt-6 flex justify-between">
                   <Button
                     type="button"
                     variant="ghost"
                     onClick={prevStep}
-                    className="h-14 px-8 rounded-2xl"
+                    className="h-12 px-6 rounded-2xl"
                   >
                     Voltar
                   </Button>
                   <Button
                     type="button"
                     onClick={nextStep}
-                    className="bg-brand text-white hover:bg-brand-dark h-14 px-8 rounded-2xl gap-2 text-lg shadow-lg shadow-brand/20"
+                    className="bg-brand text-white hover:bg-brand-dark h-12 px-6 rounded-2xl gap-2 shadow-lg shadow-brand/20"
                   >
-                    Último Passo <ArrowRight className="w-5 h-5" />
+                    Último Passo <ArrowRight className="w-4 h-4" />
                   </Button>
                 </div>
               </motion.div>

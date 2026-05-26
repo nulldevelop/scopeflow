@@ -4,14 +4,16 @@ import {
   FileText,
   LayoutDashboard,
   Library,
+  LogOut,
   Menu,
   Settings,
   Users,
   X,
 } from 'lucide-react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import React from 'react'
+import { signOut } from '@/lib/auth-client'
 import { cn } from '@/lib/utils'
 
 interface SidebarProps {
@@ -32,7 +34,18 @@ const menuItems = [
 
 export function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const [isOpen, setIsOpen] = React.useState(false)
+
+  const handleSignOut = async () => {
+    await signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          router.push('/signin')
+        },
+      },
+    })
+  }
 
   const Logo = () => (
     <div className="flex items-center gap-3">
@@ -134,26 +147,36 @@ export function Sidebar({ user }: SidebarProps) {
             })}
           </nav>
 
-          <div className="pt-6 border-t border-gray-100 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-brand-light flex items-center justify-center overflow-hidden">
-              {user?.image ? (
-                <img
-                  src={user.image}
-                  alt={user.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className="text-brand font-semibold text-xs">
-                  {user?.name?.charAt(0).toUpperCase() || '?'}
-                </span>
-              )}
+          <div className="pt-6 border-t border-gray-100 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-brand-light flex items-center justify-center overflow-hidden">
+                {user?.image ? (
+                  <img
+                    src={user.image}
+                    alt={user.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-brand font-semibold text-xs">
+                    {user?.name?.charAt(0).toUpperCase() || '?'}
+                  </span>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {user?.name || 'Usuário'}
+                </p>
+                <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
-                {user?.name || 'Usuário'}
-              </p>
-              <p className="text-xs text-gray-400 truncate">{user?.email}</p>
-            </div>
+
+            <button
+              onClick={handleSignOut}
+              className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              Sair
+            </button>
           </div>
         </div>
       </aside>

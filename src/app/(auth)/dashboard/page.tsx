@@ -9,7 +9,6 @@ import {
 import Link from 'next/link'
 import { Header } from '@/components/shared/Header'
 import { MetricCard } from '@/components/shared/MetricCard'
-import { ProfileSelector } from '@/components/shared/ProfileSelector'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { Card } from '@/components/ui/card'
 import {
@@ -72,10 +71,9 @@ export default async function DashboardPage() {
 
   return (
     <div className="px-8 pb-12">
-      <ProfileSelector />
       <Header title="Dashboard">
         <Link
-          href="/orcamentos/novo"
+          href="dashboard/orcamentos/novo"
           className="bg-brand text-white hover:bg-brand-dark rounded-lg flex items-center gap-2 px-4 py-2"
         >
           <Plus className="w-4 h-4" />
