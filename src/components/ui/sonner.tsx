@@ -9,9 +9,10 @@ import {
 } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { useTheme } from 'next-themes'
+import { Suspense } from 'react'
 import { Toaster as Sonner, type ToasterProps } from 'sonner'
 
-const Toaster = ({ ...props }: ToasterProps) => {
+const ToasterInner = ({ ...props }: ToasterProps) => {
   const { theme = 'system' } = useTheme()
 
   return (
@@ -70,6 +71,14 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }}
       {...props}
     />
+  )
+}
+
+const Toaster = (props: ToasterProps) => {
+  return (
+    <Suspense fallback={null}>
+      <ToasterInner {...props} />
+    </Suspense>
   )
 }
 

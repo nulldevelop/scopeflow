@@ -17,7 +17,7 @@ import {
 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import type { ElementType } from 'react'
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -275,9 +275,7 @@ const steps = [
   { id: 4, name: 'Plano', description: 'Escolha inicial' },
 ]
 
-export const dynamic = 'force-dynamic'
-
-export default function OnboardingPage() {
+function OnboardingContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const planFromUrl = searchParams.get('plan')
@@ -331,7 +329,8 @@ export default function OnboardingPage() {
     const workHoursDay = Number(formData.answers.workHoursDay) || 0
     const workDaysMonth = Number(formData.answers.workDaysMonth) || 22
 
-    const monthlyGoal = (desiredSalary + fixedCosts) / (1 - (taxPercentage + profitMargin) / 100)
+    const monthlyGoal =
+      (desiredSalary + fixedCosts) / (1 - (taxPercentage + profitMargin) / 100)
     const hoursPerMonth = workHoursDay * workDaysMonth
 
     return hoursPerMonth > 0 ? Math.ceil(monthlyGoal / hoursPerMonth) : 0
@@ -387,374 +386,531 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-screen bg-[#F8F7F3] flex flex-col items-center py-12 md:py-20 p-6">
-       <div className="max-w-4xl w-full">
-         {/* Step Indicator */}
-         <div className="mb-20 flex items-center justify-between px-2 relative">
-            {/* Background Line */}
-            <div className="absolute top-5 left-0 w-full h-0.5 bg-gray-200 -z-10" />
-            
-            {steps.map((s) => (
-              <div key={s.id} className="flex flex-col items-center gap-3 relative">
-                <div
-                  className={cn(
-                    "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-500 z-10 bg-white",
-                    step >= s.id
-                      ? "border-brand text-brand shadow-lg shadow-brand/10 scale-110 font-bold"
-                      : "border-gray-200 text-gray-400"
-                  )}
-                >
-                  {step > s.id ? (
-                    <div className="bg-brand w-full h-full rounded-full flex items-center justify-center text-white">
-                      <Check className="w-5 h-5" />
-                    </div>
-                  ) : (
-                    <span>{s.id}</span>
-                  )}
-                </div>
-                <div className="absolute top-12 whitespace-nowrap text-center">
-                  <p className={cn(
-                    "text-[10px] font-bold uppercase tracking-[0.15em] transition-colors duration-500",
-                    step >= s.id ? "text-brand" : "text-gray-400"
-                  )}>
-                    {s.name}
-                  </p>
-                  <p className="text-[9px] text-gray-400 font-medium hidden md:block">
-                    {s.description}
-                  </p>
-                </div>
+      <div className="max-w-4xl w-full">
+        {/* Step Indicator */}
+        <div className="mb-20 flex items-center justify-between px-2 relative">
+          {/* Background Line */}
+          <div className="absolute top-5 left-0 w-full h-0.5 bg-gray-200 -z-10" />
+
+          {steps.map((s) => (
+            <div
+              key={s.id}
+              className="flex flex-col items-center gap-3 relative"
+            >
+              <div
+                className={cn(
+                  'w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-500 z-10 bg-white',
+                  step >= s.id
+                    ? 'border-brand text-brand shadow-lg shadow-brand/10 scale-110 font-bold'
+                    : 'border-gray-200 text-gray-400',
+                )}
+              >
+                {step > s.id ? (
+                  <div className="bg-brand w-full h-full rounded-full flex items-center justify-center text-white">
+                    <Check className="w-5 h-5" />
+                  </div>
+                ) : (
+                  <span>{s.id}</span>
+                )}
               </div>
-            ))}
-          </div>
-
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 relative">
-            <AnimatePresence mode="wait">
-              {step === 1 && (
-                <motion.div
-                  key="step1"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="bg-white p-8 md:p-12 rounded-[32px] shadow-xl border border-gray-100"
+              <div className="absolute top-12 whitespace-nowrap text-center">
+                <p
+                  className={cn(
+                    'text-[10px] font-bold uppercase tracking-[0.15em] transition-colors duration-500',
+                    step >= s.id ? 'text-brand' : 'text-gray-400',
+                  )}
                 >
-                  <div className="mb-8">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand/5 text-brand rounded-full mb-4">
-                      <Sparkles className="w-4 h-4" />
-                      <span className="text-[10px] font-bold uppercase tracking-widest">Passo 01: Identidade</span>
-                    </div>
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Primeiro, como se chama seu negócio?</h1>
-                    <p className="text-gray-500">Isso será usado nas suas propostas e na sua URL exclusiva.</p>
-                  </div>
+                  {s.name}
+                </p>
+                <p className="text-[9px] text-gray-400 font-medium hidden md:block">
+                  {s.description}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
 
-                  <div className="space-y-6">
-                    <Field>
-                      <FieldLabel>Nome da Organização</FieldLabel>
-                      <Input
-                        {...register('orgName')}
-                        onChange={handleOrgNameChange}
-                        placeholder="Ex: Minha Software House"
-                        className="h-14 text-lg rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white transition-all"
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 relative">
+          <AnimatePresence mode="wait">
+            {step === 1 && (
+              <motion.div
+                key="step1"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="bg-white p-8 md:p-12 rounded-[32px] shadow-xl border border-gray-100"
+              >
+                <div className="mb-8">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand/5 text-brand rounded-full mb-4">
+                    <Sparkles className="w-4 h-4" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">
+                      Passo 01: Identidade
+                    </span>
+                  </div>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                    Primeiro, como se chama seu negócio?
+                  </h1>
+                  <p className="text-gray-500">
+                    Isso será usado nas suas propostas e na sua URL exclusiva.
+                  </p>
+                </div>
+
+                <div className="space-y-6">
+                  <Field>
+                    <FieldLabel>Nome da Organização</FieldLabel>
+                    <Input
+                      {...register('orgName')}
+                      onChange={handleOrgNameChange}
+                      placeholder="Ex: Minha Software House"
+                      className="h-14 text-lg rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white transition-all"
+                    />
+                    {errors.orgName && (
+                      <FieldError>{errors.orgName.message}</FieldError>
+                    )}
+                  </Field>
+
+                  <Field>
+                    <FieldLabel>URL Exclusiva</FieldLabel>
+                    <div className="flex items-center h-14 w-full rounded-2xl border border-gray-100 bg-gray-50/50 focus-within:bg-white focus-within:ring-2 focus-within:ring-brand/20 transition-all overflow-hidden px-4 gap-0">
+                      <span className="text-gray-400 font-mono text-sm whitespace-nowrap select-none pr-1">
+                        scopeflow.com.br/
+                      </span>
+                      <input
+                        {...register('slug')}
+                        placeholder="meu-negocio"
+                        className="flex-1 h-full bg-transparent border-none outline-none text-lg font-mono text-gray-900 placeholder:text-gray-300 min-w-0 p-0"
+                        onChange={(e) => {
+                          const val = e.target.value
+                            .toLowerCase()
+                            .replace(/[^a-z0-9-]/g, '')
+                          setValue('slug', val)
+                        }}
                       />
-                      {errors.orgName && <FieldError>{errors.orgName.message}</FieldError>}
-                    </Field>
-
-                    <Field>
-                      <FieldLabel>URL Exclusiva</FieldLabel>
-                      <div className="flex items-center h-14 w-full rounded-2xl border border-gray-100 bg-gray-50/50 focus-within:bg-white focus-within:ring-2 focus-within:ring-brand/20 transition-all overflow-hidden px-4 gap-0">
-                        <span className="text-gray-400 font-mono text-sm whitespace-nowrap select-none pr-1">
-                          scopeflow.com.br/
-                        </span>
-                        <input
-                          {...register('slug')}
-                          placeholder="meu-negocio"
-                          className="flex-1 h-full bg-transparent border-none outline-none text-lg font-mono text-gray-900 placeholder:text-gray-300 min-w-0 p-0"
-                          onChange={(e) => {
-                            const val = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '')
-                            setValue('slug', val)
-                          }}
-                        />
-                      </div>
-                      <p className="text-[10px] text-gray-400 mt-2">Dica: Use apenas letras minúsculas, números e hífens.</p>
-                      {errors.slug && <FieldError>{errors.slug.message}</FieldError>}
-                    </Field>
-                  </div>
-
-                  <div className="mt-10 flex justify-end">
-                    <Button
-                      type="button"
-                      onClick={nextStep}
-                      className="bg-brand text-white hover:bg-brand-dark h-14 px-8 rounded-2xl gap-2 text-lg shadow-lg shadow-brand/20"
-                    >
-                      Continuar <ArrowRight className="w-5 h-5" />
-                    </Button>
-                  </div>
-                </motion.div>
-              )}
-
-              {step === 2 && (
-                <motion.div
-                  key="step2"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="bg-white p-8 md:p-12 rounded-[32px] shadow-xl border border-gray-100"
-                >
-                  <div className="mb-8">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand/5 text-brand rounded-full mb-4">
-                      <Star className="w-4 h-4" />
-                      <span className="text-[10px] font-bold uppercase tracking-widest">Passo 02: Perfil</span>
                     </div>
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Qual seu perfil de trabalho?</h1>
-                    <p className="text-gray-500">Isso nos ajuda a pré-configurar seu catálogo de horas e complexidade.</p>
-                  </div>
+                    <p className="text-[10px] text-gray-400 mt-2">
+                      Dica: Use apenas letras minúsculas, números e hífens.
+                    </p>
+                    {errors.slug && (
+                      <FieldError>{errors.slug.message}</FieldError>
+                    )}
+                  </Field>
+                </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {profiles.map((p) => {
-                      const Icon = p.icon
-                      const isSelected = formData.profile === p.id
-                      return (
-                        <button
-                          key={p.id}
-                          type="button"
-                          onClick={() => {
-                            setValue('profile', p.id)
-                            // Reset answers to default for this profile to avoid calculation ghosting
-                            setValue('answers', {
-                              taxRegime: 'Simples Nacional',
-                              taxPercentage: '6',
-                              workHoursDay: '6',
-                              workDaysMonth: '22',
-                              desiredSalary: '5000',
-                              fixedCosts: '1000',
-                              contingencyReserve: '10',
-                              profitMargin: '20',
-                            })
-                          }}
+                <div className="mt-10 flex justify-end">
+                  <Button
+                    type="button"
+                    onClick={nextStep}
+                    className="bg-brand text-white hover:bg-brand-dark h-14 px-8 rounded-2xl gap-2 text-lg shadow-lg shadow-brand/20"
+                  >
+                    Continuar <ArrowRight className="w-5 h-5" />
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+
+            {step === 2 && (
+              <motion.div
+                key="step2"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="bg-white p-8 md:p-12 rounded-[32px] shadow-xl border border-gray-100"
+              >
+                <div className="mb-8">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand/5 text-brand rounded-full mb-4">
+                    <Star className="w-4 h-4" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">
+                      Passo 02: Perfil
+                    </span>
+                  </div>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                    Qual seu perfil de trabalho?
+                  </h1>
+                  <p className="text-gray-500">
+                    Isso nos ajuda a pré-configurar seu catálogo de horas e
+                    complexidade.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {profiles.map((p) => {
+                    const Icon = p.icon
+                    const isSelected = formData.profile === p.id
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => {
+                          setValue('profile', p.id)
+                          // Reset answers to default for this profile to avoid calculation ghosting
+                          setValue('answers', {
+                            taxRegime: 'Simples Nacional',
+                            taxPercentage: '6',
+                            workHoursDay: '6',
+                            workDaysMonth: '22',
+                            desiredSalary: '5000',
+                            fixedCosts: '1000',
+                            contingencyReserve: '10',
+                            profitMargin: '20',
+                          })
+                        }}
+                        className={cn(
+                          'flex items-start gap-4 p-5 rounded-3xl border-2 transition-all text-left group',
+                          isSelected
+                            ? 'bg-white border-brand shadow-lg ring-1 ring-brand/10'
+                            : 'bg-gray-50/50 border-transparent hover:border-gray-200',
+                        )}
+                      >
+                        <div
                           className={cn(
-                            "flex items-start gap-4 p-5 rounded-3xl border-2 transition-all text-left group",
+                            'w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-colors',
                             isSelected
-                              ? "bg-white border-brand shadow-lg ring-1 ring-brand/10"
-                              : "bg-gray-50/50 border-transparent hover:border-gray-200"
+                              ? 'bg-brand text-white'
+                              : 'bg-white text-gray-400 group-hover:text-brand',
                           )}
                         >
-                          <div className={cn(
-                            "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-colors",
-                            isSelected ? "bg-brand text-white" : "bg-white text-gray-400 group-hover:text-brand"
-                          )}>
-                            <Icon className="w-6 h-6" />
-                          </div>
-                          <div>
-                            <p className={cn("font-bold transition-colors", isSelected ? "text-gray-900" : "text-gray-600 group-hover:text-gray-900")}>
-                              {p.title}
-                            </p>
-                            <p className="text-xs text-gray-400 leading-relaxed mt-1">{p.description}</p>
-                          </div>
-                        </button>
-                      )
-                    })}
-                  </div>
-                  {errors.profile && <p className="text-red-500 text-xs mt-4">{errors.profile.message}</p>}
-
-                  <div className="mt-10 flex justify-between">
-                    <Button type="button" variant="ghost" onClick={prevStep} className="h-14 px-8 rounded-2xl">Voltar</Button>
-                    <Button
-                      type="button"
-                      onClick={nextStep}
-                      disabled={!formData.profile}
-                      className="bg-brand text-white hover:bg-brand-dark h-14 px-8 rounded-2xl gap-2 text-lg shadow-lg shadow-brand/20"
-                    >
-                      Configurar Metas <ArrowRight className="w-5 h-5" />
-                    </Button>
-                  </div>
-                </motion.div>
-              )}
-
-              {step === 3 && activeProfile && (
-                <motion.div
-                  key="step3"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="bg-white p-8 md:p-12 rounded-[32px] shadow-xl border border-gray-100"
-                >
-                  <div className="flex flex-col md:flex-row gap-12">
-                    <div className="flex-1">
-                      <div className="mb-8">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand/5 text-brand rounded-full mb-4">
-                          <Crown className="w-4 h-4" />
-                          <span className="text-[10px] font-bold uppercase tracking-widest">Passo 03: Calibragem</span>
+                          <Icon className="w-6 h-6" />
                         </div>
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Vamos calcular seu valor hora</h1>
-                        <p className="text-gray-500">Responda as perguntas abaixo para calibrarmos sua lucratividade.</p>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {activeProfile.questions.map((q) => (
-                          <Field key={q.id}>
-                            <FieldLabel>{q.label}</FieldLabel>
-                            {q.type === 'select' ? (
-                              <Controller
-                                control={control}
-                                name={`answers.${q.id}`}
-                                render={({ field }) => (
-                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <SelectTrigger className="h-12 rounded-xl bg-gray-50/50 border-gray-100">
-                                      <SelectValue placeholder="Selecione..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {q.options?.map(opt => (
-                                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                )}
-                              />
-                            ) : (
-                              <Input
-                                type={q.type}
-                                {...register(`answers.${q.id}`)}
-                                placeholder={q.placeholder}
-                                className="h-12 rounded-xl bg-gray-50/50 border-gray-100 focus:bg-white"
-                              />
+                        <div>
+                          <p
+                            className={cn(
+                              'font-bold transition-colors',
+                              isSelected
+                                ? 'text-gray-900'
+                                : 'text-gray-600 group-hover:text-gray-900',
                             )}
-                          </Field>
-                        ))}
-                        <Field>
-                          <FieldLabel>Dias trabalhados por mês</FieldLabel>
-                          <Input
-                            type="number"
-                            {...register('answers.workDaysMonth')}
-                            placeholder="22"
-                            className="h-12 rounded-xl bg-gray-50/50 border-gray-100 focus:bg-white"
-                          />
-                        </Field>
-                        <Field>
-                          <FieldLabel>Margem de Lucro Alvo (%)</FieldLabel>
-                          <Input
-                            type="number"
-                            {...register('answers.profitMargin')}
-                            className="h-12 rounded-xl bg-gray-50/50 border-gray-100 focus:bg-white"
-                          />
-                        </Field>
+                          >
+                            {p.title}
+                          </p>
+                          <p className="text-xs text-gray-400 leading-relaxed mt-1">
+                            {p.description}
+                          </p>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+                {errors.profile && (
+                  <p className="text-red-500 text-xs mt-4">
+                    {errors.profile.message}
+                  </p>
+                )}
+
+                <div className="mt-10 flex justify-between">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={prevStep}
+                    className="h-14 px-8 rounded-2xl"
+                  >
+                    Voltar
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={nextStep}
+                    disabled={!formData.profile}
+                    className="bg-brand text-white hover:bg-brand-dark h-14 px-8 rounded-2xl gap-2 text-lg shadow-lg shadow-brand/20"
+                  >
+                    Configurar Metas <ArrowRight className="w-5 h-5" />
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+
+            {step === 3 && activeProfile && (
+              <motion.div
+                key="step3"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="bg-white p-8 md:p-12 rounded-[32px] shadow-xl border border-gray-100"
+              >
+                <div className="flex flex-col md:flex-row gap-12">
+                  <div className="flex-1">
+                    <div className="mb-8">
+                      <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand/5 text-brand rounded-full mb-4">
+                        <Crown className="w-4 h-4" />
+                        <span className="text-[10px] font-bold uppercase tracking-widest">
+                          Passo 03: Calibragem
+                        </span>
                       </div>
+                      <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                        Vamos calcular seu valor hora
+                      </h1>
+                      <p className="text-gray-500">
+                        Responda as perguntas abaixo para calibrarmos sua
+                        lucratividade.
+                      </p>
                     </div>
 
-                    <div className="w-full md:w-80">
-                      <div className="sticky top-8 p-6 bg-brand/5 rounded-[24px] border border-brand/10">
-                         <div className="text-center mb-6">
-                            <p className="text-[10px] font-bold text-brand uppercase tracking-[0.2em] mb-2">Seu Valor Hora Sugerido</p>
-                            <h2 className="text-5xl font-black text-gray-900 font-mono tracking-tighter">
-                              R$ {hourlyRate}
-                            </h2>
-                         </div>
-                         <div className="space-y-4 pt-6 border-t border-brand/10">
-                            <div className="flex justify-between text-xs">
-                              <span className="text-gray-500">Custo Base p/ Mês</span>
-                              <span className="font-bold text-gray-900">R$ {(Number(formData.answers?.desiredSalary) || 0) + (Number(formData.answers?.fixedCosts) || 0)}</span>
-                            </div>
-                            <div className="flex justify-between text-xs">
-                              <span className="text-gray-500">Horas Vendáveis</span>
-                              <span className="font-bold text-gray-900">{(Number(formData.answers?.workHoursDay) || 0) * (Number(formData.answers?.workDaysMonth) || 22)}h</span>
-                            </div>
-                         </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-10 flex justify-between">
-                    <Button type="button" variant="ghost" onClick={prevStep} className="h-14 px-8 rounded-2xl">Voltar</Button>
-                    <Button
-                      type="button"
-                      onClick={nextStep}
-                      className="bg-brand text-white hover:bg-brand-dark h-14 px-8 rounded-2xl gap-2 text-lg shadow-lg shadow-brand/20"
-                    >
-                      Último Passo <ArrowRight className="w-5 h-5" />
-                    </Button>
-                  </div>
-                </motion.div>
-              )}
-
-              {step === 4 && (
-                <motion.div
-                  key="step4"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="bg-white p-8 md:p-12 rounded-[32px] shadow-xl border border-gray-100"
-                >
-                   <div className="mb-10 text-center max-w-2xl mx-auto">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand/5 text-brand rounded-full mb-4">
-                      <Zap className="w-4 h-4" />
-                      <span className="text-[10px] font-bold uppercase tracking-widest">Passo 04: Escolha o Plano</span>
-                    </div>
-                    <h1 className="text-4xl font-black text-gray-900 mb-4 tracking-tight">Comece como quiser.</h1>
-                    <p className="text-gray-500">Acesse o ScopeFlow hoje mesmo com os limites que você precisa.</p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      {[
-                        { id: 'free', name: 'Grátis', price: 'R$ 0', description: 'Para quem está começando a organizar.', features: ['Até 5 orçamentos/mês', 'Proposta via Link', 'Catálogo Básico'] },
-                        { id: 'pro', name: 'Pro', price: 'R$ 49', description: 'Foco total em vendas profissionais.', features: ['Orçamentos Ilimitados', 'PDF Customizado', 'Suporte Prioritário'], popular: true },
-                        { id: 'equipe', name: 'Equipe', price: 'R$ 129', description: 'Para times e agências.', features: ['Tudo do Pro', 'Até 5 membros', 'Painel Admin'] },
-                      ].map((plan) => (
-                        <button
-                          key={plan.id}
-                          type="button"
-                          onClick={() => {
-                            // @ts-expect-error - enum type mismatch
-                            setValue('plan', plan.id)
-                          }}
-                          className={cn(
-                            "relative flex flex-col p-6 rounded-[32px] border-2 transition-all text-left",
-                            formData.plan === plan.id
-                              ? "bg-white border-brand shadow-2xl ring-1 ring-brand/10 scale-[1.02]"
-                              : "bg-gray-50/50 border-transparent hover:border-gray-200"
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {activeProfile.questions.map((q) => (
+                        <Field key={q.id}>
+                          <FieldLabel>{q.label}</FieldLabel>
+                          {q.type === 'select' ? (
+                            <Controller
+                              control={control}
+                              name={`answers.${q.id}`}
+                              render={({ field }) => (
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                >
+                                  <SelectTrigger className="h-12 rounded-xl bg-gray-50/50 border-gray-100">
+                                    <SelectValue placeholder="Selecione..." />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {q.options?.map((opt) => (
+                                      <SelectItem key={opt} value={opt}>
+                                        {opt}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              )}
+                            />
+                          ) : (
+                            <Input
+                              type={q.type}
+                              {...register(`answers.${q.id}`)}
+                              placeholder={q.placeholder}
+                              className="h-12 rounded-xl bg-gray-50/50 border-gray-100 focus:bg-white"
+                            />
                           )}
-                        >
-                          {plan.popular && (
-                             <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold uppercase tracking-[0.2em] px-4 py-1.5 rounded-full shadow-lg whitespace-nowrap">
-                               Mais Popular
-                             </div>
-                          )}
-                          <div className="mb-6">
-                            <h3 className="text-xl font-bold text-gray-900">{plan.name}</h3>
-                            <div className="mt-2 flex items-baseline gap-1">
-                               <span className="text-2xl font-black text-gray-900 font-mono">{plan.price}</span>
-                               <span className="text-gray-400 text-xs">/mês</span>
-                            </div>
-                            <p className="text-[10px] text-gray-400 mt-2 min-h-[30px]">{plan.description}</p>
-                          </div>
-                          <ul className="space-y-3 mb-8 flex-1">
-                             {plan.features.map(f => (
-                               <li key={f} className="flex items-center gap-2 text-[11px] text-gray-600">
-                                 <Check className="w-3.5 h-3.5 text-brand" /> {f}
-                               </li>
-                             ))}
-                          </ul>
-                          <div className={cn(
-                            "w-full h-10 rounded-xl flex items-center justify-center font-bold text-xs transition-all",
-                            formData.plan === plan.id ? "bg-brand text-white" : "bg-white border border-gray-200 text-gray-400"
-                          )}>
-                             {formData.plan === plan.id ? "Plano Selecionado" : "Selecionar Plano"}
-                          </div>
-                        </button>
+                        </Field>
                       ))}
+                      <Field>
+                        <FieldLabel>Dias trabalhados por mês</FieldLabel>
+                        <Input
+                          type="number"
+                          {...register('answers.workDaysMonth')}
+                          placeholder="22"
+                          className="h-12 rounded-xl bg-gray-50/50 border-gray-100 focus:bg-white"
+                        />
+                      </Field>
+                      <Field>
+                        <FieldLabel>Margem de Lucro Alvo (%)</FieldLabel>
+                        <Input
+                          type="number"
+                          {...register('answers.profitMargin')}
+                          className="h-12 rounded-xl bg-gray-50/50 border-gray-100 focus:bg-white"
+                        />
+                      </Field>
+                    </div>
                   </div>
 
-                  <div className="mt-12 flex justify-between items-center">
-                    <Button type="button" variant="ghost" onClick={prevStep} className="h-14 px-8 rounded-2xl">Voltar</Button>
-                    <Button
-                      disabled={loading}
-                      type="submit"
-                      className="bg-gray-900 text-white hover:bg-black h-14 px-12 rounded-2xl text-lg font-bold shadow-xl transition-all active:scale-95"
-                    >
-                      {loading ? "Finalizando..." : "Concluir e Acessar"}
-                    </Button>
+                  <div className="w-full md:w-80">
+                    <div className="sticky top-8 p-6 bg-brand/5 rounded-[24px] border border-brand/10">
+                      <div className="text-center mb-6">
+                        <p className="text-[10px] font-bold text-brand uppercase tracking-[0.2em] mb-2">
+                          Seu Valor Hora Sugerido
+                        </p>
+                        <h2 className="text-5xl font-black text-gray-900 font-mono tracking-tighter">
+                          R$ {hourlyRate}
+                        </h2>
+                      </div>
+                      <div className="space-y-4 pt-6 border-t border-brand/10">
+                        <div className="flex justify-between text-xs">
+                          <span className="text-gray-500">
+                            Custo Base p/ Mês
+                          </span>
+                          <span className="font-bold text-gray-900">
+                            R${' '}
+                            {(Number(formData.answers?.desiredSalary) || 0) +
+                              (Number(formData.answers?.fixedCosts) || 0)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-gray-500">Horas Vendáveis</span>
+                          <span className="font-bold text-gray-900">
+                            {(Number(formData.answers?.workHoursDay) || 0) *
+                              (Number(formData.answers?.workDaysMonth) || 22)}
+                            h
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </form>
-       </div>
+                </div>
+
+                <div className="mt-10 flex justify-between">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={prevStep}
+                    className="h-14 px-8 rounded-2xl"
+                  >
+                    Voltar
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={nextStep}
+                    className="bg-brand text-white hover:bg-brand-dark h-14 px-8 rounded-2xl gap-2 text-lg shadow-lg shadow-brand/20"
+                  >
+                    Último Passo <ArrowRight className="w-5 h-5" />
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+
+            {step === 4 && (
+              <motion.div
+                key="step4"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="bg-white p-8 md:p-12 rounded-[32px] shadow-xl border border-gray-100"
+              >
+                <div className="mb-10 text-center max-w-2xl mx-auto">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand/5 text-brand rounded-full mb-4">
+                    <Zap className="w-4 h-4" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">
+                      Passo 04: Escolha o Plano
+                    </span>
+                  </div>
+                  <h1 className="text-4xl font-black text-gray-900 mb-4 tracking-tight">
+                    Comece como quiser.
+                  </h1>
+                  <p className="text-gray-500">
+                    Acesse o ScopeFlow hoje mesmo com os limites que você
+                    precisa.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {[
+                    {
+                      id: 'free',
+                      name: 'Grátis',
+                      price: 'R$ 0',
+                      description: 'Para quem está começando a organizar.',
+                      features: [
+                        'Até 5 orçamentos/mês',
+                        'Proposta via Link',
+                        'Catálogo Básico',
+                      ],
+                    },
+                    {
+                      id: 'pro',
+                      name: 'Pro',
+                      price: 'R$ 49',
+                      description: 'Foco total em vendas profissionais.',
+                      features: [
+                        'Orçamentos Ilimitados',
+                        'PDF Customizado',
+                        'Suporte Prioritário',
+                      ],
+                      popular: true,
+                    },
+                    {
+                      id: 'equipe',
+                      name: 'Equipe',
+                      price: 'R$ 129',
+                      description: 'Para times e agências.',
+                      features: [
+                        'Tudo do Pro',
+                        'Até 5 membros',
+                        'Painel Admin',
+                      ],
+                    },
+                  ].map((plan) => (
+                    <button
+                      key={plan.id}
+                      type="button"
+                      onClick={() => {
+                        // @ts-expect-error - enum type mismatch
+                        setValue('plan', plan.id)
+                      }}
+                      className={cn(
+                        'relative flex flex-col p-6 rounded-[32px] border-2 transition-all text-left',
+                        formData.plan === plan.id
+                          ? 'bg-white border-brand shadow-2xl ring-1 ring-brand/10 scale-[1.02]'
+                          : 'bg-gray-50/50 border-transparent hover:border-gray-200',
+                      )}
+                    >
+                      {plan.popular && (
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold uppercase tracking-[0.2em] px-4 py-1.5 rounded-full shadow-lg whitespace-nowrap">
+                          Mais Popular
+                        </div>
+                      )}
+                      <div className="mb-6">
+                        <h3 className="text-xl font-bold text-gray-900">
+                          {plan.name}
+                        </h3>
+                        <div className="mt-2 flex items-baseline gap-1">
+                          <span className="text-2xl font-black text-gray-900 font-mono">
+                            {plan.price}
+                          </span>
+                          <span className="text-gray-400 text-xs">/mês</span>
+                        </div>
+                        <p className="text-[10px] text-gray-400 mt-2 min-h-[30px]">
+                          {plan.description}
+                        </p>
+                      </div>
+                      <ul className="space-y-3 mb-8 flex-1">
+                        {plan.features.map((f) => (
+                          <li
+                            key={f}
+                            className="flex items-center gap-2 text-[11px] text-gray-600"
+                          >
+                            <Check className="w-3.5 h-3.5 text-brand" /> {f}
+                          </li>
+                        ))}
+                      </ul>
+                      <div
+                        className={cn(
+                          'w-full h-10 rounded-xl flex items-center justify-center font-bold text-xs transition-all',
+                          formData.plan === plan.id
+                            ? 'bg-brand text-white'
+                            : 'bg-white border border-gray-200 text-gray-400',
+                        )}
+                      >
+                        {formData.plan === plan.id
+                          ? 'Plano Selecionado'
+                          : 'Selecionar Plano'}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="mt-12 flex justify-between items-center">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={prevStep}
+                    className="h-14 px-8 rounded-2xl"
+                  >
+                    Voltar
+                  </Button>
+                  <Button
+                    disabled={loading}
+                    type="submit"
+                    className="bg-gray-900 text-white hover:bg-black h-14 px-12 rounded-2xl text-lg font-bold shadow-xl transition-all active:scale-95"
+                  >
+                    {loading ? 'Finalizando...' : 'Concluir e Acessar'}
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </form>
+      </div>
     </div>
+  )
+}
+
+export const dynamic = 'force-dynamic'
+
+export default function OnboardingPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#F8F7F3] flex items-center justify-center text-gray-400">
+          Carregando configuração...
+        </div>
+      }
+    >
+      <OnboardingContent />
+    </Suspense>
   )
 }
