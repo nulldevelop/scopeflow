@@ -6,9 +6,9 @@ import {
   CheckCircle2,
   CreditCard,
   Save,
+  Settings,
   Shield,
   User,
-  Settings,
 } from 'lucide-react'
 import Image from 'next/image'
 import React, { useEffect, useMemo } from 'react'
@@ -184,7 +184,7 @@ export function SettingsClient({
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F7F3]">
+    <div className="max-h-screen bg-[#F8F7F3] overflow-y-hidden">
       <Header
         title="Configurações"
         subtitle="Gerencie seu perfil, preferências e detalhes da sua assinatura"
@@ -203,7 +203,7 @@ export function SettingsClient({
       <div className="px-8 -mt-14 relative z-10 pb-12">
         <div className="flex flex-col lg:flex-row gap-8 max-w-[1600px] mx-auto">
           {/* Sidebar Tabs */}
-          <aside className="w-full lg:w-64 space-y-1">
+          <aside className="w-full lg:w-64 space-y-1 lg:pt-24">
             {tabs.map((tab) => (
               <Button
                 key={tab.id}
@@ -414,7 +414,7 @@ export function SettingsClient({
                 )}
 
                 {activeTab === 'pagamento' && (
-                  <div className="space-y-8">
+                  <div className="space-y-2">
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-1">
                         Assinatura e Cobrança
@@ -450,7 +450,6 @@ export function SettingsClient({
                             'Suporte prioritário',
                           ],
                           color: 'bg-brand/10 text-brand',
-                          popular: true,
                         },
                         {
                           id: 'equipe',
@@ -479,11 +478,6 @@ export function SettingsClient({
                                 : 'border-gray-100 hover:border-gray-200',
                             )}
                           >
-                            {plan.popular && (
-                              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand text-white text-[9px] font-bold uppercase tracking-widest px-3 py-1 rounded-full">
-                                Mais Popular
-                              </div>
-                            )}
                             <div className="mb-6">
                               <div
                                 className={cn(

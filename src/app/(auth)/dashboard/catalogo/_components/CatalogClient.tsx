@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: <explanation> */
 'use client'
 
 import {
@@ -122,7 +123,7 @@ export function CatalogClient({
   const [selectedFeatures, setSelectedFeatures] = useState<any[]>([])
 
   // Category management
-  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(
+  const [_editingCategoryId, setEditingCategoryId] = useState<string | null>(
     null,
   )
   const [editingCategoryName, setEditingCategoryName] = useState('')
@@ -184,7 +185,7 @@ export function CatalogClient({
     })
   }
 
-  const handleUpdateCategory = async (id: string) => {
+  const _handleUpdateCategory = async (id: string) => {
     startTransition(async () => {
       const res = await updateCategoryAction(id, editingCategoryName)
       if (res.success) {
@@ -564,15 +565,15 @@ export function CatalogClient({
         </Button>
       </Header>
 
-      <div className="px-8 -mt-14 relative z-10 pb-12">
+      <div className="-mt-25 relative z-10">
         <div className="max-w-[1600px] mx-auto">
           {/* Categorias */}
-          <div className="flex items-center gap-2 mb-8 overflow-x-auto pb-4 no-scrollbar">
+          <div className="flex flex-wrap items-center gap-y-4 gap-x-2 mb-10">
             <Button
               onClick={() => setCategoryFilter('all')}
               variant={categoryFilter === 'all' ? 'default' : 'outline'}
               className={cn(
-                'rounded-full text-xs font-bold transition-all px-6',
+                'rounded-full text-xs font-bold transition-all px-6 h-9',
                 categoryFilter !== 'all' &&
                   'bg-white text-gray-500 hover:bg-gray-50',
               )}
@@ -585,34 +586,13 @@ export function CatalogClient({
                   onClick={() => setCategoryFilter(cat.id)}
                   variant={categoryFilter === cat.id ? 'default' : 'outline'}
                   className={cn(
-                    'rounded-full text-xs font-bold transition-all px-6',
+                    'rounded-full text-xs font-bold transition-all px-6 h-9',
                     categoryFilter !== cat.id &&
                       'bg-white text-gray-500 hover:bg-gray-50',
                   )}
                 >
                   {cat.name}
                 </Button>
-                <div className="absolute -top-2 -right-2 hidden group-hover:flex items-center gap-1">
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    className="w-6 h-6 rounded-full bg-white shadow-sm"
-                    onClick={() => {
-                      setEditingCategoryId(cat.id)
-                      setEditingCategoryName(cat.name)
-                    }}
-                  >
-                    <Edit2 className="w-3 h-3" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    className="w-6 h-6 rounded-full bg-white shadow-sm text-red-500"
-                    onClick={() => handleDeleteCategory(cat.id)}
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
-                </div>
               </div>
             ))}
 
@@ -620,7 +600,7 @@ export function CatalogClient({
               <DialogTrigger asChild>
                 <Button
                   variant="outline"
-                  className="rounded-full w-10 h-10 p-0 border-dashed border-gray-300 text-gray-400 hover:text-brand hover:border-brand"
+                  className="rounded-full w-9 h-9 p-0 border-dashed border-gray-300 text-gray-400 hover:text-brand hover:border-brand bg-white"
                 >
                   <Plus className="w-4 h-4" />
                 </Button>
