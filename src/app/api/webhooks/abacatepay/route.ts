@@ -8,16 +8,30 @@ export async function POST(req: Request) {
     const signature = req.headers.get('x-abacatepay-signature')
     const secret = process.env.ABACATEPAY_WEBHOOK_SECRET
 
-    // 1. Validar assinatura HMAC (opcional mas recomendado)
-    if (secret && signature) {
-      const hmac = crypto.createHmac('sha256', secret)
-      const digest = hmac.update(rawBody).digest('hex')
-      if (signature !== digest) {
-        return NextResponse.json(
-          { error: 'Assinatura inválida' },
-          { status: 401 },
-        )
-      }
+    // 1. Validar configuração e assinatura (Fail-closed)
+    if (!secret) {
+      console.error('[AbacatePay Webhook] ABACATEPAY_WEBHOOK_SECRET is not defined')
+      return NextResponse.json(
+        { error: 'Webhook secret not configured' },
+        { status: 500 },
+      )
+    }
+
+    if (!signature) {
+      return NextResponse.json(
+        { error: 'Assinatura ausente' },
+        { status: 401 },
+      )
+    }
+
+    const hmac = crypto.createHmac('sha256', secret)
+    const digest = hmac.update(rawBody).digest('hex')
+
+    if (signature !== digest) {
+      return NextResponse.json(
+        { error: 'Assinatura inválida' },
+        { status: 401 },
+      )
     }
 
     const body = JSON.parse(rawBody)
