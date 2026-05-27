@@ -76,9 +76,7 @@ export default async function AuthLayout({
   return (
     <div className="flex min-h-screen bg-[#F8F7F3]">
       <Sidebar user={user} userRole={userRole} />
-      <main className="flex-1 lg:ml-72 min-h-screen">
-        {children}
-      </main>
+      <main className="flex-1 lg:ml-72 min-h-screen">{children}</main>
     </div>
   )
 }

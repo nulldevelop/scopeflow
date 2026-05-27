@@ -1,11 +1,31 @@
 'use client'
 
 import { motion, type Variants } from 'framer-motion'
-import { ArrowRight, ChevronRight, Play, Sparkles } from 'lucide-react'
+import { ArrowRight, Play } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
+import { HeroVideoDialog } from '@/components/magicui/hero-video-dialog'
 import { Button } from '@/components/ui/button'
 
-export function Hero() {
+interface HeroProps {
+  totalUsers: number
+  totalQuotes: number
+  totalValue: number
+  userAvatars: string[]
+}
+
+function formatCompactNumber(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`.replace('.0', '')
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}mil`.replace('.0', '')
+  return String(n)
+}
+
+export function Hero({
+  totalUsers,
+  totalQuotes,
+  totalValue,
+  userAvatars,
+}: HeroProps) {
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
@@ -46,22 +66,26 @@ export function Hero() {
           className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-8"
         >
           <div className="flex -space-x-2">
-            {[1, 2, 3].map((i) => (
+            {userAvatars.map((src, i) => (
               <div
-                key={i}
+                key={i.toString()}
                 className="w-6 h-6 rounded-full border-2 border-[#0E2E26] bg-gray-200 overflow-hidden"
               >
-                <img
-                  src={`https://i.pravatar.cc/100?img=${i + 10}`}
+                <Image
+                  src={src}
                   alt="User"
                   className="w-full h-full object-cover"
+                  width={24}
+                  height={24}
                 />
               </div>
             ))}
           </div>
           <span className="text-white/60 text-xs font-medium tracking-wide flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-[#9BBFB8] animate-pulse" />
-            Join 1,000+ software developers
+            {formatCompactNumber(totalUsers)} desenvolvedores ativos &middot;{' '}
+            {formatCompactNumber(totalQuotes)} propostas geradas &middot; R${' '}
+            {formatCompactNumber(totalValue)} em negócios
           </span>
         </motion.div>
 
@@ -97,16 +121,24 @@ export function Hero() {
             </Link>
           </Button>
 
-          <Button
-            variant="ghost"
-            size="lg"
-            className="h-16 px-8 rounded-2xl text-white hover:bg-white/5 text-lg font-medium gap-3"
+          <HeroVideoDialog
+            videoSrc="/f_c_ba_b_bc_d_e_fef_c_videomp_.mp4"
+            animationStyle="from-center"
           >
-            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-              <Play className="w-4 h-4 fill-white" />
-            </div>
-            Ver Demo
-          </Button>
+            <Button
+              asChild
+              variant="ghost"
+              size="lg"
+              className="h-16 px-8 rounded-2xl text-white hover:bg-white/5 text-lg font-medium gap-3"
+            >
+              <div>
+                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+                  <Play className="w-4 h-4 fill-white" />
+                </div>
+                Ver Demo
+              </div>
+            </Button>
+          </HeroVideoDialog>
         </motion.div>
       </motion.div>
     </section>

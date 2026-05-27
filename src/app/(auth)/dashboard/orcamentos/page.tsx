@@ -1,9 +1,9 @@
-import { redirect } from 'next/navigation'
-import { getSessionClient } from '@/lib/getSession'
-import type { ProjectStatus } from '@/types'
-import { Header } from '@/components/shared/Header'
 import { FileText, Plus } from 'lucide-react'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { Header } from '@/components/shared/Header'
+import { getSessionClient } from '@/lib/getSession'
+import type { ProjectStatus } from '@/types'
 import { QuotesClient, type QuoteWithClient } from './_components/quotes-client'
 import { getQuotes } from './_data-access/get-quotes'
 

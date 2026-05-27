@@ -28,12 +28,25 @@ export async function completeOnboardingAction(values: OnboardingInput) {
     }
 
     // 2. Criar ou Buscar Organização
-    let org = await prisma.organization.findFirst({
-      where: { slug: data.slug },
+    // Primeiro verifica se o usuário já pertence a alguma organização (devido à restrição 1:1 no schema)
+    const existingMember = await prisma.member.findFirst({
+      where: { userId: session.user.id },
+      include: { organization: true },
     })
 
+    let org = existingMember?.organization || null
     let isNewOrg = false
+
     if (!org) {
+      // Se não tem organização nenhuma, tenta buscar pelo slug (caso outra pessoa tenha criado)
+      const slugTaken = await prisma.organization.findFirst({
+        where: { slug: data.slug },
+      })
+
+      if (slugTaken) {
+        return { success: false, error: 'Este endereço (slug) já está em uso. Escolha outro.' }
+      }
+
       // Criar organização via API do Better-Auth para garantir consistência
       const newOrgResponse = await auth.api.createOrganization({
         headers: await headers(),
@@ -51,6 +64,26 @@ export async function completeOnboardingAction(values: OnboardingInput) {
         where: { slug: data.slug },
       })
       isNewOrg = true
+    } else {
+      // Se o usuário já é membro desta ou de outra organização, garantimos que os dados batem
+      // Se o slug mudou, verificamos se o novo slug não está tomado
+      if (org.slug !== data.slug) {
+        const slugTaken = await prisma.organization.findFirst({
+          where: { slug: data.slug, NOT: { id: org.id } },
+        })
+
+        if (slugTaken) {
+          return { success: false, error: 'Este novo endereço (slug) já está em uso.' }
+        }
+      }
+
+      org = await prisma.organization.update({
+        where: { id: org.id },
+        data: {
+          name: data.orgName,
+          slug: data.slug,
+        },
+      })
     }
 
     if (!org) {

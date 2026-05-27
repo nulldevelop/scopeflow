@@ -83,13 +83,16 @@ export function HeroVideoDialog({
     <div className={cn('relative', className)}>
       <button
         type="button"
-        className="cursor-pointer text-left"
+        className={cn(
+          'cursor-pointer border-none bg-transparent p-0',
+          children ? 'w-full text-left' : 'group relative',
+        )}
         onClick={() => setIsVideoOpen(true)}
       >
         {children ? (
           children
         ) : (
-          <div className="group relative">
+          <>
             <img
               src={thumbnailSrc}
               alt={thumbnailAlt}
@@ -112,7 +115,7 @@ export function HeroVideoDialog({
                 </div>
               </div>
             </div>
-          </div>
+          </>
         )}
       </button>
       <AnimatePresence>
@@ -147,13 +150,19 @@ export function HeroVideoDialog({
                 <XIcon className="size-6" />
               </button>
               <div className="relative isolate z-1 size-full overflow-hidden rounded-3xl border border-white/20 shadow-2xl bg-black">
-                <iframe
-                  src={videoSrc}
-                  title="Hero Video player"
-                  className="mt-0 size-full"
-                  allowFullScreen
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                ></iframe>
+                {videoSrc.startsWith('http') ? (
+                  <iframe
+                    src={videoSrc}
+                    title="Hero Video player"
+                    className="mt-0 size-full"
+                    allowFullScreen
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  ></iframe>
+                ) : (
+                  <video src={videoSrc} className="size-full" controls autoPlay>
+                    <track kind="captions" />
+                  </video>
+                )}
               </div>
             </motion.div>
           </motion.div>

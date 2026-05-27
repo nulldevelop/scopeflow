@@ -5,9 +5,9 @@ import { getAllFeatures } from '../../catalogo/_data-access/get-features'
 import { getClients } from '../../clientes/_data-access/get-clients'
 import { getQuoteById } from '../_data-access/get-quotes'
 import {
-  QuoteEditorClient,
   type EditorFeature,
   type EditorQuote,
+  QuoteEditorClient,
 } from './_components/quote-editor-client'
 
 export default async function QuoteEditorPage({
