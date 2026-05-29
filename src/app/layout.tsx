@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { IBM_Plex_Mono, Sora } from 'next/font/google'
 import type React from 'react'
 import '@/styles/globals.css'
+import { CookieBanner } from '@/components/shared/CookieBanner'
 import { Toaster } from '@/components/ui/sonner'
 import { cn } from '@/lib/utils'
 
@@ -44,6 +45,8 @@ export default function RootLayout({
     >
       <body className="font-sans">
         {children}
+        <CookieBanner />
+        <Toaster />
         <Analytics />
       </body>
     </html>

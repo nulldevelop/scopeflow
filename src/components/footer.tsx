@@ -156,15 +156,21 @@ export function Footer() {
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-[11px] font-medium uppercase tracking-widest text-white/30">
           <p>© {currentYear} ScopeFlow Labs. Todos os direitos reservados.</p>
           <div className="flex gap-8">
-            <a href="#" className="hover:text-white transition-colors">
+            <Link
+              href="/privacidade"
+              className="hover:text-white transition-colors"
+            >
               Privacidade
-            </a>
-            <a href="#" className="hover:text-white transition-colors">
+            </Link>
+            <Link href="/termos" className="hover:text-white transition-colors">
               Termos de Uso
-            </a>
-            <a href="#" className="hover:text-white transition-colors">
+            </Link>
+            <Link
+              href="/cookies"
+              className="hover:text-white transition-colors"
+            >
               Cookies
-            </a>
+            </Link>
           </div>
         </div>
       </div>

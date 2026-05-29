@@ -73,14 +73,14 @@ function SigninForm() {
           <p className="text-center text-xs text-gray-400">
             Ao entrar, você concorda com nossos <br />
             <Link
-              href="#"
+              href="/termos"
               className="underline hover:text-brand transition-colors"
             >
               Termos de Uso
             </Link>{' '}
             e{' '}
             <Link
-              href="#"
+              href="/privacidade"
               className="underline hover:text-brand transition-colors"
             >
               Privacidade
