@@ -25,8 +25,6 @@ import {
   Share2,
   Trash2,
   Upload,
-  User as UserIcon,
-  Users as UsersIcon,
   X,
   Zap,
   Zap as ZapIcon,
@@ -76,7 +74,6 @@ const _profileInfo: Record<string, { name: string; icon: ElementType }> = {
   frontend: { name: 'Front-end Especialista', icon: LayoutIcon },
   backend: { name: 'Back-end / API Dev', icon: Database },
   fullstack: { name: 'Full Stack Solo', icon: ZapIcon },
-  software_house: { name: 'Software House', icon: UsersIcon },
   saas: { name: 'Dev de SaaS', icon: Rocket },
 }
 
@@ -86,15 +83,6 @@ const _recommendedCategories: Record<string, string[]> = {
   backend: ['API', 'Autenticação', 'Pagamentos', 'Integrações'],
   fullstack: ['Autenticação', 'Pagamentos', 'Dashboard', 'CMS', 'API'],
   saas: ['Autenticação', 'Pagamentos', 'Dashboard', 'CMS', 'API', 'Upload'],
-  software_house: [
-    'Autenticação',
-    'Pagamentos',
-    'Dashboard',
-    'CMS',
-    'API',
-    'Integrações',
-    'Upload',
-  ],
 }
 
 const categoryIcons: Record<string, ElementType> = {

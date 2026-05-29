@@ -1,3 +1,4 @@
+import { Analytics } from '@vercel/analytics/next'
 import type { Metadata } from 'next'
 import { IBM_Plex_Mono, Sora } from 'next/font/google'
 import type React from 'react'
@@ -41,7 +42,10 @@ export default function RootLayout({
         'font-sans antialiased',
       )}
     >
-      <body className="font-sans">{children}</body>
+      <body className="font-sans">
+        {children}
+        <Analytics />
+      </body>
     </html>
   )
 }

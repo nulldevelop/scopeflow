@@ -39,6 +39,7 @@ export const updateSettingsAction = withPermission<[SettingsInput], null>(
         ...existingMetadata,
         answers: {
           ...existingMetadata.answers,
+          seniorityLevel: data.seniorityLevel,
           taxPercentage: data.taxPercentage,
           workHoursDay: data.workHoursDay,
           workDaysMonth: data.workDaysMonth,

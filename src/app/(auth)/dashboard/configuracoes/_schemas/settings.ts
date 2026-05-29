@@ -5,6 +5,7 @@ export const settingsSchema = z.object({
   email: z.string().email('E-mail inválido'),
   image: z.string().optional(),
   orgLogo: z.string().optional(),
+  seniorityLevel: z.enum(['junior', 'pleno', 'senior']).optional(),
   taxPercentage: z.string(),
   workHoursDay: z.string(),
   workDaysMonth: z.string(),

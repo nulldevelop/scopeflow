@@ -23,6 +23,30 @@ export const auth = betterAuth({
   advanced: {
     cookiePrefix: 'scopeflow',
   },
+  databaseHooks: {
+    session: {
+      create: {
+        // Toda sessão nova (ex.: login em outro navegador) nasce sem organização
+        // ativa. Se o usuário já pertence a uma organização, ativamos a primeira
+        // aqui — evita mandar de volta para o onboarding quem já se cadastrou.
+        before: async (session) => {
+          const membership = await prisma.member.findFirst({
+            where: { userId: session.userId },
+            orderBy: { createdAt: 'asc' },
+            select: { organizationId: true },
+          })
+
+          return {
+            data: {
+              ...session,
+              activeOrganizationId:
+                membership?.organizationId ?? session.activeOrganizationId,
+            },
+          }
+        },
+      },
+    },
+  },
   user: {
     additionalFields: {
       developerProfile: {

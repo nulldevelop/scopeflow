@@ -13,11 +13,11 @@ import {
   Rocket,
   Sparkles,
   Star,
-  Users,
   Zap,
 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import React, { Suspense, useEffect, useMemo, useState } from 'react'
+import type React from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -43,6 +43,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  levelMultiplier,
+  SENIORITY_LABELS,
+  type SeniorityLevel,
+} from '@/lib/pricing'
 import { cn } from '@/lib/utils'
 import { completeOnboardingAction } from './_actions/complete-onboarding'
 import {
@@ -204,44 +209,6 @@ const profiles = [
     ],
   },
   {
-    id: 'software_house',
-    title: 'Software House',
-    icon: Users,
-    description: 'Equipes gerenciando múltiplos devs e projetos.',
-    questions: [
-      {
-        id: 'taxRegime',
-        label: 'Regime Tributário',
-        type: 'select',
-        options: ['Simples Nacional', 'Lucro Presumido', 'Lucro Real'],
-      },
-      {
-        id: 'taxPercentage',
-        label: '% Imposto',
-        type: 'number',
-        placeholder: '15.0',
-      },
-      {
-        id: 'workHoursDay',
-        label: 'Horas produtivas/dia',
-        type: 'number',
-        placeholder: '6',
-      },
-      {
-        id: 'desiredSalary',
-        label: 'Pró-labore Sócios (R$)',
-        type: 'number',
-        placeholder: '15000',
-      },
-      {
-        id: 'fixedCosts',
-        label: 'Folha + Aluguel + Extras (R$)',
-        type: 'number',
-        placeholder: '5000',
-      },
-    ],
-  },
-  {
     id: 'saas_startup',
     title: 'Dev de SaaS',
     icon: Rocket,
@@ -375,6 +342,7 @@ function OnboardingContent() {
       slug: '',
       profile: undefined,
       answers: {
+        seniorityLevel: 'junior',
         taxRegime: 'Simples Nacional',
         taxPercentage: '6',
         workHoursDay: '6',
@@ -385,7 +353,6 @@ function OnboardingContent() {
         profitMargin: '20',
       },
       plan: (planFromUrl as 'free' | 'pro' | 'equipe') || 'free',
-      invites: [],
     },
   })
 
@@ -414,8 +381,13 @@ function OnboardingContent() {
     const adjustedMonthlyGoal =
       adjustmentFactor > 0 ? baseCost / adjustmentFactor : 0
     const hoursPerMonth = workHoursDay * workDaysMonth
-    const hourlyRate =
-      hoursPerMonth > 0 ? Math.ceil(adjustedMonthlyGoal / hoursPerMonth) : 0
+    const baseHourlyRate =
+      hoursPerMonth > 0 ? adjustedMonthlyGoal / hoursPerMonth : 0
+
+    const seniorityMultiplier = levelMultiplier(
+      formData.answers?.seniorityLevel,
+    )
+    const hourlyRate = Math.ceil(baseHourlyRate * seniorityMultiplier)
 
     return {
       desiredSalary,
@@ -429,6 +401,8 @@ function OnboardingContent() {
       workHoursDay,
       workDaysMonth,
       hoursPerMonth,
+      baseHourlyRate,
+      seniorityMultiplier,
       hourlyRate,
     }
   }, [formData.answers])
@@ -641,6 +615,8 @@ function OnboardingContent() {
                           setValue('profile', p.id)
                           // Reset answers to default for this profile to avoid calculation ghosting
                           setValue('answers', {
+                            seniorityLevel:
+                              formData.answers?.seniorityLevel || 'junior',
                             taxRegime: 'Simples Nacional',
                             taxPercentage: '6',
                             workHoursDay: '6',
@@ -737,6 +713,55 @@ function OnboardingContent() {
                       <p className="text-sm text-gray-500 mt-1">
                         Responda as perguntas abaixo para calibrarmos sua
                         lucratividade.
+                      </p>
+                    </div>
+
+                    <div className="mb-6">
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">
+                        Seu nível de senioridade
+                      </p>
+                      <div className="grid grid-cols-3 gap-2">
+                        {(
+                          ['junior', 'pleno', 'senior'] as SeniorityLevel[]
+                        ).map((lvl) => {
+                          const active =
+                            (formData.answers?.seniorityLevel || 'junior') ===
+                            lvl
+                          const pct = Math.round(
+                            (levelMultiplier(lvl) - 1) * 100,
+                          )
+                          return (
+                            <button
+                              key={lvl}
+                              type="button"
+                              onClick={() =>
+                                setValue('answers.seniorityLevel', lvl)
+                              }
+                              className={cn(
+                                'flex flex-col items-center justify-center rounded-2xl border-2 px-3 py-3 transition-all',
+                                active
+                                  ? 'border-brand bg-brand/5 text-gray-900'
+                                  : 'border-gray-100 bg-gray-50/50 text-gray-500 hover:border-gray-200',
+                              )}
+                            >
+                              <span className="text-sm font-bold">
+                                {SENIORITY_LABELS[lvl]}
+                              </span>
+                              <span
+                                className={cn(
+                                  'text-[10px] font-mono mt-0.5',
+                                  active ? 'text-brand' : 'text-gray-400',
+                                )}
+                              >
+                                {pct === 0 ? 'base' : `+${pct}%`}
+                              </span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                      <p className="text-[10px] text-gray-400 mt-2 leading-relaxed">
+                        Prêmio aplicado sobre o seu valor/hora de custo. Não
+                        altera as horas dos orçamentos.
                       </p>
                     </div>
 
@@ -882,6 +907,26 @@ function OnboardingContent() {
                           </p>
                         </div>
 
+                        <div className="rounded-xl bg-white/60 px-3 py-2 border border-brand/5">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                              Senioridade
+                            </span>
+                            <span className="text-xs font-bold text-gray-900 font-mono">
+                              {calc.seniorityMultiplier.toFixed(1)}×
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-gray-400 font-mono">
+                            {
+                              SENIORITY_LABELS[
+                                (formData.answers?.seniorityLevel ||
+                                  'junior') as SeniorityLevel
+                              ]
+                            }{' '}
+                            · piso R$ {Math.ceil(calc.baseHourlyRate)}/h
+                          </p>
+                        </div>
+
                         <div className="rounded-lg bg-brand/10 px-3 py-2.5">
                           <div className="flex justify-between items-center">
                             <span className="text-[10px] font-semibold text-brand uppercase tracking-wider">
@@ -892,8 +937,8 @@ function OnboardingContent() {
                             </span>
                           </div>
                           <p className="text-[10px] text-gray-500 font-mono mt-0.5">
-                            R$ {Math.round(calc.adjustedMonthlyGoal)} &divide;{' '}
-                            {calc.hoursPerMonth}h
+                            R$ {Math.ceil(calc.baseHourlyRate)} &times;{' '}
+                            {calc.seniorityMultiplier.toFixed(1)}
                           </p>
                         </div>
                       </div>
@@ -945,7 +990,7 @@ function OnboardingContent() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
                   {[
                     {
                       id: 'free',
@@ -969,17 +1014,6 @@ function OnboardingContent() {
                         'Suporte Prioritário',
                       ],
                       popular: true,
-                    },
-                    {
-                      id: 'equipe',
-                      name: 'Equipe',
-                      price: 'R$ 129',
-                      description: 'Para times e agências.',
-                      features: [
-                        'Tudo do Pro',
-                        'Até 5 membros',
-                        'Painel Admin',
-                      ],
                     },
                   ].map((plan) => (
                     <button

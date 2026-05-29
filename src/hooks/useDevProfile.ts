@@ -49,78 +49,37 @@ export function useDevProfile() {
   }
 
   /**
-   * Calcula as horas de uma funcionalidade baseada no perfil.
+   * Retorna as horas-base puras de uma funcionalidade.
+   *
+   * A senioridade é precificada via multiplicador no valor/hora (ver
+   * `@/lib/pricing`), não cortando horas. Por isso este cálculo NÃO ajusta as
+   * horas por perfil/especialização — cobrar menos por ser mais rápido (ou mais
+   * por ser pior no assunto) penalizava a entrega. As horas representam o
+   * tamanho da feature, igual para qualquer dev.
    */
   const getHours = (feature: {
     baseHours?: number | string | { toNumber(): number }
     horasEstimadas?: number
-    name?: string
-    nome?: string
-    category?: { name: string } | null
-    categoria?: string
   }): number => {
     // Se a feature for nula, retorna 0
     if (!feature) return 0
 
     // Pega o valor base (compatível com diferentes formatos de objeto, inclusive Prisma.Decimal)
-    let baseValue = 0
     if (feature.baseHours) {
       if (
         typeof feature.baseHours === 'object' &&
         'toNumber' in feature.baseHours
       ) {
-        baseValue = feature.baseHours.toNumber()
-      } else {
-        baseValue = Number(feature.baseHours)
+        return feature.baseHours.toNumber()
       }
-    } else if (feature.horasEstimadas) {
-      baseValue = feature.horasEstimadas
+      return Number(feature.baseHours)
     }
 
-    const base = baseValue
-
-    if (!profile) return base
-
-    // Lógica de Calibragem Dinâmica
-    // Backend dev fazendo frontend leva 20% mais tempo
-    const isBackend = profile === 'backend'
-    const isFrontend = profile === 'frontend'
-
-    // Tenta identificar se a feature é de front ou back pelo nome ou categoria
-    const categoryName = (
-      feature.category?.name ||
-      feature.categoria ||
-      ''
-    ).toLowerCase()
-    const featureName = (feature.name || feature.nome || '').toLowerCase()
-
-    const isFrontFeature =
-      categoryName.includes('front') ||
-      featureName.includes('interface') ||
-      featureName.includes('ui')
-    const isBackFeature =
-      categoryName.includes('back') ||
-      featureName.includes('api') ||
-      featureName.includes('banco')
-
-    if (isBackend && isFrontFeature) {
-      return base * 1.2
+    if (feature.horasEstimadas) {
+      return feature.horasEstimadas
     }
 
-    if (isFrontend && isBackFeature) {
-      return base * 1.3
-    }
-
-    // Landing Page Dev é mais rápido em landing pages (80% do tempo)
-    if (
-      profile === 'landing_page' &&
-      (categoryName.includes('landing') ||
-        categoryName.includes('institucional'))
-    ) {
-      return base * 0.8
-    }
-
-    return base
+    return 0
   }
 
   /**

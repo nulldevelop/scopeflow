@@ -16,12 +16,14 @@ export const onboardingSchema = z.object({
     'frontend',
     'backend',
     'fullstack',
-    'software_house',
     'saas_startup',
   ]),
 
   // Respostas Dinâmicas
   answers: z.object({
+    // Senioridade (prêmio sobre o valor/hora)
+    seniorityLevel: z.enum(['junior', 'pleno', 'senior']).optional(),
+
     // Dados Financeiros (Calculadora)
     companyName: z.string().optional(),
     taxRegime: z.string().optional(),
@@ -37,7 +39,6 @@ export const onboardingSchema = z.object({
     hourlyRate: z.string().optional(),
     techStack: z.string().optional(),
     workModel: z.string().optional(),
-    teamSize: z.string().optional(),
     services: z.string().optional(),
     productName: z.string().optional(),
     stage: z.string().optional(),
@@ -47,9 +48,6 @@ export const onboardingSchema = z.object({
 
   // Plano
   plan: z.enum(['free', 'pro', 'equipe']),
-
-  // Convites Opcionais
-  invites: z.array(z.string().email('E-mail inválido')),
 })
 
 export type OnboardingInput = z.infer<typeof onboardingSchema>

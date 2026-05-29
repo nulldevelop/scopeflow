@@ -33,20 +33,6 @@ const plans = [
     buttonText: 'Assinar Pro',
     featured: true,
   },
-  {
-    name: 'Equipe',
-    price: 'R$ 129',
-    description: 'Gestão centralizada para times e pequenas agências.',
-    features: [
-      'Tudo do plano Pro',
-      'Até 5 membros no time',
-      'Templates personalizados',
-      'Integração futura com contratos',
-      'Painel administrativo',
-    ],
-    buttonText: 'Falar com vendas',
-    featured: false,
-  },
 ]
 
 export function Pricing() {
@@ -73,7 +59,7 @@ export function Pricing() {
           </motion.p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8 items-stretch">
+        <div className="grid md:grid-cols-2 gap-8 items-stretch max-w-4xl mx-auto">
           {plans.map((plan, index) => (
             <motion.div
               key={index}

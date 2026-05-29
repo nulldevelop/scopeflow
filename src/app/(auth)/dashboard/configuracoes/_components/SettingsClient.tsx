@@ -19,6 +19,12 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  calcHourlyRate,
+  levelMultiplier,
+  SENIORITY_LABELS,
+  type SeniorityLevel,
+} from '@/lib/pricing'
 import { cn } from '@/lib/utils'
 import { updateSettingsAction } from '../_actions/update-settings'
 import { type SettingsInput, settingsSchema } from '../_schemas/settings'
@@ -39,6 +45,7 @@ interface SettingsClientProps {
       metadata: {
         profile: string
         answers: {
+          seniorityLevel?: SeniorityLevel
           taxPercentage: string
           workHoursDay: string
           workDaysMonth: string
@@ -94,6 +101,8 @@ export function SettingsClient({
       email: initialData.user.email,
       image: initialData.user.image || undefined,
       orgLogo: initialData.organization.logo || undefined,
+      seniorityLevel:
+        initialData.organization.metadata.answers.seniorityLevel || 'junior',
       taxPercentage: initialData.organization.metadata.answers.taxPercentage,
       workHoursDay: initialData.organization.metadata.answers.workHoursDay,
       workDaysMonth: initialData.organization.metadata.answers.workDaysMonth,
@@ -139,20 +148,14 @@ export function SettingsClient({
     }
   }
 
-  const hourlyRate = useMemo(() => {
-    const desiredSalary = Number(formData.desiredSalary) || 0
-    const fixedCosts = Number(formData.fixedCosts) || 0
-    const taxPercentage = Number(formData.taxPercentage) || 0
-    const profitMargin = Number(formData.profitMargin) || 0
-    const workHoursDay = Number(formData.workHoursDay) || 0
-    const workDaysMonth = Number(formData.workDaysMonth) || 22
-
-    const monthlyGoal =
-      (desiredSalary + fixedCosts) / (1 - (taxPercentage + profitMargin) / 100)
-    const hoursPerMonth = workHoursDay * workDaysMonth
-
-    return hoursPerMonth > 0 ? Math.ceil(monthlyGoal / hoursPerMonth) : 0
-  }, [formData])
+  const hourlyRate = useMemo(
+    () =>
+      calcHourlyRate(
+        formData as Record<string, string | undefined>,
+        formData.seniorityLevel,
+      ),
+    [formData],
+  )
 
   const onSubmit = async (data: SettingsInput) => {
     setIsSaving(true)
@@ -429,6 +432,56 @@ export function SettingsClient({
                         </div>
                       </div>
 
+                      <div className="mt-6">
+                        <Label className="mb-2 block">
+                          Nível de Senioridade
+                        </Label>
+                        <div className="grid grid-cols-3 gap-3 max-w-md">
+                          {(
+                            ['junior', 'pleno', 'senior'] as SeniorityLevel[]
+                          ).map((lvl) => {
+                            const active =
+                              (formData.seniorityLevel || 'junior') === lvl
+                            const pct = Math.round(
+                              (levelMultiplier(lvl) - 1) * 100,
+                            )
+                            return (
+                              <button
+                                key={lvl}
+                                type="button"
+                                onClick={() =>
+                                  setValue('seniorityLevel', lvl, {
+                                    shouldDirty: true,
+                                  })
+                                }
+                                className={cn(
+                                  'flex flex-col items-center justify-center rounded-xl border-2 px-3 py-2.5 transition-all',
+                                  active
+                                    ? 'border-brand bg-brand/5 text-gray-900'
+                                    : 'border-gray-100 bg-gray-50 text-gray-500 hover:border-gray-200',
+                                )}
+                              >
+                                <span className="text-sm font-bold">
+                                  {SENIORITY_LABELS[lvl]}
+                                </span>
+                                <span
+                                  className={cn(
+                                    'text-[10px] font-mono mt-0.5',
+                                    active ? 'text-brand' : 'text-gray-400',
+                                  )}
+                                >
+                                  {pct === 0 ? 'base' : `+${pct}%`}
+                                </span>
+                              </button>
+                            )
+                          })}
+                        </div>
+                        <p className="text-[11px] text-gray-400 mt-2">
+                          Prêmio sobre o valor/hora de custo. Não altera as
+                          horas dos orçamentos.
+                        </p>
+                      </div>
+
                       <div className="mt-8 p-6 bg-brand/5 rounded-2xl border border-brand/10 flex items-center justify-between">
                         <div>
                           <p className="text-xs font-bold text-brand uppercase tracking-wider mb-1">
@@ -436,6 +489,19 @@ export function SettingsClient({
                           </p>
                           <p className="text-3xl font-black text-gray-900 font-mono">
                             R$ {hourlyRate}
+                          </p>
+                          <p className="text-[11px] text-gray-500 mt-1">
+                            {
+                              SENIORITY_LABELS[
+                                (formData.seniorityLevel ||
+                                  'junior') as SeniorityLevel
+                              ]
+                            }{' '}
+                            ·{' '}
+                            {levelMultiplier(formData.seniorityLevel).toFixed(
+                              1,
+                            )}
+                            ×
                           </p>
                         </div>
                         <div className="text-right text-xs text-gray-500">
@@ -480,7 +546,7 @@ export function SettingsClient({
                       </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl">
                       {[
                         {
                           id: 'free',
@@ -505,18 +571,6 @@ export function SettingsClient({
                             'Suporte prioritário',
                           ],
                           color: 'bg-brand/10 text-brand',
-                        },
-                        {
-                          id: 'equipe',
-                          name: 'Equipe',
-                          price: 'R$ 129',
-                          description: 'Para times e agências.',
-                          features: [
-                            'Tudo do Pro',
-                            'Até 5 membros',
-                            'Painel Admin',
-                          ],
-                          color: 'bg-gray-900 text-white',
                         },
                       ].map((plan) => {
                         const isCurrent =
@@ -588,12 +642,7 @@ export function SettingsClient({
                                 type="button"
                                 onClick={() => handleUpgrade(plan.id)}
                                 disabled={isRedirecting}
-                                className={cn(
-                                  'w-full h-11 rounded-xl text-[11px] font-bold transition-all active:scale-95',
-                                  plan.id === 'equipe'
-                                    ? 'bg-gray-900 hover:bg-black text-white'
-                                    : 'bg-brand hover:bg-brand-dark text-white',
-                                )}
+                                className="w-full h-11 rounded-xl text-[11px] font-bold transition-all active:scale-95 bg-brand hover:bg-brand-dark text-white"
                               >
                                 {isRedirecting ? '...' : `Assinar ${plan.name}`}
                               </Button>

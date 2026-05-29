@@ -1,14 +1,6 @@
 'use client'
 
-import {
-  Check,
-  Database,
-  Globe,
-  Layout,
-  Rocket,
-  Users,
-  Zap,
-} from 'lucide-react'
+import { Check, Database, Globe, Layout, Rocket, Zap } from 'lucide-react'
 import type { ElementType } from 'react'
 import { useEffect, useState } from 'react'
 import { Card } from '@/components/ui/card'
@@ -44,12 +36,6 @@ const profiles: {
     name: 'Full Stack Solo',
     description: 'Projetos completos do banco ao botão.',
     icon: Zap,
-  },
-  {
-    id: 'software_house',
-    name: 'Software House',
-    description: 'Equipes gerenciando múltiplos devs e projetos robustos.',
-    icon: Users,
   },
   {
     id: 'saas',
