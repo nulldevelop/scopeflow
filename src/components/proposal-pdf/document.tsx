@@ -387,7 +387,7 @@ export function ProposalPDF({
   const discountValue = (grossValue * Number(quote.discount)) / 100
   const urgencyValue = (grossValue * Number(quote.urgencyFee)) / 100
   const netValue = grossValue - discountValue + urgencyValue
-  const entryValue = (netValue * Number(quote.entryAmount)) / 100
+  const entryValue = (grossValue * Number(quote.entryAmount)) / 100
   const installmentValue =
     Number(quote.installments) > 1
       ? (netValue - entryValue) / Number(quote.installments)

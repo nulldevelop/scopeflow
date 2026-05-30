@@ -22,9 +22,7 @@ export const abacatePay = {
 
     const data = await response.json()
     if (!response.ok || !data.success) {
-      throw new Error(
-        data.error || `AbacatePay API Error: ${response.statusText}`,
-      )
+      throw new Error(data.error || `AbacatePay API Error: ${response.statusText}`)
     }
 
     return data.data
@@ -41,7 +39,10 @@ export const abacatePay = {
 
   products: {
     async list(): Promise<AbacateProduct[]> {
-      return abacatePay.fetch('/products/list')
+      // Cache product list for 1 hour — products rarely change
+      return abacatePay.fetch('/products/list', {
+        next: { revalidate: 3600 },
+      } as RequestInit)
     },
   },
 
@@ -55,11 +56,7 @@ export const abacatePay = {
     }) {
       return abacatePay.fetch('/checkouts/create', {
         method: 'POST',
-        body: JSON.stringify({
-          ...data,
-          frequency: 'SUBSCRIPTION',
-          methods: ['CARD'],
-        }),
+        body: JSON.stringify({ ...data, frequency: 'SUBSCRIPTION', methods: ['CARD'] }),
       })
     },
   },
@@ -75,4 +72,45 @@ export const abacatePay = {
       })
     },
   },
+}
+
+const PRODUCT_IDS: Record<string, string | undefined> = {
+  pro: process.env.ABACATEPAY_PRODUCT_PRO,
+  equipe: process.env.ABACATEPAY_PRODUCT_EQUIPE,
+}
+
+function getAppBaseUrl(): string {
+  return (
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.NEXT_PUBLIC_AUTH_URL ||
+    'http://localhost:3000'
+  )
+}
+
+export async function createPlanCheckout(
+  planId: string,
+  customerId: string,
+  orgId: string,
+  returnUrl: string,
+  completionUrl: string,
+): Promise<{ url: string }> {
+  const productId = PRODUCT_IDS[planId]
+  if (!productId) {
+    throw new Error(`Plano "${planId}" não mapeado (variável de ambiente ausente)`)
+  }
+
+  const products = await abacatePay.products.list()
+  const product = products.find((p) => p.id === productId)
+  if (!product) {
+    throw new Error(`Plano não encontrado no AbacatePay (id: ${productId})`)
+  }
+
+  const baseUrl = getAppBaseUrl()
+  return abacatePay.checkouts.create({
+    customerId,
+    externalId: `checkout_${orgId}_${Date.now()}`,
+    items: [{ id: product.id, quantity: 1 }],
+    returnUrl: `${baseUrl}${returnUrl}`,
+    completionUrl: `${baseUrl}${completionUrl}`,
+  })
 }

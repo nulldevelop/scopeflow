@@ -26,16 +26,16 @@ export const createQuoteSchema = z.object({
   totalValue: z.coerce.number().min(0),
   monthlyTotal: z.coerce.number().min(0).default(0),
   hourlyRate: z.coerce.number().min(0),
-  discount: z.coerce.number().min(0).default(0),
-  urgencyFee: z.coerce.number().min(0).default(0),
-  entryAmount: z.coerce.number().min(0).default(0),
+  discount: z.coerce.number().min(0).max(100).default(0),
+  urgencyFee: z.coerce.number().min(0).max(100).default(0),
+  entryAmount: z.coerce.number().min(0).max(100).default(0),
   installments: z.coerce.number().int().min(1).default(1),
   expirationDate: z.coerce.date().optional().nullable(),
   items: z.array(quoteItemSchema).optional().default([]),
 })
 
 export const updateQuoteSchema = createQuoteSchema.extend({
-  id: z.string().uuid().optional(),
+  id: z.string().uuid(),
   status: z.string().optional(),
 })
 

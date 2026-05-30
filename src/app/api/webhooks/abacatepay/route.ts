@@ -8,7 +8,6 @@ export async function POST(req: Request) {
     const signature = req.headers.get('x-abacatepay-signature')
     const secret = process.env.ABACATEPAY_WEBHOOK_SECRET
 
-    // 1. Validar configuração e assinatura (Fail-closed)
     if (!secret) {
       console.error('[AbacatePay Webhook] ABACATEPAY_WEBHOOK_SECRET is not defined')
       return NextResponse.json(
@@ -18,80 +17,66 @@ export async function POST(req: Request) {
     }
 
     if (!signature) {
-      return NextResponse.json(
-        { error: 'Assinatura ausente' },
-        { status: 401 },
-      )
+      return NextResponse.json({ error: 'Assinatura ausente' }, { status: 401 })
     }
 
-    const hmac = crypto.createHmac('sha256', secret)
-    const digest = hmac.update(rawBody).digest('hex')
+    const digest = crypto.createHmac('sha256', secret).update(rawBody).digest('hex')
 
-    if (signature !== digest) {
-      return NextResponse.json(
-        { error: 'Assinatura inválida' },
-        { status: 401 },
-      )
+    // Timing-safe comparison to prevent timing attacks
+    const sigBuf = Buffer.from(signature)
+    const digestBuf = Buffer.from(digest)
+    const isValid =
+      sigBuf.length === digestBuf.length &&
+      crypto.timingSafeEqual(sigBuf, digestBuf)
+
+    if (!isValid) {
+      return NextResponse.json({ error: 'Assinatura inválida' }, { status: 401 })
     }
 
     const body = JSON.parse(rawBody)
-    const { event, metadata } = body.data
+    const { event } = body.data
 
-    // 2. Processar eventos
     switch (event) {
       case 'checkout.completed':
       case 'subscription.completed':
       case 'subscription.renewed': {
-        const { customerId, items, subscriptionId, status, externalId } =
-          body.data
+        const { customerId, items, subscriptionId } = body.data
         const org = await prisma.organization.findFirst({
           where: { abacateCustomerId: customerId },
+          select: { id: true },
         })
 
         if (org) {
           const product = items[0]
 
-          // Mapeamento reverso de Product IDs para Planos
           const PLAN_MAP: Record<string, string> = {}
           if (process.env.ABACATEPAY_PRODUCT_PRO)
             PLAN_MAP[process.env.ABACATEPAY_PRODUCT_PRO] = 'pro'
           if (process.env.ABACATEPAY_PRODUCT_EQUIPE)
             PLAN_MAP[process.env.ABACATEPAY_PRODUCT_EQUIPE] = 'equipe'
 
-          const planName = PLAN_MAP[product.id] || product.externalId || 'basic'
+          const planName = PLAN_MAP[product.id] || product.externalId || 'pro'
 
-          // Buscar assinatura existente
           const existingSub = await prisma.subscription.findFirst({
             where: { organizationId: org.id },
+            select: { id: true },
           })
+
+          const periodEnd = body.data.currentPeriodEnd
+            ? new Date(body.data.currentPeriodEnd)
+            : new Date(Date.now() + 32 * 24 * 60 * 60 * 1000)
 
           if (existingSub) {
             await prisma.subscription.update({
               where: { id: existingSub.id },
-              data: {
-                externalId: subscriptionId,
-                status: 'active',
-                plan: planName,
-                currentPeriodEnd: new Date(
-                  Date.now() + 32 * 24 * 60 * 60 * 1000,
-                ),
-              },
+              data: { externalId: subscriptionId, status: 'active', plan: planName, currentPeriodEnd: periodEnd },
             })
           } else {
             await prisma.subscription.create({
-              data: {
-                organizationId: org.id,
-                externalId: subscriptionId,
-                status: 'active',
-                plan: planName,
-                currentPeriodEnd: new Date(
-                  Date.now() + 32 * 24 * 60 * 60 * 1000,
-                ),
-              },
+              data: { organizationId: org.id, externalId: subscriptionId, status: 'active', plan: planName, currentPeriodEnd: periodEnd },
             })
           }
 
-          // Registrar histórico
           await prisma.billingHistory.create({
             data: {
               organizationId: org.id,
@@ -117,9 +102,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('[AbacatePay Webhook Error]', error)
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500 },
-    )
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }

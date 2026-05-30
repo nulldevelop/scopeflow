@@ -1,7 +1,7 @@
 'use server'
 
 import { cookies, headers } from 'next/headers'
-import { abacatePay } from '@/lib/abacate-pay'
+import { abacatePay, createPlanCheckout } from '@/lib/abacate-pay'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { seedOrganization } from '../../../../../prisma/seed-organization'
@@ -12,23 +12,18 @@ import {
 
 export async function completeOnboardingAction(values: OnboardingInput) {
   try {
-    // ... (keep 1. Validar Schema)
     const validatedFields = onboardingSchema.safeParse(values)
     if (!validatedFields.success) {
       return { success: false, error: 'Dados inválidos.' }
     }
 
     const data = validatedFields.data
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    })
+    const session = await auth.api.getSession({ headers: await headers() })
 
     if (!session?.user) {
       return { success: false, error: 'Usuário não autenticado.' }
     }
 
-    // 2. Criar ou Buscar Organização
-    // Primeiro verifica se o usuário já pertence a alguma organização (devido à restrição 1:1 no schema)
     const existingMember = await prisma.member.findFirst({
       where: { userId: session.user.id },
       include: { organization: true },
@@ -38,40 +33,30 @@ export async function completeOnboardingAction(values: OnboardingInput) {
     let isNewOrg = false
 
     if (!org) {
-      // Se não tem organização nenhuma, tenta buscar pelo slug (caso outra pessoa tenha criado)
       const slugTaken = await prisma.organization.findFirst({
         where: { slug: data.slug },
+        select: { id: true },
       })
-
       if (slugTaken) {
         return { success: false, error: 'Este endereço (slug) já está em uso. Escolha outro.' }
       }
 
-      // Criar organização via API do Better-Auth para garantir consistência
       const newOrgResponse = await auth.api.createOrganization({
         headers: await headers(),
-        body: {
-          name: data.orgName,
-          slug: data.slug,
-        },
+        body: { name: data.orgName, slug: data.slug },
       })
-
       if (!newOrgResponse) {
         return { success: false, error: 'Erro ao criar organização.' }
       }
 
-      org = await prisma.organization.findUnique({
-        where: { slug: data.slug },
-      })
+      org = await prisma.organization.findUnique({ where: { slug: data.slug } })
       isNewOrg = true
     } else {
-      // Se o usuário já é membro desta ou de outra organização, garantimos que os dados batem
-      // Se o slug mudou, verificamos se o novo slug não está tomado
       if (org.slug !== data.slug) {
         const slugTaken = await prisma.organization.findFirst({
           where: { slug: data.slug, NOT: { id: org.id } },
+          select: { id: true },
         })
-
         if (slugTaken) {
           return { success: false, error: 'Este novo endereço (slug) já está em uso.' }
         }
@@ -79,10 +64,7 @@ export async function completeOnboardingAction(values: OnboardingInput) {
 
       org = await prisma.organization.update({
         where: { id: org.id },
-        data: {
-          name: data.orgName,
-          slug: data.slug,
-        },
+        data: { name: data.orgName, slug: data.slug },
       })
     }
 
@@ -90,12 +72,10 @@ export async function completeOnboardingAction(values: OnboardingInput) {
       return { success: false, error: 'Erro ao processar organização.' }
     }
 
-    // 3. Popular dados iniciais se for nova organização
     if (isNewOrg) {
       await seedOrganization(org.id)
     }
 
-    // Garantir que o cliente AbacatePay existe para a org
     let abacateCustomerId = org.abacateCustomerId
     if (!abacateCustomerId) {
       const customer = await abacatePay.customers.create({
@@ -109,7 +89,6 @@ export async function completeOnboardingAction(values: OnboardingInput) {
       })
     }
 
-    // 4. Salvar configurações de perfil e plano no banco
     await prisma.organization.update({
       where: { id: org.id },
       data: {
@@ -122,21 +101,16 @@ export async function completeOnboardingAction(values: OnboardingInput) {
       },
     })
 
-    // 4. Atualizar o perfil do desenvolvedor no usuário
     await prisma.user.update({
       where: { id: session.user.id },
-      data: {
-        developerProfile: data.profile,
-      },
+      data: { developerProfile: data.profile },
     })
 
-    // 5. Definir a organização como ativa na sessão (Server-side)
     await auth.api.setActiveOrganization({
       headers: await headers(),
       body: { organizationId: org.id },
     })
 
-    // 6. Forçar o cookie no navegador para o Middleware reconhecer imediatamente
     const cookieStore = await cookies()
     cookieStore.set('scopeflow.active_organization_id', org.id, {
       path: '/',
@@ -145,39 +119,20 @@ export async function completeOnboardingAction(values: OnboardingInput) {
       sameSite: 'lax',
     })
 
-    // 7. Gerar URL de Checkout se for um plano pago
     let checkoutUrl = null
     if (data.plan === 'pro' || data.plan === 'equipe') {
-      const PRODUCT_IDS: Record<string, string | undefined> = {
-        pro: process.env.ABACATEPAY_PRODUCT_PRO,
-        equipe: process.env.ABACATEPAY_PRODUCT_EQUIPE,
-      }
-
-      const abacateProductId = PRODUCT_IDS[data.plan]
-
-      if (abacateProductId && abacateCustomerId) {
-        try {
-          const products = await abacatePay.products.list()
-          const product = products.find((p) => p.id === abacateProductId)
-
-          if (product) {
-            const baseUrl =
-              process.env.NEXT_PUBLIC_APP_URL ||
-              process.env.NEXT_PUBLIC_AUTH_URL ||
-              'http://localhost:3000'
-            const checkout = await abacatePay.checkouts.create({
-              customerId: abacateCustomerId,
-              externalId: `checkout_${org.id}_${Date.now()}`,
-              items: [{ id: product.id, quantity: 1 }],
-              returnUrl: `${baseUrl}/dashboard`,
-              completionUrl: `${baseUrl}/dashboard?success=true`,
-            })
-            checkoutUrl = checkout.url
-          }
-        } catch (checkoutError) {
-          console.error('[Onboarding Checkout Error]', checkoutError)
-          // Falha não crítica, deixa o usuário seguir e cobrar depois no dashboard
-        }
+      try {
+        const checkout = await createPlanCheckout(
+          data.plan,
+          abacateCustomerId,
+          org.id,
+          '/dashboard',
+          '/dashboard?success=true',
+        )
+        checkoutUrl = checkout.url
+      } catch (checkoutError) {
+        console.error('[Onboarding Checkout Error]', checkoutError)
+        // Non-critical: user can complete payment from settings
       }
     }
 

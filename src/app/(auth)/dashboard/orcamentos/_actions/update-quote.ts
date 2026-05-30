@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { withPermission } from '@/lib/permissions/with-permission'
 import { prisma } from '@/lib/prisma'
+import { serializeQuote } from '@/lib/quote-serializer'
 import { type UpdateQuoteInput, updateQuoteSchema } from '../_schemas/quote'
 
 export const updateQuote = withPermission(
@@ -10,35 +11,34 @@ export const updateQuote = withPermission(
   'quotes',
   async (ctx, input: UpdateQuoteInput) => {
     const validatedFields = updateQuoteSchema.safeParse(input)
-
     if (!validatedFields.success) {
-      console.error(
-        '[updateQuote Validation Error]',
-        validatedFields.error.flatten().fieldErrors,
-      )
-      return {
-        success: false,
-        error: 'Dados inválidos para atualizar orçamento.',
-      }
+      console.error('[updateQuote Validation Error]', validatedFields.error.flatten().fieldErrors)
+      return { success: false, error: 'Dados inválidos para atualizar orçamento.' }
     }
 
     const data = validatedFields.data
 
+    if (data.clientId) {
+      const client = await prisma.client.findFirst({
+        where: { id: data.clientId, organizationId: ctx.organizationId },
+        select: { id: true },
+      })
+      if (!client) {
+        return { success: false, error: 'Cliente inválido.' }
+      }
+    }
+
     try {
-      // Verifica se o orçamento existe e pertence à organização
       const existing = await prisma.quote.findUnique({
         where: { id: data.id, organizationId: ctx.organizationId },
+        select: { id: true },
       })
 
       if (!existing) {
         return { success: false, error: 'Orçamento não encontrado.' }
       }
 
-      // Deleta itens antigos e cria os novos (substituição completa)
-      // Numa implementação mais robusta, faríamos upsert baseado em IDs
-      await prisma.quoteItem.deleteMany({
-        where: { quoteId: data.id },
-      })
+      await prisma.quoteItem.deleteMany({ where: { quoteId: data.id } })
 
       const updatedQuote = await prisma.quote.update({
         where: { id: data.id },
@@ -78,19 +78,7 @@ export const updateQuote = withPermission(
       revalidatePath('/dashboard/orcamentos')
       revalidatePath(`/dashboard/orcamentos/${updatedQuote.id}`)
 
-      // Serialização para o retorno
-      const serializedQuote = {
-        ...updatedQuote,
-        totalHours: Number(updatedQuote.totalHours),
-        totalValue: Number(updatedQuote.totalValue),
-        monthlyTotal: Number(updatedQuote.monthlyTotal),
-        hourlyRate: Number(updatedQuote.hourlyRate),
-        discount: Number(updatedQuote.discount),
-        urgencyFee: Number(updatedQuote.urgencyFee),
-        entryAmount: Number(updatedQuote.entryAmount),
-      }
-
-      return { success: true, data: serializedQuote }
+      return { success: true, data: serializeQuote(updatedQuote) }
     } catch (error) {
       console.error('[updateQuote Error]', error)
       return { success: false, error: 'Erro ao atualizar orçamento.' }

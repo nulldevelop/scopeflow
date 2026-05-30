@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import type { QuoteWithClient } from '@/app/(auth)/dashboard/orcamentos/_components/quotes-client'
 import { getPublicQuoteById } from '@/app/(auth)/dashboard/orcamentos/_data-access/get-public-quote'
 import { ProposalClient } from '@/app/(auth)/dashboard/orcamentos/[id]/proposta/_components/proposal-client'
@@ -13,7 +13,7 @@ export default async function PublicProposalPage({
   const { quote: quoteData, success } = await getPublicQuoteById(id, slug)
 
   if (!success || !quoteData) {
-    redirect('/signin')
+    notFound()
   }
 
   // Serialização de Decimais para o Client Component

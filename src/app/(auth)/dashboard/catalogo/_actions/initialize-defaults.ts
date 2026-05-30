@@ -19,60 +19,56 @@ export const initializeDefaultsAction = withPermission(
     },
   ) => {
     try {
-      // 1. Get the feature data for selected names
       const featuresToImport = defaultFeatures.filter((f) =>
         selectedFeatures.includes(f.name),
       )
 
-      // 2. Identify and create missing categories
       const categoryNames = Array.from(
         new Set(featuresToImport.map((f) => f.categoryName)),
       )
-      const createdCategories: Record<string, string> = {}
 
+      // Fetch all existing categories in one query
+      const existingCategories = await prisma.category.findMany({
+        where: { name: { in: categoryNames }, organizationId: ctx.organizationId },
+        select: { id: true, name: true },
+      })
+
+      const categoryMap: Record<string, string> = Object.fromEntries(
+        existingCategories.map((c) => [c.name, c.id]),
+      )
+
+      // Create missing categories one by one (no unique constraint to use createMany with skipDuplicates)
       for (const catName of categoryNames) {
-        let category = await prisma.category.findFirst({
-          where: {
-            name: catName,
-            organizationId: ctx.organizationId,
-          },
-        })
-
-        if (!category) {
-          category = await prisma.category.create({
-            data: {
-              name: catName,
-              organizationId: ctx.organizationId,
-            },
+        if (!categoryMap[catName]) {
+          const created = await prisma.category.create({
+            data: { name: catName, organizationId: ctx.organizationId },
           })
+          categoryMap[catName] = created.id
         }
-        createdCategories[catName] = category.id
       }
 
-      // 3. Create Features
-      for (const f of featuresToImport) {
-        const categoryId = createdCategories[f.categoryName]
+      // Fetch all existing features in one query
+      const featureNames = featuresToImport.map((f) => f.name)
+      const existingFeatures = await prisma.feature.findMany({
+        where: { name: { in: featureNames }, organizationId: ctx.organizationId },
+        select: { name: true },
+      })
+      const existingFeatureNames = new Set(existingFeatures.map((f) => f.name))
 
-        // Check if feature already exists
-        const existingFeature = await prisma.feature.findFirst({
-          where: {
-            name: f.name,
-            organizationId: ctx.organizationId,
-          },
-        })
+      // Create all missing features in one batch
+      const newFeatures = featuresToImport
+        .filter((f) => !existingFeatureNames.has(f.name))
+        .map((f) => ({
+          name: f.name,
+          description: f.description,
+          baseHours: Math.round(f.baseHours * hourMultiplier * 10) / 10,
+          complexity: f.complexity,
+          categoryId: categoryMap[f.categoryName],
+          organizationId: ctx.organizationId,
+        }))
 
-        if (!existingFeature) {
-          await prisma.feature.create({
-            data: {
-              name: f.name,
-              description: f.description,
-              baseHours: Math.round(f.baseHours * hourMultiplier * 10) / 10,
-              complexity: f.complexity,
-              categoryId: categoryId,
-              organizationId: ctx.organizationId,
-            },
-          })
-        }
+      if (newFeatures.length > 0) {
+        await prisma.feature.createMany({ data: newFeatures })
       }
 
       revalidatePath('/dashboard/catalogo')

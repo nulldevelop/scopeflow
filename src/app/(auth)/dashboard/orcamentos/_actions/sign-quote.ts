@@ -12,6 +12,7 @@ export const signQuote = withPermission(
     try {
       const quote = await prisma.quote.findUnique({
         where: { id, organizationId: ctx.organizationId },
+        select: { id: true, totalValue: true },
       })
 
       if (!quote) {
@@ -20,6 +21,7 @@ export const signQuote = withPermission(
 
       const user = await prisma.user.findUnique({
         where: { id: ctx.userId },
+        select: { name: true },
       })
 
       if (!user) {
@@ -27,24 +29,16 @@ export const signQuote = withPermission(
       }
 
       const signedAt = new Date()
-      const signerName = user.name
-
-      // Generate hash: sha256(quoteId + orgId + userId + signedAt + totalValue)
       const hashContent = `${quote.id}-${ctx.organizationId}-${ctx.userId}-${signedAt.toISOString()}-${quote.totalValue.toString()}`
       const signatureHash = createHash('sha256')
         .update(hashContent)
         .digest('hex')
         .toUpperCase()
-        .slice(0, 16) // Short hash for display
+        .slice(0, 16)
 
       await prisma.quote.update({
         where: { id },
-        data: {
-          signedAt,
-          signatureHash,
-          signerName,
-          status: 'enviada',
-        },
+        data: { signedAt, signatureHash, signerName: user.name, status: 'enviada' },
       })
 
       ctx.log({ entityId: id })

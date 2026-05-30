@@ -15,11 +15,9 @@ import {
   Globe,
   Layers,
   Layout,
-  Layout as LayoutIcon,
   Lock,
   Mail,
   Plus,
-  Rocket,
   Search,
   Settings,
   Share2,
@@ -27,7 +25,6 @@ import {
   Upload,
   X,
   Zap,
-  Zap as ZapIcon,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import type { ElementType } from 'react'
@@ -45,7 +42,6 @@ import {
 } from '@/components/ui/dialog'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -63,27 +59,9 @@ import { createQuote } from '../../_actions/create-quote'
 import { updateQuote } from '../../_actions/update-quote'
 import {
   type CreateQuoteInput,
-  createQuoteSchema,
   type UpdateQuoteInput,
   updateQuoteSchema,
 } from '../../_schemas/quote'
-
-// Mapeamentos e dados mantidos como no original
-const _profileInfo: Record<string, { name: string; icon: ElementType }> = {
-  landing_page: { name: 'Landing Page Dev', icon: Globe },
-  frontend: { name: 'Front-end Especialista', icon: LayoutIcon },
-  backend: { name: 'Back-end / API Dev', icon: Database },
-  fullstack: { name: 'Full Stack Solo', icon: ZapIcon },
-  saas: { name: 'Dev de SaaS', icon: Rocket },
-}
-
-const _recommendedCategories: Record<string, string[]> = {
-  landing_page: ['Landing Page', 'E-mail'],
-  frontend: ['Dashboard', 'CMS', 'Landing Page'],
-  backend: ['API', 'Autenticação', 'Pagamentos', 'Integrações'],
-  fullstack: ['Autenticação', 'Pagamentos', 'Dashboard', 'CMS', 'API'],
-  saas: ['Autenticação', 'Pagamentos', 'Dashboard', 'CMS', 'API', 'Upload'],
-}
 
 const categoryIcons: Record<string, ElementType> = {
   Autenticação: Lock,
@@ -169,8 +147,6 @@ export function QuoteEditorClient({
     handleSubmit,
     control,
     setValue,
-    reset,
-    trigger,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(updateQuoteSchema),
@@ -260,9 +236,9 @@ export function QuoteEditorClient({
       (valorBruto * (Number(formValues.discount) || 0)) / 100
     const valorUrgencia =
       (valorBruto * (Number(formValues.urgencyFee) || 0)) / 100
+    const totalValor = valorBruto - valorDesconto + valorUrgencia
     const valorEntrada =
       (valorBruto * (Number(formValues.entryAmount) || 0)) / 100
-    const totalValor = valorBruto - valorDesconto + valorUrgencia
 
     const monthlyTotal = Number(formValues.monthlyTotal) || 0
 

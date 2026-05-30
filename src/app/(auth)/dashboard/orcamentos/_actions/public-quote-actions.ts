@@ -2,50 +2,44 @@
 
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
+import { serializeQuote } from '@/lib/quote-serializer'
 
 export async function publicUpdateQuoteStatus(
   id: string,
   status: string,
-  _signature?: string,
+  slug: string,
 ) {
-  if (!id || !status) {
-    return { success: false, error: 'ID e status são obrigatórios.' }
+  if (!id || !status || !slug) {
+    return { success: false, error: 'Parâmetros inválidos.' }
   }
 
   try {
+    const quote = await prisma.quote.findUnique({
+      where: { id },
+      include: { organization: { select: { slug: true } } },
+    })
+
+    if (!quote) {
+      return { success: false, error: 'Orçamento não encontrado.' }
+    }
+
+    if (quote.organization.slug !== slug) {
+      return { success: false, error: 'Link inválido para esta organização.' }
+    }
+
     const updatedQuote = await prisma.quote.update({
       where: { id },
       data: {
         status,
         approvedAt: status === 'aprovada' ? new Date() : null,
-        // We could store the signature in metadata or a new field if needed
-        // For now, let's just update the status
-      },
-      include: {
-        organization: {
-          select: {
-            slug: true,
-          },
-        },
       },
     })
 
-    revalidatePath(`/${updatedQuote.organization.slug}/proposta/${id}`)
+    revalidatePath(`/${slug}/proposta/${id}`)
     revalidatePath(`/dashboard/orcamentos/${id}/proposta`)
     revalidatePath('/dashboard/orcamentos')
 
-    const serializedQuote = {
-      ...updatedQuote,
-      totalHours: Number(updatedQuote.totalHours),
-      totalValue: Number(updatedQuote.totalValue),
-      monthlyTotal: Number(updatedQuote.monthlyTotal),
-      hourlyRate: Number(updatedQuote.hourlyRate),
-      discount: Number(updatedQuote.discount),
-      urgencyFee: Number(updatedQuote.urgencyFee),
-      entryAmount: Number(updatedQuote.entryAmount),
-    }
-
-    return { success: true, data: serializedQuote }
+    return { success: true, data: serializeQuote(updatedQuote) }
   } catch (error) {
     console.error('[publicUpdateQuoteStatus Error]', error)
     return { success: false, error: 'Erro ao atualizar orçamento.' }

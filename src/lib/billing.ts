@@ -24,74 +24,78 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
   },
   pro: {
     name: 'Pro',
-    quotesPerMonth: 999999,
+    quotesPerMonth: Infinity,
     maxMembers: 1,
-    featuresCount: 999999,
+    featuresCount: Infinity,
     pdfCustomization: true,
     prioritySupport: true,
     dynamicLinks: true,
   },
   equipe: {
     name: 'Equipe',
-    quotesPerMonth: 999999,
+    quotesPerMonth: Infinity,
     maxMembers: 5,
-    featuresCount: 999999,
+    featuresCount: Infinity,
     pdfCustomization: true,
     prioritySupport: true,
     dynamicLinks: true,
   },
 }
 
+// Legacy plan names from old onboarding flow mapped to current Plan types
+const LEGACY_PLAN_MAP: Record<string, Plan> = {
+  basic: 'pro',
+}
+
 export async function getActivePlan(organizationId: string): Promise<Plan> {
-  const subscription = await prisma.subscription.findFirst({
-    where: {
-      organizationId,
-      status: 'active',
+  const org = await prisma.organization.findUnique({
+    where: { id: organizationId },
+    select: {
+      metadata: true,
+      subscriptions: {
+        where: { status: 'active' },
+        orderBy: { createdAt: 'desc' },
+        take: 1,
+        select: { plan: true },
+      },
     },
-    orderBy: { createdAt: 'desc' },
   })
 
-  if (!subscription) {
-    // Verificar se existe plano definido no metadata da organização (legado onboarding)
-    const org = await prisma.organization.findUnique({
-      where: { id: organizationId },
-      select: { metadata: true },
-    })
+  if (!org) return 'free'
 
-    if (org?.metadata) {
-      const metadata = JSON.parse(org.metadata)
-      if (metadata.plan === 'basic' || metadata.plan === 'pro') {
-        return metadata.plan as Plan
-      }
-    }
-    return 'free'
+  const activeSub = org.subscriptions[0]
+  if (activeSub) {
+    return (activeSub.plan as Plan) || 'free'
   }
 
-  return (subscription.plan as Plan) || 'free'
+  if (org.metadata) {
+    const metadata = JSON.parse(org.metadata)
+    const rawPlan: string | undefined = metadata.plan
+    if (rawPlan) {
+      if (rawPlan in PLAN_LIMITS) return rawPlan as Plan
+      if (rawPlan in LEGACY_PLAN_MAP) return LEGACY_PLAN_MAP[rawPlan]
+    }
+  }
+
+  return 'free'
 }
 
 export async function checkPlanLimit(organizationId: string) {
   const plan = await getActivePlan(organizationId)
   const limits = PLAN_LIMITS[plan]
 
-  // Contar orçamentos do mês atual
   const startOfMonth = new Date()
   startOfMonth.setDate(1)
   startOfMonth.setHours(0, 0, 0, 0)
 
   const quotesCount = await prisma.quote.count({
-    where: {
-      organizationId,
-      createdAt: { gte: startOfMonth },
-    },
+    where: { organizationId, createdAt: { gte: startOfMonth } },
   })
 
   return {
     plan,
     limits,
-    usage: {
-      quotesCount,
-    },
+    usage: { quotesCount },
     isWithinLimits: quotesCount < limits.quotesPerMonth,
   }
 }

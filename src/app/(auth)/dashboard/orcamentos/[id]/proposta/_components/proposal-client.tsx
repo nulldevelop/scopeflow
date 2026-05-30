@@ -5,8 +5,10 @@ import {
   ArrowLeft,
   Check,
   CheckCircle,
+  Clock,
   Link as LinkIcon,
   Printer,
+  RefreshCw,
   X,
 } from 'lucide-react'
 import dynamic from 'next/dynamic'
@@ -28,14 +30,6 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 import { cn } from '@/lib/utils'
 import type { ProjectStatus } from '@/types'
 import { publicUpdateQuoteStatus } from '../../../_actions/public-quote-actions'
@@ -102,7 +96,7 @@ export function ProposalClient({
           finalRes = await publicUpdateQuoteStatus(
             quote.id,
             status,
-            signature || undefined,
+            quote.organization?.slug ?? '',
           )
         } else {
           finalRes = await updateQuoteStatus({
@@ -297,72 +291,62 @@ export function ProposalClient({
         <Card className="bg-white border border-gray-100 shadow-xl rounded-[24px] overflow-hidden print:shadow-none print:border-none relative">
           <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-brand/[0.02] to-transparent rounded-bl-full print:hidden" />
           <div className="relative p-8 md:p-12 print:p-0 print:pt-8">
-            <div className="section-label mb-8 print:mb-4">
+            <div className="section-label mb-6 print:mb-4">
               Escopo do Projeto
             </div>
 
-            <Table className="mb-12 print:mb-8">
-              <TableHeader>
-                <TableRow className="border-b border-gray-100 hover:bg-transparent">
-                  <TableHead className="text-gray-400 font-semibold uppercase text-[10px] tracking-wider">
-                    Funcionalidade
-                  </TableHead>
-                  <TableHead className="text-gray-400 font-semibold uppercase text-[10px] tracking-wider text-center">
-                    Esforço
-                  </TableHead>
-                  <TableHead className="text-gray-400 font-semibold uppercase text-[10px] tracking-wider text-right">
-                    Investimento
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {quote.items?.map((item: SerializedQuoteItem) => (
-                  <TableRow
-                    key={item.id}
-                    className="border-b border-gray-50 hover:bg-transparent"
-                  >
-                    <TableCell className="py-5 font-medium text-gray-900 print:py-3 print:text-xs">
-                      {item.name}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-12 print:mb-8 print:grid-cols-2 print:gap-3">
+              {quote.items?.map((item: SerializedQuoteItem, index: number) => (
+                <div
+                  key={item.id}
+                  className="group flex flex-col justify-between gap-4 rounded-2xl border border-gray-100 bg-gradient-to-br from-gray-50/80 to-white p-5 hover:border-brand/20 hover:shadow-sm transition-all print:p-3 print:rounded-xl print:border print:bg-white"
+                >
+                  {/* Nome + descrição */}
+                  <div className="flex items-start gap-3">
+                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-[10px] font-black text-brand print:hidden">
+                      {index + 1}
+                    </span>
+                    <div>
+                      <p className="font-semibold text-gray-900 leading-snug print:text-xs">
+                        {item.name}
+                      </p>
                       {item.description && (
-                        <p className="text-[10px] text-gray-400 font-normal mt-1 print:hidden">
+                        <p className="mt-1 text-xs text-gray-400 leading-relaxed">
                           {item.description}
                         </p>
                       )}
-                    </TableCell>
-                    <TableCell className="py-5 text-center font-mono text-sm text-gray-500 print:py-3 print:text-[10px]">
-                      <div className="flex flex-col">
-                        <span>{Number(item.hours)}h</span>
-                        {Number(item.monthlyFee) > 0 && (
-                          <span className="text-[10px] text-brand">
-                            Recurrente
-                          </span>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-5 text-right font-mono text-gray-900 print:py-3 print:text-[10px]">
-                      <div className="flex flex-col">
-                        <span>
-                          {Number(item.unitValue).toLocaleString('pt-BR', {
+                    </div>
+                  </div>
+
+                  {/* Badges: horas + valor */}
+                  <div className="flex items-center justify-between gap-2 pt-3 border-t border-gray-100 print:pt-2">
+                    <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 print:text-[10px]">
+                      <Clock className="w-3.5 h-3.5 text-gray-400 print:hidden" />
+                      {Number(item.hours)}h de esforço
+                    </span>
+
+                    <div className="flex flex-col items-end">
+                      <span className="font-mono font-bold text-brand text-base leading-none print:text-xs">
+                        {Number(item.unitValue).toLocaleString('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL',
+                        })}
+                      </span>
+                      {Number(item.monthlyFee) > 0 && (
+                        <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-semibold text-brand/70">
+                          <RefreshCw className="w-2.5 h-2.5" />
+                          +{Number(item.monthlyFee).toLocaleString('pt-BR', {
                             style: 'currency',
                             currency: 'BRL',
                           })}
+                          /mês
                         </span>
-                        {Number(item.monthlyFee) > 0 && (
-                          <span className="text-[10px] text-brand">
-                            +{' '}
-                            {Number(item.monthlyFee).toLocaleString('pt-BR', {
-                              style: 'currency',
-                              currency: 'BRL',
-                            })}
-                            /mês
-                          </span>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 pt-8 border-t border-gray-100 print:grid-cols-2 print:gap-4 print:pt-4">
               <div className="space-y-8 print:space-y-4">

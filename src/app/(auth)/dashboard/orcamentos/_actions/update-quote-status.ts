@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { withPermission } from '@/lib/permissions/with-permission'
 import { prisma } from '@/lib/prisma'
+import { serializeQuote } from '@/lib/quote-serializer'
 
 export const updateQuoteStatus = withPermission(
   'update',
@@ -23,18 +24,7 @@ export const updateQuoteStatus = withPermission(
       revalidatePath(`/dashboard/orcamentos/${id}`)
       revalidatePath(`/dashboard/orcamentos/${id}/proposta`)
 
-      const serializedQuote = {
-        ...updatedQuote,
-        totalHours: Number(updatedQuote.totalHours),
-        totalValue: Number(updatedQuote.totalValue),
-        monthlyTotal: Number(updatedQuote.monthlyTotal),
-        hourlyRate: Number(updatedQuote.hourlyRate),
-        discount: Number(updatedQuote.discount),
-        urgencyFee: Number(updatedQuote.urgencyFee),
-        entryAmount: Number(updatedQuote.entryAmount),
-      }
-
-      return { success: true, data: serializedQuote }
+      return { success: true, data: serializeQuote(updatedQuote) }
     } catch (error) {
       console.error('[updateQuoteStatus Error]', error)
       return { success: false, error: 'Erro ao atualizar status do orçamento.' }

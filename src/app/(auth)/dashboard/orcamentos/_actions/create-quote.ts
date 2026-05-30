@@ -4,13 +4,13 @@ import { revalidatePath } from 'next/cache'
 import { checkPlanLimit } from '@/lib/billing'
 import { withPermission } from '@/lib/permissions/with-permission'
 import { prisma } from '@/lib/prisma'
+import { serializeQuote } from '@/lib/quote-serializer'
 import { type CreateQuoteInput, createQuoteSchema } from '../_schemas/quote'
 
 export const createQuote = withPermission(
   'create',
   'quotes',
   async (ctx, input: CreateQuoteInput) => {
-    // 1. Verificar limites do plano
     const { isWithinLimits, plan } = await checkPlanLimit(ctx.organizationId)
     if (!isWithinLimits) {
       return {
@@ -20,16 +20,22 @@ export const createQuote = withPermission(
     }
 
     const validatedFields = createQuoteSchema.safeParse(input)
-
     if (!validatedFields.success) {
-      console.error(
-        '[createQuote Validation Error]',
-        validatedFields.error.flatten().fieldErrors,
-      )
+      console.error('[createQuote Validation Error]', validatedFields.error.flatten().fieldErrors)
       return { success: false, error: 'Dados inválidos para criar orçamento.' }
     }
 
     const data = validatedFields.data
+
+    if (data.clientId) {
+      const client = await prisma.client.findFirst({
+        where: { id: data.clientId, organizationId: ctx.organizationId },
+        select: { id: true },
+      })
+      if (!client) {
+        return { success: false, error: 'Cliente inválido.' }
+      }
+    }
 
     try {
       const newQuote = await prisma.quote.create({
@@ -65,19 +71,7 @@ export const createQuote = withPermission(
       ctx.log({ entityId: newQuote.id })
       revalidatePath('/dashboard/orcamentos')
 
-      // Serialização para o retorno (importante para Client Components que chamam a action)
-      const serializedQuote = {
-        ...newQuote,
-        totalHours: Number(newQuote.totalHours),
-        totalValue: Number(newQuote.totalValue),
-        monthlyTotal: Number(newQuote.monthlyTotal),
-        hourlyRate: Number(newQuote.hourlyRate),
-        discount: Number(newQuote.discount),
-        urgencyFee: Number(newQuote.urgencyFee),
-        entryAmount: Number(newQuote.entryAmount),
-      }
-
-      return { success: true, data: serializedQuote }
+      return { success: true, data: serializeQuote(newQuote) }
     } catch (error) {
       console.error('[createQuote Error]', error)
       return { success: false, error: 'Erro ao criar orçamento.' }
