@@ -3,9 +3,9 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { Header } from '@/components/shared/Header'
 import { getSessionClient } from '@/lib/getSession'
-import { getContracts } from './_data-access/get-contracts'
 import type { ContractWithRelations } from './_components/contracts-client'
 import { ContractsClient } from './_components/contracts-client'
+import { getContracts } from './_data-access/get-contracts'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,14 +18,20 @@ export default async function ContractsPage() {
 
   if (!activeOrgId) {
     return (
-      <div className="p-8 text-center text-gray-500">Nenhuma organização selecionada.</div>
+      <div className="p-8 text-center text-gray-500">
+        Nenhuma organização selecionada.
+      </div>
     )
   }
 
   const { contracts: data, success, error } = await getContracts(activeOrgId)
 
   if (!success || !data) {
-    return <div className="p-8 text-center text-red-500">{error || 'Erro ao carregar contratos.'}</div>
+    return (
+      <div className="p-8 text-center text-red-500">
+        {error || 'Erro ao carregar contratos.'}
+      </div>
+    )
   }
 
   const contracts: ContractWithRelations[] = data.map((c) => ({

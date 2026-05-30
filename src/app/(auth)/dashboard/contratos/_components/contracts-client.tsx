@@ -34,11 +34,11 @@ import { signAndSendContract } from '../_actions/sign-contract'
 
 type ContractStatus = 'rascunho' | 'enviado' | 'assinado' | 'cancelado'
 
-export type ContractWithRelations = Contract & {
+export type ContractWithRelations = Omit<Contract, 'totalValue'> & {
+  totalValue: number
   client: Client | null
   organization: Pick<Organization, 'name' | 'slug' | 'logo'>
   quote: { id: string; title: string } | null
-  totalValue: number
 }
 
 const statusConfig: Record<ContractStatus, { label: string; className: string }> = {

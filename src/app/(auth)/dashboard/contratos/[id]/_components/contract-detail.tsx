@@ -57,7 +57,7 @@ type ContractData = {
   createdAt: Date
   client: { id: string; name: string; email: string | null; document: string | null; phone: string | null } | null
   organization: { name: string; slug: string; logo: string | null }
-  quote: { id: string; title: string } | null
+  quote?: { id: string; title: string } | null
 }
 
 const statusConfig: Record<ContractStatus, { label: string; className: string }> = {
