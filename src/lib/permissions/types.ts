@@ -9,6 +9,7 @@ export type Module =
   | 'features'
   | 'quotes'
   | 'clients'
+  | 'contracts'
   | 'organizations'
   | 'users'
 

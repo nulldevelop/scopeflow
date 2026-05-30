@@ -8,6 +8,7 @@ import {
   Clock,
   CreditCard,
   Edit,
+  FileSignature,
   FileText,
   LinkIcon,
   MoreHorizontal,
@@ -309,6 +310,16 @@ export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
                             <FileText className="w-4 h-4" /> Ver Proposta
                           </Link>
                         </DropdownMenuItem>
+                        {quote.status === 'aprovada' && (
+                          <DropdownMenuItem asChild>
+                            <Link
+                              href={`/dashboard/contratos/novo?quoteId=${quote.id}`}
+                              className="flex items-center gap-2 text-brand font-medium"
+                            >
+                              <FileSignature className="w-4 h-4" /> Gerar Contrato
+                            </Link>
+                          </DropdownMenuItem>
+                        )}
                         {!quote.signatureHash && (
                           <DropdownMenuItem
                             onClick={() => handleSign(quote.id)}

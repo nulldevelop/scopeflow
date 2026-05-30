@@ -98,6 +98,7 @@ model Organization {
   categories        Category[]
   features          Feature[]
   quotes            Quote[]
+  contracts         Contract[]
   subscriptions     Subscription[]
   billingHistories  BillingHistory[]
 
@@ -177,6 +178,7 @@ model Client {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   quotes         Quote[]
+  contracts      Contract[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
@@ -241,12 +243,59 @@ model Quote {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   items          QuoteItem[]
+  contracts      Contract[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
   @@index([organizationId])
   @@index([clientId])
   @@map("quote")
+}
+
+model Contract {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  clientId       String?
+  client         Client?      @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  quoteId        String?
+  quote          Quote?       @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+
+  title          String       @db.Text
+  contractNumber String?      @db.Text
+
+  objectClause   String?      @db.Text
+  timelineClause String?      @db.Text
+  paymentClause  String?      @db.Text
+  ipClause       String?      @db.Text
+
+  totalValue     Decimal      @default(0) @db.Decimal(15, 2)
+
+  startDate      DateTime?
+  endDate        DateTime?
+
+  // rascunho | enviado | assinado | cancelado
+  status         String       @default("rascunho")
+
+  providerSigned        Boolean   @default(false)
+  providerSignedAt      DateTime?
+  providerSignerName    String?   @db.Text
+  providerSignatureHash String?   @db.Text
+
+  clientSigned          Boolean   @default(false)
+  clientSignedAt        DateTime?
+  clientSignerName      String?   @db.Text
+  clientSignatureHash   String?   @db.Text
+
+  sentAt         DateTime?
+  expiresAt      DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId])
+  @@index([clientId])
+  @@index([quoteId])
+  @@map("contract")
 }
 
 model QuoteItem {

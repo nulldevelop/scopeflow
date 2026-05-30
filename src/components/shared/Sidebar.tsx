@@ -2,6 +2,7 @@
 
 import {
   ChevronRight,
+  FileSignature,
   FileText,
   LayoutDashboard,
   Library,
@@ -32,6 +33,7 @@ interface SidebarProps {
 const menuItems = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Orçamentos', href: '/dashboard/orcamentos', icon: FileText },
+  { label: 'Contratos', href: '/dashboard/contratos', icon: FileSignature },
   { label: 'Catálogo', href: '/dashboard/catalogo', icon: Library },
   { label: 'Clientes', href: '/dashboard/clientes', icon: Users },
   { label: 'Configurações', href: '/dashboard/configuracoes', icon: Settings },
