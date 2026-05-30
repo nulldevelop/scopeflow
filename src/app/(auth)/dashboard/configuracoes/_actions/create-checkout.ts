@@ -37,7 +37,7 @@ export async function createCheckoutAction(planId: string) {
 
     const checkout = await createPlanCheckout(
       planId,
-      abacateCustomerId,
+      abacateCustomerId as string,
       org.id,
       '/dashboard/configuracoes?tab=pagamento',
       '/dashboard/configuracoes?tab=pagamento&success=true',
