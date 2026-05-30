@@ -124,7 +124,7 @@ export async function completeOnboardingAction(values: OnboardingInput) {
       try {
         const checkout = await createPlanCheckout(
           data.plan,
-          abacateCustomerId,
+          abacateCustomerId as string,
           org.id,
           '/dashboard',
           '/dashboard?success=true',
