@@ -193,7 +193,7 @@ export function SettingsClient({
   }
 
   return (
-    <div className="max-h-screen bg-[#F8F7F3] overflow-y-hidden">
+    <div className="min-h-screen bg-[#F8F7F3]">
       <Header
         title="Configurações"
         subtitle="Gerencie seu perfil, preferências e detalhes da sua assinatura"
