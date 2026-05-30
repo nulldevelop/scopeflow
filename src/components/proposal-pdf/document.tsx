@@ -383,7 +383,7 @@ export function ProposalPDF({
   const displayOrgName = activeOrg?.name || quote.organization?.name || organizationName
 
   const orgLogoUrl = getAbsoluteUrl(displayLogo)
-  const grossValue = Number(quote.totalValue)
+  const grossValue = quote.items.reduce((acc, item) => acc + Number(item.unitValue), 0)
   const discountValue = (grossValue * Number(quote.discount)) / 100
   const urgencyValue = (grossValue * Number(quote.urgencyFee)) / 100
   const netValue = grossValue - discountValue + urgencyValue
