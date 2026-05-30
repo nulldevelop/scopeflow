@@ -544,7 +544,7 @@ function OnboardingContent() {
                     <FieldLabel>URL Exclusiva</FieldLabel>
                     <div className="flex items-center h-14 w-full rounded-2xl border border-gray-100 bg-gray-50/50 focus-within:bg-white focus-within:ring-2 focus-within:ring-brand/20 transition-all overflow-hidden px-4 gap-0">
                       <span className="text-gray-400 font-mono text-sm whitespace-nowrap select-none pr-1">
-                        scopeflow.com.br/
+                        scopeflow.dev.br/
                       </span>
                       <input
                         {...register('slug')}

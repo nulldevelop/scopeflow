@@ -27,8 +27,8 @@ export default function PrivacidadePage() {
         O ScopeFlow é o controlador dos dados pessoais relativos à sua conta e
         ao uso da plataforma. Para questões de privacidade, entre em contato
         pelo e-mail{' '}
-        <a href="mailto:privacidade@scopeflow.com.br">
-          privacidade@scopeflow.com.br
+        <a href="mailto:privacidade@scopeflow.dev.br">
+          privacidade@scopeflow.dev.br
         </a>
         .
       </p>
@@ -133,8 +133,8 @@ export default function PrivacidadePage() {
         confirmação e acesso aos seus dados, correção, anonimização,
         portabilidade, eliminação, informação sobre compartilhamentos e
         revogação de consentimento. Para exercer esses direitos, escreva para{' '}
-        <a href="mailto:privacidade@scopeflow.com.br">
-          privacidade@scopeflow.com.br
+        <a href="mailto:privacidade@scopeflow.dev.br">
+          privacidade@scopeflow.dev.br
         </a>
         .
       </p>
@@ -157,8 +157,8 @@ export default function PrivacidadePage() {
       <p>
         Dúvidas sobre privacidade ou sobre o tratamento dos seus dados podem ser
         enviadas para{' '}
-        <a href="mailto:privacidade@scopeflow.com.br">
-          privacidade@scopeflow.com.br
+        <a href="mailto:privacidade@scopeflow.dev.br">
+          privacidade@scopeflow.dev.br
         </a>
         .
       </p>

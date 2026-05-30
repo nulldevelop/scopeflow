@@ -19,7 +19,7 @@ const ibmPlexMono = IBM_Plex_Mono({
   variable: '--font-mono',
 })
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://scopeflow.com.br'
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.scopeflow.dev.br'
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),

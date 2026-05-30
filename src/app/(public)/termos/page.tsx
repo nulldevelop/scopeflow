@@ -104,7 +104,7 @@ export default function TermosPage() {
       <h2>10. Contato</h2>
       <p>
         Dúvidas sobre estes termos podem ser enviadas para{' '}
-        <a href="mailto:contato@scopeflow.com.br">contato@scopeflow.com.br</a>.
+        <a href="mailto:contato@scopeflow.dev.br">contato@scopeflow.dev.br</a>.
       </p>
     </LegalLayout>
   )

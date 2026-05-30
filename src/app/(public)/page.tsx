@@ -7,7 +7,7 @@ import { Pricing } from '@/components/pricing'
 import { QuoteExample } from '@/components/quote-example'
 import { prisma } from '@/lib/prisma'
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://scopeflow.com.br'
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.scopeflow.dev.br'
 
 export const metadata: Metadata = {
   title: 'ScopeFlow — Gerador de Propostas e Contratos para Devs',

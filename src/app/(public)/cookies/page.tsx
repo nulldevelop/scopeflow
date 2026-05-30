@@ -64,8 +64,8 @@ export default function CookiesPage() {
         Para entender como tratamos seus dados pessoais, consulte nossa{' '}
         <a href="/privacidade">Política de Privacidade</a>. Dúvidas podem ser
         enviadas para{' '}
-        <a href="mailto:privacidade@scopeflow.com.br">
-          privacidade@scopeflow.com.br
+        <a href="mailto:privacidade@scopeflow.dev.br">
+          privacidade@scopeflow.dev.br
         </a>
         .
       </p>
