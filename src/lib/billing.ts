@@ -65,15 +65,22 @@ export async function getActivePlan(organizationId: string): Promise<Plan> {
 
   const activeSub = org.subscriptions[0]
   if (activeSub) {
-    return (activeSub.plan as Plan) || 'free'
+    const p = activeSub.plan
+    if (p in PLAN_LIMITS) return p as Plan
+    if (p in LEGACY_PLAN_MAP) return LEGACY_PLAN_MAP[p]
+    return 'free'
   }
 
   if (org.metadata) {
-    const metadata = JSON.parse(org.metadata)
-    const rawPlan: string | undefined = metadata.plan
-    if (rawPlan) {
-      if (rawPlan in PLAN_LIMITS) return rawPlan as Plan
-      if (rawPlan in LEGACY_PLAN_MAP) return LEGACY_PLAN_MAP[rawPlan]
+    try {
+      const metadata = JSON.parse(org.metadata)
+      const rawPlan: string | undefined = metadata.plan
+      if (rawPlan) {
+        if (rawPlan in PLAN_LIMITS) return rawPlan as Plan
+        if (rawPlan in LEGACY_PLAN_MAP) return LEGACY_PLAN_MAP[rawPlan]
+      }
+    } catch {
+      // metadata corrompido — trata como free
     }
   }
 

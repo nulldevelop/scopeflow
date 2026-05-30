@@ -29,6 +29,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import { deleteContract } from '../../_actions/delete-contract'
+import { publicSignContract } from '../../_actions/public-contract-actions'
 import { signAndSendContract } from '../../_actions/sign-contract'
 
 type ContractStatus = 'rascunho' | 'enviado' | 'assinado' | 'cancelado'
@@ -374,10 +375,13 @@ export function ContractDetail({ contract, isPublic = false }: { contract: Contr
             </Button>
             <Button
               disabled={!signerName.trim() || isPending}
-              onClick={async () => {
-                const { publicSignContract } = await import('../../_actions/public-contract-actions')
+              onClick={() => {
                 startTransition(async () => {
-                  const res = await publicSignContract(contract.id, signerName)
+                  const res = await publicSignContract(
+                    contract.id,
+                    signerName,
+                    contract.organization.slug,
+                  )
                   if (res.success) {
                     toast.success('Contrato assinado com sucesso!')
                     setSignDialogOpen(false)

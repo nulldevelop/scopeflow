@@ -37,6 +37,7 @@ export default async function NewContractPage({
     totalHours: Number(q.totalHours),
     installments: q.installments,
     entryAmount: Number(q.entryAmount),
+    clientId: q.clientId,
     client: q.client
       ? { name: q.client.name, email: q.client.email, document: q.client.document }
       : null,

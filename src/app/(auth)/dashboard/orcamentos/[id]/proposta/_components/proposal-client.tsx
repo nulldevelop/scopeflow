@@ -76,10 +76,11 @@ export function ProposalClient({
     })
   }
 
+  const entryValue =
+    (Number(quote.totalValue) * Number(quote.entryAmount)) / 100
   const valorParcela =
     quote.installments > 0
-      ? (Number(quote.totalValue) - Number(quote.entryAmount)) /
-        quote.installments
+      ? (Number(quote.totalValue) - entryValue) / quote.installments
       : 0
 
   const handleUpdateStatus = async (status: string) => {
@@ -97,6 +98,7 @@ export function ProposalClient({
             quote.id,
             status,
             quote.organization?.slug ?? '',
+            signature || undefined,
           )
         } else {
           finalRes = await updateQuoteStatus({
@@ -565,8 +567,8 @@ export function ProposalClient({
         )}
       </div>
 
-      {/* Floating Actions - Hidden on print */}
-      {quote.status !== 'aprovada' && quote.status !== 'recusada' && (
+      {/* Floating Actions - public view only, hidden on print */}
+      {isPublic && quote.status !== 'aprovada' && quote.status !== 'recusada' && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 px-6 py-4 bg-white/80 backdrop-blur-xl border border-gray-200/80 rounded-full shadow-2xl z-50 animate-in fade-in slide-in-from-bottom-4 duration-500 print:hidden">
           <Button
             variant="outline"

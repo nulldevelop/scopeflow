@@ -17,6 +17,22 @@ export const createContract = withPermission(
     const data = parsed.data
 
     try {
+      // Validate that clientId belongs to this org
+      const client = await prisma.client.findUnique({
+        where: { id: data.clientId, organizationId: ctx.organizationId },
+        select: { id: true },
+      })
+      if (!client) return { success: false, error: 'Cliente inválido.' }
+
+      // Validate that quoteId (if provided) belongs to this org
+      if (data.quoteId) {
+        const quote = await prisma.quote.findUnique({
+          where: { id: data.quoteId, organizationId: ctx.organizationId },
+          select: { id: true },
+        })
+        if (!quote) return { success: false, error: 'Orçamento inválido.' }
+      }
+
       const contract = await prisma.contract.create({
         data: {
           organizationId: ctx.organizationId,

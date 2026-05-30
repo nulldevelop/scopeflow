@@ -130,6 +130,7 @@ export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
         const res = await deleteQuote(id)
         if (res.success) {
           toast.success('Orçamento excluído com sucesso!')
+          router.refresh()
         } else {
           toast.error(res.error)
         }
@@ -221,10 +222,11 @@ export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
           {filteredQuotes.map((quote) => {
             const totalValue = Number(quote.totalValue)
             const totalHours = Number(quote.totalHours)
-            const entryAmount = Number(quote.entryAmount)
+            const entryPercent = Number(quote.entryAmount) // stored as 0-100 %
+            const entryValue = Math.round((totalValue * entryPercent) / 100)
             const installments = quote.installments || 1
             const installmentsValue = Math.round(
-              (totalValue - entryAmount) / installments,
+              (totalValue - entryValue) / installments,
             )
             const prazoSemanas = Math.ceil(totalHours / 20)
 
@@ -426,10 +428,10 @@ export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
                         Condições de pagamento
                       </p>
                       <div className="flex flex-wrap items-center gap-2">
-                        {entryAmount > 0 && (
+                        {entryPercent > 0 && (
                           <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-green-50 to-green-50/50 text-green-700 border border-green-100">
                             <CreditCard className="w-3 h-3" />
-                            Entrada: R$ {entryAmount.toLocaleString('pt-BR')}
+                            Entrada: {entryValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                           </span>
                         )}
                         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-brand/5 to-brand/[0.02] text-brand border border-brand/10">

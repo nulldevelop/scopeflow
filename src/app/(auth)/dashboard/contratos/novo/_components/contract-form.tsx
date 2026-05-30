@@ -21,8 +21,8 @@ type QuoteOption = {
   totalValue: number
   totalHours: number
   installments: number
-  entryAmount: number
-  startDate?: string | null
+  entryAmount: number // stored as 0-100 percent
+  clientId: string | null
   client: { name: string; email?: string | null; document?: string | null } | null
   items: { name: string; description?: string | null; hours: number; unitValue: number }[]
 }
@@ -38,20 +38,28 @@ function buildObjectClause(quote: QuoteOption): string {
   return `O CONTRATADO se compromete a prestar os seguintes serviços de desenvolvimento de software:\n\n${itemsList}\n\nOs serviços serão desenvolvidos conforme especificações acordadas entre as partes e descritas na proposta comercial aprovada.`
 }
 
+function isoDateToBR(isoDate: string): string {
+  // Parse date-only strings without Date() to avoid UTC timezone shift
+  const [y, m, d] = isoDate.split('-')
+  return `${d}/${m}/${y}`
+}
+
 function buildTimelineClause(quote: QuoteOption, startDate?: string): string {
   const weeks = Math.ceil(Number(quote.totalHours) / 20)
-  const start = startDate ? new Date(startDate).toLocaleDateString('pt-BR') : '[DATA DE INÍCIO]'
+  const start = startDate ? isoDateToBR(startDate) : '[DATA DE INÍCIO]'
   return `O prazo de execução está estimado em ${weeks} (${weeks === 1 ? 'uma semana' : `${weeks} semanas`}), com início em ${start}.\n\nOs marcos de entrega serão definidos em comum acordo e formalizados via e-mail. Alterações no escopo poderão impactar o prazo, devendo ser negociadas e documentadas entre as partes.`
 }
 
 function buildPaymentClause(quote: QuoteOption): string {
-  const total = Number(quote.totalValue).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-  const entry = Number(quote.entryAmount)
-  const remaining = Number(quote.totalValue) - entry
+  const totalValue = Number(quote.totalValue)
+  const total = totalValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+  // entryAmount is stored as a percentage (0–100)
+  const entryValue = Math.round((totalValue * Number(quote.entryAmount)) / 100)
+  const remaining = totalValue - entryValue
   const installmentValue = quote.installments > 0 ? remaining / quote.installments : remaining
   let text = `O valor total dos serviços é de ${total}, a ser pago da seguinte forma:\n\n`
-  if (entry > 0) {
-    text += `• Entrada: ${entry.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} no ato da assinatura deste contrato.\n`
+  if (entryValue > 0) {
+    text += `• Entrada: ${entryValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} no ato da assinatura deste contrato.\n`
   }
   if (quote.installments > 0) {
     text += `• ${quote.installments}x parcela(s) de ${installmentValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} após início dos trabalhos.\n`
@@ -81,8 +89,8 @@ export function ContractForm({ clients, quotes, preselectedQuote }: ContractForm
     resolver: zodResolver(contractSchema),
     defaultValues: {
       title: preselectedQuote ? `Contrato – ${preselectedQuote.title}` : '',
-      clientId: preselectedQuote?.client ? '' : '',
-      quoteId: preselectedQuote?.id || '',
+      clientId: preselectedQuote?.clientId ?? '',
+      quoteId: preselectedQuote?.id ?? '',
       totalValue: preselectedQuote ? Number(preselectedQuote.totalValue) : 0,
       objectClause: preselectedQuote ? buildObjectClause(preselectedQuote) : '',
       timelineClause: preselectedQuote ? buildTimelineClause(preselectedQuote) : '',
@@ -93,23 +101,18 @@ export function ContractForm({ clients, quotes, preselectedQuote }: ContractForm
 
   const selectedQuoteId = watch('quoteId')
 
+  // Auto-fill form fields when user picks a quote from the dropdown
   useEffect(() => {
     if (!selectedQuoteId) return
     const q = quotes.find((q) => q.id === selectedQuoteId)
     if (!q) return
     setValue('title', `Contrato – ${q.title}`)
     setValue('totalValue', Number(q.totalValue))
+    if (q.clientId) setValue('clientId', q.clientId)
     setValue('objectClause', buildObjectClause(q))
     setValue('timelineClause', buildTimelineClause(q))
     setValue('paymentClause', buildPaymentClause(q))
   }, [selectedQuoteId, quotes, setValue])
-
-  useEffect(() => {
-    if (preselectedQuote) {
-      const clientId = clients.find((c) => c.name === preselectedQuote.client?.name)?.id || ''
-      setValue('clientId', clientId)
-    }
-  }, [preselectedQuote, clients, setValue])
 
   const onSubmit = async (data: ContractInput) => {
     const res = await createContract(data)

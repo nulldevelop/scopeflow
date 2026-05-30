@@ -4,13 +4,21 @@ import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { serializeQuote } from '@/lib/quote-serializer'
 
+const ALLOWED_PUBLIC_STATUSES = ['aprovada', 'recusada'] as const
+type AllowedStatus = (typeof ALLOWED_PUBLIC_STATUSES)[number]
+
 export async function publicUpdateQuoteStatus(
   id: string,
   status: string,
   slug: string,
+  signerName?: string,
 ) {
   if (!id || !status || !slug) {
     return { success: false, error: 'Parâmetros inválidos.' }
+  }
+
+  if (!ALLOWED_PUBLIC_STATUSES.includes(status as AllowedStatus)) {
+    return { success: false, error: 'Status inválido.' }
   }
 
   try {
@@ -28,15 +36,19 @@ export async function publicUpdateQuoteStatus(
     }
 
     const updatedQuote = await prisma.quote.update({
-      where: { id },
+      where: { id, organizationId: quote.organizationId },
       data: {
         status,
-        approvedAt: status === 'aprovada' ? new Date() : null,
+        ...(status === 'aprovada' && { approvedAt: new Date() }),
+        ...(status === 'aprovada' && signerName?.trim() && {
+          signerName: signerName.trim(),
+        }),
       },
     })
 
     revalidatePath(`/${slug}/proposta/${id}`)
     revalidatePath(`/dashboard/orcamentos/${id}/proposta`)
+    revalidatePath(`/dashboard/orcamentos/${id}`)
     revalidatePath('/dashboard/orcamentos')
 
     return { success: true, data: serializeQuote(updatedQuote) }

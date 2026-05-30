@@ -58,7 +58,7 @@ const filterOptions: { label: string; value: ContractStatus | 'Todos' }[] = [
 
 export function ContractsClient({ contracts }: { contracts: ContractWithRelations[] }) {
   const router = useRouter()
-  const [_isPending, startTransition] = useTransition()
+  const [isPending, startTransition] = useTransition()
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<ContractStatus | 'Todos'>('Todos')
 
@@ -74,8 +74,12 @@ export function ContractsClient({ contracts }: { contracts: ContractWithRelation
     if (!confirm('Tem certeza que deseja excluir este contrato?')) return
     startTransition(async () => {
       const res = await deleteContract({ id })
-      if (res.success) toast.success('Contrato excluído.')
-      else toast.error(res.error)
+      if (res.success) {
+        toast.success('Contrato excluído.')
+        router.refresh()
+      } else {
+        toast.error(res.error)
+      }
     })
   }
 
@@ -267,6 +271,7 @@ export function ContractsClient({ contracts }: { contracts: ContractWithRelation
                       {status === 'rascunho' && (
                         <Button
                           size="sm"
+                          disabled={isPending}
                           onClick={() => handleSignAndSend(contract.id)}
                           className="bg-brand text-white hover:bg-brand-dark rounded-xl shadow-sm hover:shadow-md transition-all"
                         >

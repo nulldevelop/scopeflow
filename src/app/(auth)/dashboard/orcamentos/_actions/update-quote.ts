@@ -31,7 +31,7 @@ export const updateQuote = withPermission(
     try {
       const existing = await prisma.quote.findUnique({
         where: { id: data.id, organizationId: ctx.organizationId },
-        select: { id: true },
+        select: { id: true, status: true },
       })
 
       if (!existing) {
@@ -40,8 +40,12 @@ export const updateQuote = withPermission(
 
       await prisma.quoteItem.deleteMany({ where: { quoteId: data.id } })
 
+      // Only clear the provider signature when the quote is still a draft.
+      // Editing a sent/signed quote must not wipe the audit trail.
+      const clearSignature = existing.status === 'rascunho'
+
       const updatedQuote = await prisma.quote.update({
-        where: { id: data.id },
+        where: { id: data.id, organizationId: ctx.organizationId },
         data: {
           title: data.title,
           description: data.description,
@@ -56,9 +60,7 @@ export const updateQuote = withPermission(
           entryAmount: data.entryAmount,
           installments: data.installments,
           expirationDate: data.expirationDate,
-          signedAt: null,
-          signatureHash: null,
-          signerName: null,
+          ...(clearSignature && { signedAt: null, signatureHash: null, signerName: null }),
           items: {
             create: data.items.map((item, index) => ({
               name: item.name,
@@ -77,6 +79,7 @@ export const updateQuote = withPermission(
       ctx.log({ entityId: updatedQuote.id })
       revalidatePath('/dashboard/orcamentos')
       revalidatePath(`/dashboard/orcamentos/${updatedQuote.id}`)
+      revalidatePath(`/dashboard/orcamentos/${updatedQuote.id}/proposta`)
 
       return { success: true, data: serializeQuote(updatedQuote) }
     } catch (error) {

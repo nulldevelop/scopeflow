@@ -14,7 +14,7 @@ export const deleteContract = withPermission(
       })
       if (!existing) return { success: false, error: 'Contrato não encontrado.' }
 
-      await prisma.contract.delete({ where: { id } })
+      await prisma.contract.delete({ where: { id, organizationId: ctx.organizationId } })
 
       ctx.log({ entityId: id })
       revalidatePath('/dashboard/contratos')

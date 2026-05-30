@@ -4,14 +4,23 @@ import { createHash } from 'node:crypto'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 
-export async function publicSignContract(id: string, signerName: string) {
-  if (!id || !signerName?.trim()) {
-    return { success: false, error: 'Nome do assinante é obrigatório.' }
+export async function publicSignContract(
+  id: string,
+  signerName: string,
+  slug: string,
+) {
+  if (!id || !signerName?.trim() || !slug) {
+    return { success: false, error: 'Parâmetros obrigatórios ausentes.' }
+  }
+
+  if (signerName.length > 200) {
+    return { success: false, error: 'Nome muito longo.' }
   }
 
   try {
-    const contract = await prisma.contract.findUnique({
-      where: { id },
+    // Scope by both id AND org slug to prevent IDOR across tenants
+    const contract = await prisma.contract.findFirst({
+      where: { id, organization: { slug } },
       include: { organization: { select: { slug: true } } },
     })
 
@@ -32,7 +41,7 @@ export async function publicSignContract(id: string, signerName: string) {
       .slice(0, 16)
 
     await prisma.contract.update({
-      where: { id },
+      where: { id, organizationId: contract.organizationId },
       data: {
         clientSigned: true,
         clientSignedAt: signedAt,
@@ -42,7 +51,7 @@ export async function publicSignContract(id: string, signerName: string) {
       },
     })
 
-    revalidatePath(`/${contract.organization.slug}/contrato/${id}`)
+    revalidatePath(`/${slug}/contrato/${id}`)
     revalidatePath('/dashboard/contratos')
     revalidatePath(`/dashboard/contratos/${id}`)
 
@@ -51,8 +60,4 @@ export async function publicSignContract(id: string, signerName: string) {
     console.error('[publicSignContract Error]', error)
     return { success: false, error: 'Erro ao assinar contrato.' }
   }
-}
-
-export async function publicCancelContractSign(id: string) {
-  return { success: true, data: null }
 }
