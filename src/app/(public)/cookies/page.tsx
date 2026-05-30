@@ -2,9 +2,10 @@ import type { Metadata } from 'next'
 import { LegalLayout } from '@/components/shared/LegalLayout'
 
 export const metadata: Metadata = {
-  title: 'Política de Cookies · ScopeFlow',
+  title: 'Política de Cookies',
   description:
     'Quais cookies o ScopeFlow utiliza e para quê. Usamos apenas cookies essenciais.',
+  alternates: { canonical: '/cookies' },
 }
 
 export default function CookiesPage() {

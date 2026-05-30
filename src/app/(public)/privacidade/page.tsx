@@ -2,9 +2,10 @@ import type { Metadata } from 'next'
 import { LegalLayout } from '@/components/shared/LegalLayout'
 
 export const metadata: Metadata = {
-  title: 'Política de Privacidade · ScopeFlow',
+  title: 'Política de Privacidade',
   description:
     'Como o ScopeFlow coleta, usa e protege seus dados pessoais, em conformidade com a LGPD.',
+  alternates: { canonical: '/privacidade' },
 }
 
 export default function PrivacidadePage() {

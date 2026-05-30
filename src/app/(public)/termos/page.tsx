@@ -2,8 +2,9 @@ import type { Metadata } from 'next'
 import { LegalLayout } from '@/components/shared/LegalLayout'
 
 export const metadata: Metadata = {
-  title: 'Termos de Uso · ScopeFlow',
+  title: 'Termos de Uso',
   description: 'Os termos e condições para uso da plataforma ScopeFlow.',
+  alternates: { canonical: '/termos' },
 }
 
 export default function TermosPage() {

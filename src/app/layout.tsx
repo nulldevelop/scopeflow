@@ -19,12 +19,74 @@ const ibmPlexMono = IBM_Plex_Mono({
   variable: '--font-mono',
 })
 
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://scopeflow.com.br'
+
 export const metadata: Metadata = {
-  title: 'ScopeFlow - Precificação Inteligente',
+  metadataBase: new URL(baseUrl),
+  title: {
+    default: 'ScopeFlow — Gerador de Propostas e Contratos para Devs',
+    template: '%s | ScopeFlow',
+  },
   description:
-    'A plataforma de precificação inteligente para desenvolvedores freelancers e pequenas software houses.',
+    'Crie propostas comerciais, calcule valores por hora e gere contratos digitais em minutos. A plataforma de precificação inteligente para desenvolvedores freelancers e software houses.',
+  keywords: [
+    'proposta comercial',
+    'precificação freelancer',
+    'contrato digital',
+    'orçamento desenvolvimento',
+    'software house',
+    'freelancer desenvolvedor',
+    'gerador de proposta',
+    'proposta de software',
+    'contrato de prestação de serviços',
+  ],
+  authors: [{ name: 'ScopeFlow' }],
+  creator: 'ScopeFlow',
+  publisher: 'ScopeFlow',
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'pt_BR',
+    url: baseUrl,
+    siteName: 'ScopeFlow',
+    title: 'ScopeFlow — Gerador de Propostas e Contratos para Devs',
+    description:
+      'Crie propostas comerciais, calcule valores por hora e gere contratos digitais em minutos.',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'ScopeFlow — Gerador de Propostas para Desenvolvedores',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'ScopeFlow — Gerador de Propostas e Contratos para Devs',
+    description:
+      'Crie propostas comerciais, calcule valores por hora e gere contratos digitais em minutos.',
+    images: ['/og-image.png'],
+    creator: '@scopeflow',
+  },
   icons: {
-    icon: '/logo.svg',
+    icon: [
+      { url: '/logo.svg', type: 'image/svg+xml' },
+    ],
+    apple: '/logo.svg',
+  },
+  alternates: {
+    canonical: baseUrl,
   },
 }
 
