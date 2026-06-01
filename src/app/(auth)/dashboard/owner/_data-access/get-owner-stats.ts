@@ -37,7 +37,52 @@ export interface OwnerStats {
   subscriptionsByStatus: SubscriptionStatus[]
 }
 
-type MonthlyRow = { month: string; value: string | number | bigint }
+const MONTH_ABBR = [
+  'Jan',
+  'Fev',
+  'Mar',
+  'Abr',
+  'Mai',
+  'Jun',
+  'Jul',
+  'Ago',
+  'Set',
+  'Out',
+  'Nov',
+  'Dez',
+]
+
+/** Buckets rows into chronological monthly series ("Mon/YY"), summing values. */
+function groupByMonth<T>(
+  rows: T[],
+  getDate: (row: T) => Date,
+  getValue: (row: T) => number,
+): MonthlySeries[] {
+  const buckets = new Map<
+    string,
+    { year: number; month: number; value: number }
+  >()
+
+  for (const row of rows) {
+    const d = getDate(row)
+    const year = d.getUTCFullYear()
+    const month = d.getUTCMonth()
+    const key = `${year}-${month}`
+    const existing = buckets.get(key)
+    if (existing) {
+      existing.value += getValue(row)
+    } else {
+      buckets.set(key, { year, month, value: getValue(row) })
+    }
+  }
+
+  return Array.from(buckets.values())
+    .sort((a, b) => a.year - b.year || a.month - b.month)
+    .map((b) => ({
+      month: `${MONTH_ABBR[b.month]}/${String(b.year).slice(-2)}`,
+      value: b.value,
+    }))
+}
 
 export async function getOwnerStats(): Promise<OwnerStats> {
   const now = new Date()
@@ -52,7 +97,7 @@ export async function getOwnerStats(): Promise<OwnerStats> {
     subscriptions,
     recentOrgsRaw,
     allOrgsMetadata,
-    revenueRows,
+    billingRows,
     userRows,
     orgsToday,
     orgsThisMonth,
@@ -72,20 +117,12 @@ export async function getOwnerStats(): Promise<OwnerStats> {
     }),
     // Only fetch metadata for plan distribution — no row limit
     prisma.organization.findMany({ select: { metadata: true } }),
-    prisma.$queryRaw<MonthlyRow[]>`
-      SELECT TO_CHAR(DATE_TRUNC('month', created_at), 'Mon/YY') AS month,
-             SUM(amount)::text AS value
-      FROM billing_history
-      GROUP BY DATE_TRUNC('month', created_at)
-      ORDER BY DATE_TRUNC('month', created_at)
-    `,
-    prisma.$queryRaw<MonthlyRow[]>`
-      SELECT TO_CHAR(DATE_TRUNC('month', created_at), 'Mon/YY') AS month,
-             COUNT(*)::text AS value
-      FROM "user"
-      GROUP BY DATE_TRUNC('month', created_at)
-      ORDER BY DATE_TRUNC('month', created_at)
-    `,
+    // Monthly revenue series — bucketed in JS (see groupByMonth)
+    prisma.billingHistory.findMany({
+      select: { amount: true, createdAt: true },
+    }),
+    // Monthly user-growth series — bucketed in JS (see groupByMonth)
+    prisma.user.findMany({ select: { createdAt: true } }),
     prisma.organization.count({ where: { createdAt: { gte: startOfDay } } }),
     prisma.organization.count({ where: { createdAt: { gte: startOfMonth } } }),
   ])
@@ -100,7 +137,12 @@ export async function getOwnerStats(): Promise<OwnerStats> {
 
   const recentOrganizations: RecentOrg[] = recentOrgsRaw.map((org) => {
     const metadata = org.metadata ? JSON.parse(org.metadata) : {}
-    return { id: org.id, name: org.name, plan: metadata.plan || 'unknown', createdAt: org.createdAt }
+    return {
+      id: org.id,
+      name: org.name,
+      plan: metadata.plan || 'unknown',
+      createdAt: org.createdAt,
+    }
   })
 
   return {
@@ -108,13 +150,28 @@ export async function getOwnerStats(): Promise<OwnerStats> {
     totalOrganizations: totalOrgs,
     totalRevenue: Number(revenueAgg._sum.amount || 0),
     totalRevenueThisMonth: Number(revenueThisMonth._sum.amount || 0),
-    activeSubscriptions: subscriptions.find((s) => s.status === 'active')?._count || 0,
+    activeSubscriptions:
+      subscriptions.find((s) => s.status === 'active')?._count || 0,
     organizationsToday: orgsToday,
     organizationsThisMonth: orgsThisMonth,
-    usersByPlan: Object.entries(planCounts).map(([plan, count]) => ({ plan, count })),
+    usersByPlan: Object.entries(planCounts).map(([plan, count]) => ({
+      plan,
+      count,
+    })),
     recentOrganizations,
-    revenueHistory: revenueRows.map((r) => ({ month: r.month, value: Number(r.value) })),
-    userGrowth: userRows.map((r) => ({ month: r.month, value: Number(r.value) })),
-    subscriptionsByStatus: subscriptions.map((s) => ({ status: s.status, count: s._count })),
+    revenueHistory: groupByMonth(
+      billingRows,
+      (r) => r.createdAt,
+      (r) => Number(r.amount),
+    ),
+    userGrowth: groupByMonth(
+      userRows,
+      (r) => r.createdAt,
+      () => 1,
+    ),
+    subscriptionsByStatus: subscriptions.map((s) => ({
+      status: s.status,
+      count: s._count,
+    })),
   }
 }
