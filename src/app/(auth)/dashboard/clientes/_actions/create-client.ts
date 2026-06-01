@@ -24,6 +24,7 @@ export const createClient = withPermission(
           email: data.email || null,
           document: data.document || null,
           phone: data.phone || null,
+          address: data.address || null,
           organizationId: ctx.organizationId,
         },
       })

@@ -79,6 +79,7 @@ export function ClientsClient({
       email: client.email,
       document: client.document,
       phone: client.phone,
+      address: client.address,
       totalQuotes: client.totalQuotes,
       totalApproved: client.totalApproved,
     })

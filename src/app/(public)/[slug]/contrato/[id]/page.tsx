@@ -1,6 +1,9 @@
 import { redirect } from 'next/navigation'
+import {
+  getPublicContractById,
+  parseOrgLegal,
+} from '@/app/(auth)/dashboard/contratos/_data-access/get-contracts'
 import { ContractDetail } from '@/app/(auth)/dashboard/contratos/[id]/_components/contract-detail'
-import { getPublicContractById } from '@/app/(auth)/dashboard/contratos/_data-access/get-contracts'
 
 export default async function PublicContractPage({
   params,
@@ -14,9 +17,16 @@ export default async function PublicContractPage({
     redirect('/signin')
   }
 
+  const legal = parseOrgLegal(data.organization.metadata)
   const contract = {
     ...data,
     totalValue: Number(data.totalValue),
+    organization: {
+      name: data.organization.name,
+      slug: data.organization.slug,
+      logo: data.organization.logo,
+      ...legal,
+    },
   }
 
   return <ContractDetail contract={contract} isPublic={true} />

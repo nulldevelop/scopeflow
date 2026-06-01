@@ -13,6 +13,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
@@ -31,6 +32,11 @@ import { cn } from '@/lib/utils'
 import { deleteContract } from '../../_actions/delete-contract'
 import { publicSignContract } from '../../_actions/public-contract-actions'
 import { signAndSendContract } from '../../_actions/sign-contract'
+
+const ContractPDFDownload = dynamic(
+  () => import('@/components/contract-pdf/download-inner'),
+  { ssr: false },
+)
 
 type ContractStatus = 'rascunho' | 'enviado' | 'assinado' | 'cancelado'
 
@@ -56,19 +62,56 @@ type ContractData = {
   clientSignatureHash: string | null
   sentAt: Date | null
   createdAt: Date
-  client: { id: string; name: string; email: string | null; document: string | null; phone: string | null } | null
-  organization: { name: string; slug: string; logo: string | null }
+  client: {
+    id: string
+    name: string
+    email: string | null
+    document: string | null
+    phone: string | null
+    address: string | null
+  } | null
+  organization: {
+    name: string
+    slug: string
+    logo: string | null
+    document?: string | null
+    address?: string | null
+    legalRep?: string | null
+  }
   quote?: { id: string; title: string } | null
 }
 
-const statusConfig: Record<ContractStatus, { label: string; className: string }> = {
-  rascunho: { label: 'Rascunho', className: 'bg-gray-100 text-gray-700 ring-1 ring-gray-200' },
-  enviado: { label: 'Enviado', className: 'bg-blue-100 text-blue-700 ring-1 ring-blue-200' },
-  assinado: { label: 'Assinado', className: 'bg-green-100 text-green-700 ring-1 ring-green-200' },
-  cancelado: { label: 'Cancelado', className: 'bg-red-100 text-red-700 ring-1 ring-red-200' },
+const statusConfig: Record<
+  ContractStatus,
+  { label: string; className: string }
+> = {
+  rascunho: {
+    label: 'Rascunho',
+    className: 'bg-gray-100 text-gray-700 ring-1 ring-gray-200',
+  },
+  enviado: {
+    label: 'Enviado',
+    className: 'bg-blue-100 text-blue-700 ring-1 ring-blue-200',
+  },
+  assinado: {
+    label: 'Assinado',
+    className: 'bg-green-100 text-green-700 ring-1 ring-green-200',
+  },
+  cancelado: {
+    label: 'Cancelado',
+    className: 'bg-red-100 text-red-700 ring-1 ring-red-200',
+  },
 }
 
-function ClauseSection({ number, title, content }: { number: string; title: string; content: string | null }) {
+function ClauseSection({
+  number,
+  title,
+  content,
+}: {
+  number: string
+  title: string
+  content: string | null
+}) {
   if (!content) return null
   return (
     <section className="mb-10 print:mb-6">
@@ -79,13 +122,21 @@ function ClauseSection({ number, title, content }: { number: string; title: stri
         {number}. {title}
       </h3>
       <div className="bg-gray-50/80 rounded-2xl p-6 border border-gray-100 print:bg-white print:p-0 print:border-0 print:rounded-none">
-        <p className="text-sm text-gray-700 whitespace-pre-line leading-relaxed print:text-xs">{content}</p>
+        <p className="text-sm text-gray-700 whitespace-pre-line leading-relaxed print:text-xs">
+          {content}
+        </p>
       </div>
     </section>
   )
 }
 
-export function ContractDetail({ contract, isPublic = false }: { contract: ContractData; isPublic?: boolean }) {
+export function ContractDetail({
+  contract,
+  isPublic = false,
+}: {
+  contract: ContractData
+  isPublic?: boolean
+}) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [signDialogOpen, setSignDialogOpen] = useState(false)
@@ -95,7 +146,12 @@ export function ContractDetail({ contract, isPublic = false }: { contract: Contr
   const statusInfo = statusConfig[status] || statusConfig.rascunho
 
   const handleSignAndSend = () => {
-    if (!confirm('Deseja assinar digitalmente e disponibilizar o contrato para o cliente assinar?')) return
+    if (
+      !confirm(
+        'Deseja assinar digitalmente e disponibilizar o contrato para o cliente assinar?',
+      )
+    )
+      return
     startTransition(async () => {
       const res = await signAndSendContract({ id: contract.id })
       if (res.success) {
@@ -108,7 +164,12 @@ export function ContractDetail({ contract, isPublic = false }: { contract: Contr
   }
 
   const handleDelete = () => {
-    if (!confirm('Tem certeza que deseja excluir este contrato? Esta ação não pode ser desfeita.')) return
+    if (
+      !confirm(
+        'Tem certeza que deseja excluir este contrato? Esta ação não pode ser desfeita.',
+      )
+    )
+      return
     startTransition(async () => {
       const res = await deleteContract({ id: contract.id })
       if (res.success) {
@@ -148,7 +209,9 @@ export function ContractDetail({ contract, isPublic = false }: { contract: Contr
               <rect width="60" height="60" rx="14" fill="#2A6B5C" />
               <rect x="33" y="17" width="7" height="30" rx="2" fill="white" />
             </svg>
-            <span className="font-bold text-brand text-sm tracking-tight">ScopeFlow</span>
+            <span className="font-bold text-brand text-sm tracking-tight">
+              ScopeFlow
+            </span>
           </div>
         )}
 
@@ -199,6 +262,7 @@ export function ContractDetail({ contract, isPublic = false }: { contract: Contr
               </Button>
             </>
           )}
+          <ContractPDFDownload contract={contract} />
           <Button
             variant="outline"
             size="sm"
@@ -219,8 +283,12 @@ export function ContractDetail({ contract, isPublic = false }: { contract: Contr
               <FileSignature className="w-7 h-7 text-white" />
             </div>
           </div>
-          <p className="text-white/50 text-xs uppercase tracking-widest mb-2 print:text-gray-400">Contrato de Prestação de Serviços</p>
-          <h1 className="text-3xl md:text-4xl font-semibold mb-2 print:text-2xl print:text-gray-900">{contract.title}</h1>
+          <p className="text-white/50 text-xs uppercase tracking-widest mb-2 print:text-gray-400">
+            Contrato de Prestação de Serviços
+          </p>
+          <h1 className="text-3xl md:text-4xl font-semibold mb-2 print:text-2xl print:text-gray-900">
+            {contract.title}
+          </h1>
           <p className="text-white/60 text-lg mb-4 print:text-sm print:text-gray-500">
             {contract.client?.name || 'Cliente'}
           </p>
@@ -229,7 +297,10 @@ export function ContractDetail({ contract, isPublic = false }: { contract: Contr
             {contract.contractNumber && <span>•</span>}
             <span>Ref: {contract.id.substring(0, 8).toUpperCase()}</span>
             <span>•</span>
-            <span>Emitido em {new Date(contract.createdAt).toLocaleDateString('pt-BR')}</span>
+            <span>
+              Emitido em{' '}
+              {new Date(contract.createdAt).toLocaleDateString('pt-BR')}
+            </span>
           </div>
         </div>
       </div>
@@ -237,6 +308,39 @@ export function ContractDetail({ contract, isPublic = false }: { contract: Contr
       <div className="max-w-4xl mx-auto px-8 -mt-8 relative z-20 print:mt-0 print:px-0">
         <Card className="bg-white border border-gray-100 shadow-xl rounded-[24px] overflow-hidden print:shadow-none print:border-none">
           <div className="relative p-8 md:p-12 print:p-0 print:pt-8">
+            {/* Qualificação formal das partes */}
+            <section className="mb-10 print:mb-6">
+              <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest mb-3 print:text-xs">
+                Qualificação das Partes
+              </h3>
+              <p className="text-sm text-gray-700 leading-relaxed print:text-xs">
+                Pelo presente instrumento particular, de um lado{' '}
+                <span className="font-semibold text-gray-900">
+                  {contract.client?.name || '[CONTRATANTE]'}
+                </span>
+                {contract.client?.document &&
+                  `, inscrito(a) no CPF/CNPJ sob nº ${contract.client.document}`}
+                {contract.client?.address &&
+                  `, com endereço em ${contract.client.address}`}
+                {', doravante denominado(a) '}
+                <span className="font-semibold">CONTRATANTE</span>; e, de outro
+                lado,{' '}
+                <span className="font-semibold text-gray-900">
+                  {contract.organization.name}
+                </span>
+                {contract.organization.document &&
+                  `, inscrita no CNPJ/CPF sob nº ${contract.organization.document}`}
+                {contract.organization.address &&
+                  `, com sede em ${contract.organization.address}`}
+                {contract.organization.legalRep &&
+                  `, neste ato representada por ${contract.organization.legalRep}`}
+                {', doravante denominada '}
+                <span className="font-semibold">CONTRATADA</span>, têm entre si
+                justo e contratado o presente Contrato de Prestação de Serviços,
+                que se regerá pelas cláusulas a seguir.
+              </p>
+            </section>
+
             {/* Partes */}
             <section className="mb-10 print:mb-6">
               <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest mb-4 print:text-xs">
@@ -244,23 +348,65 @@ export function ContractDetail({ contract, isPublic = false }: { contract: Contr
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-5 bg-gray-50 rounded-2xl border border-gray-100 print:bg-white print:p-3 print:border">
-                  <p className="text-[10px] uppercase font-bold text-gray-400 mb-2 tracking-widest">Contratante</p>
-                  <p className="font-bold text-gray-900">{contract.client?.name || '—'}</p>
-                  {contract.client?.email && <p className="text-sm text-gray-500 mt-1">{contract.client.email}</p>}
-                  {contract.client?.document && <p className="text-sm text-gray-500">Doc: {contract.client.document}</p>}
-                  {contract.client?.phone && <p className="text-sm text-gray-500">{contract.client.phone}</p>}
+                  <p className="text-[10px] uppercase font-bold text-gray-400 mb-2 tracking-widest">
+                    Contratante
+                  </p>
+                  <p className="font-bold text-gray-900">
+                    {contract.client?.name || '—'}
+                  </p>
+                  {contract.client?.document && (
+                    <p className="text-sm text-gray-500 mt-1">
+                      CPF/CNPJ: {contract.client.document}
+                    </p>
+                  )}
+                  {contract.client?.address && (
+                    <p className="text-sm text-gray-500">
+                      {contract.client.address}
+                    </p>
+                  )}
+                  {contract.client?.email && (
+                    <p className="text-sm text-gray-500">
+                      {contract.client.email}
+                    </p>
+                  )}
+                  {contract.client?.phone && (
+                    <p className="text-sm text-gray-500">
+                      {contract.client.phone}
+                    </p>
+                  )}
                 </div>
                 <div className="p-5 bg-gray-50 rounded-2xl border border-gray-100 print:bg-white print:p-3 print:border">
-                  <p className="text-[10px] uppercase font-bold text-gray-400 mb-2 tracking-widest">Contratada</p>
-                  <p className="font-bold text-gray-900">{contract.organization.name}</p>
-                  {contract.startDate && (
+                  <p className="text-[10px] uppercase font-bold text-gray-400 mb-2 tracking-widest">
+                    Contratada
+                  </p>
+                  <p className="font-bold text-gray-900">
+                    {contract.organization.name}
+                  </p>
+                  {contract.organization.document && (
                     <p className="text-sm text-gray-500 mt-1">
-                      Início: {new Date(contract.startDate).toLocaleDateString('pt-BR')}
+                      CNPJ/CPF: {contract.organization.document}
+                    </p>
+                  )}
+                  {contract.organization.address && (
+                    <p className="text-sm text-gray-500">
+                      {contract.organization.address}
+                    </p>
+                  )}
+                  {contract.organization.legalRep && (
+                    <p className="text-sm text-gray-500">
+                      Rep.: {contract.organization.legalRep}
+                    </p>
+                  )}
+                  {contract.startDate && (
+                    <p className="text-sm text-gray-500">
+                      Início:{' '}
+                      {new Date(contract.startDate).toLocaleDateString('pt-BR')}
                     </p>
                   )}
                   {contract.endDate && (
                     <p className="text-sm text-gray-500">
-                      Término: {new Date(contract.endDate).toLocaleDateString('pt-BR')}
+                      Término:{' '}
+                      {new Date(contract.endDate).toLocaleDateString('pt-BR')}
                     </p>
                   )}
                 </div>
@@ -269,19 +415,41 @@ export function ContractDetail({ contract, isPublic = false }: { contract: Contr
 
             <div className="border-t border-gray-100 my-8 print:my-4" />
 
-            <ClauseSection number="1" title="Objeto e Escopo dos Serviços" content={contract.objectClause} />
-            <ClauseSection number="2" title="Prazo de Execução" content={contract.timelineClause} />
-            <ClauseSection number="3" title="Valores e Forma de Pagamento" content={contract.paymentClause} />
-            <ClauseSection number="4" title="Propriedade Intelectual, Confidencialidade e Rescisão" content={contract.ipClause} />
+            <ClauseSection
+              number="1"
+              title="Objeto e Escopo dos Serviços"
+              content={contract.objectClause}
+            />
+            <ClauseSection
+              number="2"
+              title="Prazo de Execução"
+              content={contract.timelineClause}
+            />
+            <ClauseSection
+              number="3"
+              title="Valores e Forma de Pagamento"
+              content={contract.paymentClause}
+            />
+            <ClauseSection
+              number="4"
+              title="Propriedade Intelectual, Confidencialidade e Rescisão"
+              content={contract.ipClause}
+            />
 
             <div className="border-t border-gray-100 my-8 print:my-4" />
 
             {/* Financial Summary */}
             <div className="mb-10 flex justify-end print:mb-4">
               <div className="p-6 bg-gradient-to-br from-brand/5 to-brand/[0.02] rounded-2xl border border-brand/10 text-right print:p-3">
-                <p className="text-[10px] uppercase font-bold text-gray-400 mb-2 tracking-widest">Valor Total do Contrato</p>
+                <p className="text-[10px] uppercase font-bold text-gray-400 mb-2 tracking-widest">
+                  Valor Total do Contrato
+                </p>
                 <p className="text-4xl font-mono font-bold text-brand tracking-tighter print:text-2xl">
-                  {Number(contract.totalValue).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })}
+                  {Number(contract.totalValue).toLocaleString('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL',
+                    maximumFractionDigits: 0,
+                  })}
                 </p>
               </div>
             </div>
@@ -290,38 +458,66 @@ export function ContractDetail({ contract, isPublic = false }: { contract: Contr
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 pt-8 border-t border-gray-100 print:grid-cols-2 print:gap-8 print:pt-8">
               {/* Provider */}
               <div className="flex flex-col gap-4">
-                <div className="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-2">Contratada</div>
+                <div className="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-2">
+                  Contratada
+                </div>
                 {contract.providerSigned ? (
                   <div className="p-4 bg-brand/[0.03] border border-brand/10 rounded-2xl relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-2 text-brand/10"><CheckCircle className="w-8 h-8" /></div>
+                    <div className="absolute top-0 right-0 p-2 text-brand/10">
+                      <CheckCircle className="w-8 h-8" />
+                    </div>
                     <p className="text-xs font-bold text-gray-900 mb-1 flex items-center gap-2">
-                      <CheckCircle className="w-3.5 h-3.5 text-brand" /> Assinado Digitalmente
+                      <CheckCircle className="w-3.5 h-3.5 text-brand" />{' '}
+                      Assinado Digitalmente
                     </p>
-                    <p className="text-sm font-semibold text-gray-700">{contract.providerSignerName}</p>
-                    <p className="text-[10px] text-gray-400 font-mono mt-2">AUTENTICIDADE: {contract.providerSignatureHash}</p>
+                    <p className="text-sm font-semibold text-gray-700">
+                      {contract.providerSignerName}
+                    </p>
+                    <p className="text-[10px] text-gray-400 font-mono mt-2">
+                      AUTENTICIDADE: {contract.providerSignatureHash}
+                    </p>
                     {contract.providerSignedAt && (
-                      <p className="text-[10px] text-gray-400">{new Date(contract.providerSignedAt).toLocaleString('pt-BR')}</p>
+                      <p className="text-[10px] text-gray-400">
+                        {new Date(contract.providerSignedAt).toLocaleString(
+                          'pt-BR',
+                        )}
+                      </p>
                     )}
                   </div>
                 ) : (
                   <div className="h-[80px] border-b border-gray-200 border-dashed" />
                 )}
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{contract.organization.name}</p>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                  {contract.organization.name}
+                </p>
               </div>
 
               {/* Client */}
               <div className="flex flex-col gap-4">
-                <div className="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-2">Contratante</div>
+                <div className="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-2">
+                  Contratante
+                </div>
                 {contract.clientSigned ? (
                   <div className="p-4 bg-green-50/50 border border-green-100 rounded-2xl relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-2 text-green-500/10"><Check className="w-8 h-8" /></div>
+                    <div className="absolute top-0 right-0 p-2 text-green-500/10">
+                      <Check className="w-8 h-8" />
+                    </div>
                     <p className="text-xs font-bold text-green-700 mb-1 flex items-center gap-2">
-                      <Check className="w-3.5 h-3.5 text-green-600" /> Assinado pelo Cliente
+                      <Check className="w-3.5 h-3.5 text-green-600" /> Assinado
+                      pelo Cliente
                     </p>
-                    <p className="text-sm font-semibold text-gray-700">{contract.clientSignerName}</p>
-                    <p className="text-[10px] text-gray-400 font-mono mt-2">AUTENTICIDADE: {contract.clientSignatureHash}</p>
+                    <p className="text-sm font-semibold text-gray-700">
+                      {contract.clientSignerName}
+                    </p>
+                    <p className="text-[10px] text-gray-400 font-mono mt-2">
+                      AUTENTICIDADE: {contract.clientSignatureHash}
+                    </p>
                     {contract.clientSignedAt && (
-                      <p className="text-[10px] text-gray-400">{new Date(contract.clientSignedAt).toLocaleString('pt-BR')}</p>
+                      <p className="text-[10px] text-gray-400">
+                        {new Date(contract.clientSignedAt).toLocaleString(
+                          'pt-BR',
+                        )}
+                      </p>
                     )}
                   </div>
                 ) : (
@@ -337,11 +533,17 @@ export function ContractDetail({ contract, isPublic = false }: { contract: Contr
           {/* Footer */}
           <div className="bg-gradient-to-r from-gray-50/80 to-white px-8 py-6 flex flex-col md:flex-row items-center justify-between gap-4 border-t border-gray-100 print:hidden">
             <p className="text-xs text-gray-400">
-              Contrato gerado pelo ScopeFlow em {new Date().toLocaleDateString('pt-BR')}
+              Contrato gerado pelo ScopeFlow em{' '}
+              {new Date().toLocaleDateString('pt-BR')}
             </p>
             <div className="text-sm font-semibold flex items-center gap-2">
               Status:
-              <span className={cn('px-3 py-1.5 rounded-full text-[10px] uppercase tracking-wider font-bold', statusInfo.className)}>
+              <span
+                className={cn(
+                  'px-3 py-1.5 rounded-full text-[10px] uppercase tracking-wider font-bold',
+                  statusInfo.className,
+                )}
+              >
                 {statusInfo.label}
               </span>
             </div>
@@ -357,7 +559,9 @@ export function ContractDetail({ contract, isPublic = false }: { contract: Contr
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="signerName">Nome do Responsável / Assinatura Digital</Label>
+              <Label htmlFor="signerName">
+                Nome do Responsável / Assinatura Digital
+              </Label>
               <Input
                 id="signerName"
                 placeholder="Digite seu nome completo"
@@ -393,7 +597,11 @@ export function ContractDetail({ contract, isPublic = false }: { contract: Contr
               }}
               className="bg-brand text-white hover:bg-brand-dark"
             >
-              {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Confirmar Assinatura'}
+              {isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                'Confirmar Assinatura'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -402,7 +610,9 @@ export function ContractDetail({ contract, isPublic = false }: { contract: Contr
       {/* Floating Sign Bar (public only, if not yet signed) */}
       {isPublic && status === 'enviado' && !contract.clientSigned && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 px-6 py-4 bg-white/80 backdrop-blur-xl border border-gray-200/80 rounded-full shadow-2xl z-50 animate-in fade-in slide-in-from-bottom-4 duration-500 print:hidden">
-          <p className="text-sm text-gray-600 font-medium hidden sm:block">Revise o contrato e assine abaixo</p>
+          <p className="text-sm text-gray-600 font-medium hidden sm:block">
+            Revise o contrato e assine abaixo
+          </p>
           <Button
             onClick={() => setSignDialogOpen(true)}
             className="rounded-full h-12 px-8 bg-brand text-white hover:bg-brand-dark gap-2 shadow-lg shadow-brand/20"
@@ -416,7 +626,9 @@ export function ContractDetail({ contract, isPublic = false }: { contract: Contr
       {isPublic && status === 'assinado' && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 px-6 py-4 bg-green-50/90 backdrop-blur-xl border border-green-200 rounded-full shadow-2xl z-50 print:hidden">
           <CheckCircle className="w-5 h-5 text-green-600" />
-          <p className="text-sm font-semibold text-green-700">Contrato assinado por ambas as partes</p>
+          <p className="text-sm font-semibold text-green-700">
+            Contrato assinado por ambas as partes
+          </p>
         </div>
       )}
     </div>

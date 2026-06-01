@@ -7,7 +7,8 @@ import { Pricing } from '@/components/pricing'
 import { QuoteExample } from '@/components/quote-example'
 import { prisma } from '@/lib/prisma'
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.scopeflow.dev.br'
+const baseUrl =
+  process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.scopeflow.dev.br'
 
 export const metadata: Metadata = {
   title: 'ScopeFlow — Gerador de Propostas e Contratos para Devs',
@@ -76,24 +77,20 @@ const jsonLd = {
 }
 
 export default async function Home() {
-  const [
-    totalUsers,
-    totalQuotes,
-    totalValueResult,
-    recentUsers,
-  ] = await Promise.all([
-    prisma.user.count(),
-    prisma.quote.count(),
-    prisma.quote.aggregate({
-      _sum: { totalValue: true },
-    }),
-    prisma.user.findMany({
-      where: { image: { not: null } },
-      select: { image: true },
-      take: 3,
-      orderBy: { createdAt: 'desc' },
-    }),
-  ])
+  const [totalUsers, totalQuotes, totalValueResult, recentUsers] =
+    await Promise.all([
+      prisma.user.count(),
+      prisma.quote.count(),
+      prisma.quote.aggregate({
+        _sum: { totalValue: true },
+      }),
+      prisma.user.findMany({
+        where: { image: { not: null } },
+        select: { image: true },
+        take: 3,
+        orderBy: { createdAt: 'desc' },
+      }),
+    ])
 
   const totalValue = totalValueResult._sum.totalValue ?? 0
   const userAvatars = recentUsers.map((u) => u.image!)

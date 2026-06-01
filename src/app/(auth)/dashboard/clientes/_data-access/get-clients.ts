@@ -7,6 +7,7 @@ export interface ClientData {
   email: string | null
   document: string | null
   phone: string | null
+  address: string | null
   totalQuotes: number
   totalApproved: number
 }
@@ -54,6 +55,7 @@ export async function getSessionClients(): Promise<ClientData[]> {
       email: client.email,
       document: client.document,
       phone: client.phone,
+      address: client.address,
       totalQuotes: stats.totalQuotes,
       totalApproved: stats.totalApproved,
     }

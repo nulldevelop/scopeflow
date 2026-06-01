@@ -53,6 +53,12 @@ interface SettingsClientProps {
           fixedCosts: string
           profitMargin: string
         }
+        legal?: {
+          legalName?: string | null
+          document?: string | null
+          address?: string | null
+          legalRep?: string | null
+        }
         plan: string
       }
       subscription: {
@@ -109,6 +115,13 @@ export function SettingsClient({
       desiredSalary: initialData.organization.metadata.answers.desiredSalary,
       fixedCosts: initialData.organization.metadata.answers.fixedCosts,
       profitMargin: initialData.organization.metadata.answers.profitMargin,
+      orgLegalName:
+        initialData.organization.metadata.legal?.legalName ||
+        initialData.organization.name ||
+        '',
+      orgDocument: initialData.organization.metadata.legal?.document || '',
+      orgAddress: initialData.organization.metadata.legal?.address || '',
+      orgLegalRep: initialData.organization.metadata.legal?.legalRep || '',
     },
   })
 
@@ -364,6 +377,58 @@ export function SettingsClient({
                             {errors.email.message}
                           </p>
                         )}
+                      </div>
+                    </div>
+
+                    <div className="pt-6 border-t border-gray-100">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                        Dados da Empresa (Contratos)
+                      </h3>
+                      <p className="text-sm text-gray-500 mb-4">
+                        Usados na qualificação da CONTRATADA nos contratos
+                        gerados.
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="orgLegalName">
+                            Razão Social / Nome
+                          </Label>
+                          <Input
+                            id="orgLegalName"
+                            {...register('orgLegalName')}
+                            placeholder="Ex: Acme Software LTDA"
+                            className="rounded-lg h-11"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="orgDocument">CNPJ / CPF</Label>
+                          <Input
+                            id="orgDocument"
+                            {...register('orgDocument')}
+                            placeholder="00.000.000/0000-00"
+                            className="rounded-lg h-11"
+                          />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                          <Label htmlFor="orgAddress">Endereço Completo</Label>
+                          <Input
+                            id="orgAddress"
+                            {...register('orgAddress')}
+                            placeholder="Rua, nº, bairro, cidade/UF, CEP"
+                            className="rounded-lg h-11"
+                          />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                          <Label htmlFor="orgLegalRep">
+                            Representante Legal (quem assina)
+                          </Label>
+                          <Input
+                            id="orgLegalRep"
+                            {...register('orgLegalRep')}
+                            placeholder="Nome do responsável que assina o contrato"
+                            className="rounded-lg h-11"
+                          />
+                        </div>
                       </div>
                     </div>
 

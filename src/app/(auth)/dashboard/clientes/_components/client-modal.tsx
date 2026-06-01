@@ -52,6 +52,7 @@ interface ClientModalProps {
     email?: string | null
     document?: string | null
     phone?: string | null
+    address?: string | null
   }
 }
 
@@ -77,6 +78,7 @@ export function ClientModal({
       email: initialData?.email || '',
       document: initialData?.document || '',
       phone: initialData?.phone || '',
+      address: initialData?.address || '',
     },
   })
 
@@ -88,6 +90,7 @@ export function ClientModal({
         email: initialData?.email || '',
         document: initialData?.document || '',
         phone: initialData?.phone || '',
+        address: initialData?.address || '',
       })
     }
   }, [initialData, reset, open])
@@ -203,6 +206,18 @@ export function ClientModal({
             />
             {errors.phone && (
               <p className="text-sm text-red-500">{errors.phone.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="address">Endereço</Label>
+            <Input
+              id="address"
+              {...register('address')}
+              placeholder="Rua, nº, bairro, cidade/UF, CEP"
+            />
+            {errors.address && (
+              <p className="text-sm text-red-500">{errors.address.message}</p>
             )}
           </div>
 

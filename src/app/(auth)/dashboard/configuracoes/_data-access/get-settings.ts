@@ -61,6 +61,12 @@ export async function getSettings() {
             fixedCosts: '1000',
             profitMargin: '20',
           },
+          legal: metadata.legal || {
+            legalName: null,
+            document: null,
+            address: null,
+            legalRep: null,
+          },
           plan: metadata.plan || 'free',
         },
         subscription: subscription

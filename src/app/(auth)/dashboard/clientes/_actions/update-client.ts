@@ -36,6 +36,7 @@ export const updateClient = withPermission(
           email: data.email || null,
           document: data.document || null,
           phone: data.phone || null,
+          address: data.address || null,
         },
       })
 

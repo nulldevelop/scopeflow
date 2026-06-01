@@ -12,6 +12,11 @@ export const settingsSchema = z.object({
   desiredSalary: z.string(),
   fixedCosts: z.string(),
   profitMargin: z.string(),
+  // Dados legais da empresa (usados nos contratos)
+  orgLegalName: z.string().optional(),
+  orgDocument: z.string().optional(),
+  orgAddress: z.string().optional(),
+  orgLegalRep: z.string().optional(),
 })
 
 export type SettingsInput = z.infer<typeof settingsSchema>

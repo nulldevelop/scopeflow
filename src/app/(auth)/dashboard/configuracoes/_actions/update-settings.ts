@@ -1,9 +1,9 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { prisma } from '@/lib/prisma'
 import { withPermission } from '@/lib/permissions/with-permission'
-import { settingsSchema, type SettingsInput } from '../_schemas/settings'
+import { prisma } from '@/lib/prisma'
+import { type SettingsInput, settingsSchema } from '../_schemas/settings'
 
 export const updateSettingsAction = withPermission<[SettingsInput], null>(
   'update',
@@ -46,6 +46,13 @@ export const updateSettingsAction = withPermission<[SettingsInput], null>(
           desiredSalary: data.desiredSalary,
           fixedCosts: data.fixedCosts,
           profitMargin: data.profitMargin,
+        },
+        legal: {
+          ...existingMetadata.legal,
+          legalName: data.orgLegalName || null,
+          document: data.orgDocument || null,
+          address: data.orgAddress || null,
+          legalRep: data.orgLegalRep || null,
         },
         updatedAt: new Date().toISOString(),
       }

@@ -77,6 +77,7 @@ export const createClientSchema = z.object({
   email: z.string().email('E-mail inválido').optional().or(z.literal('')),
   document: documentSchema,
   phone: phoneSchema,
+  address: z.string().optional().or(z.literal('')),
 })
 
 export const updateClientSchema = createClientSchema.extend({

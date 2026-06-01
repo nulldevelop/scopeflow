@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import type { Client } from '@/generated/prisma/client'
 import { createContract } from '../../_actions/create-contract'
+import { updateContract } from '../../_actions/update-contract'
 import { type ContractInput, contractSchema } from '../../_schemas/contract'
 
 type QuoteOption = {
@@ -23,18 +24,52 @@ type QuoteOption = {
   installments: number
   entryAmount: number // stored as 0-100 percent
   clientId: string | null
-  client: { name: string; email?: string | null; document?: string | null } | null
-  items: { name: string; description?: string | null; hours: number; unitValue: number }[]
+  client: {
+    name: string
+    email?: string | null
+    document?: string | null
+  } | null
+  items: {
+    name: string
+    description?: string | null
+    hours: number
+    unitValue: number
+  }[]
+}
+
+export type ContractEditData = {
+  id: string
+  title: string
+  contractNumber: string | null
+  clientId: string | null
+  quoteId: string | null
+  totalValue: number
+  startDate: Date | string | null
+  endDate: Date | string | null
+  objectClause: string | null
+  timelineClause: string | null
+  paymentClause: string | null
+  ipClause: string | null
 }
 
 interface ContractFormProps {
   clients: Client[]
   quotes: QuoteOption[]
   preselectedQuote?: QuoteOption | null
+  contract?: ContractEditData | null
+}
+
+function dateToInput(date: Date | string | null | undefined): string {
+  if (!date) return ''
+  const d = typeof date === 'string' ? new Date(date) : date
+  if (Number.isNaN(d.getTime())) return ''
+  return d.toISOString().slice(0, 10)
 }
 
 function buildObjectClause(quote: QuoteOption): string {
-  const itemsList = quote.items.map((i) => `  - ${i.name}: ${i.hours}h`).join('\n')
+  const itemsList = quote.items
+    .map((i) => `  - ${i.name}: ${i.hours}h`)
+    .join('\n')
   return `O CONTRATADO se compromete a prestar os seguintes serviços de desenvolvimento de software:\n\n${itemsList}\n\nOs serviços serão desenvolvidos conforme especificações acordadas entre as partes e descritas na proposta comercial aprovada.`
 }
 
@@ -52,11 +87,15 @@ function buildTimelineClause(quote: QuoteOption, startDate?: string): string {
 
 function buildPaymentClause(quote: QuoteOption): string {
   const totalValue = Number(quote.totalValue)
-  const total = totalValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+  const total = totalValue.toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  })
   // entryAmount is stored as a percentage (0–100)
   const entryValue = Math.round((totalValue * Number(quote.entryAmount)) / 100)
   const remaining = totalValue - entryValue
-  const installmentValue = quote.installments > 0 ? remaining / quote.installments : remaining
+  const installmentValue =
+    quote.installments > 0 ? remaining / quote.installments : remaining
   let text = `O valor total dos serviços é de ${total}, a ser pago da seguinte forma:\n\n`
   if (entryValue > 0) {
     text += `• Entrada: ${entryValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} no ato da assinatura deste contrato.\n`
@@ -76,8 +115,14 @@ RESCISÃO: Este contrato poderá ser rescindido por qualquer das partes mediante
 
 FORO: Fica eleito o foro da comarca onde reside o CONTRATADO para dirimir quaisquer controvérsias oriundas deste contrato, com renúncia a qualquer outro, por mais privilegiado que seja.`
 
-export function ContractForm({ clients, quotes, preselectedQuote }: ContractFormProps) {
+export function ContractForm({
+  clients,
+  quotes,
+  preselectedQuote,
+  contract,
+}: ContractFormProps) {
   const router = useRouter()
+  const isEditing = !!contract
 
   const {
     register,
@@ -87,22 +132,46 @@ export function ContractForm({ clients, quotes, preselectedQuote }: ContractForm
     formState: { errors, isSubmitting },
   } = useForm<ContractInput>({
     resolver: zodResolver(contractSchema),
-    defaultValues: {
-      title: preselectedQuote ? `Contrato – ${preselectedQuote.title}` : '',
-      clientId: preselectedQuote?.clientId ?? '',
-      quoteId: preselectedQuote?.id ?? '',
-      totalValue: preselectedQuote ? Number(preselectedQuote.totalValue) : 0,
-      objectClause: preselectedQuote ? buildObjectClause(preselectedQuote) : '',
-      timelineClause: preselectedQuote ? buildTimelineClause(preselectedQuote) : '',
-      paymentClause: preselectedQuote ? buildPaymentClause(preselectedQuote) : '',
-      ipClause: defaultIpClause,
-    },
+    defaultValues: contract
+      ? {
+          title: contract.title,
+          contractNumber: contract.contractNumber ?? '',
+          clientId: contract.clientId ?? '',
+          quoteId: contract.quoteId ?? '',
+          totalValue: Number(contract.totalValue),
+          startDate: dateToInput(contract.startDate),
+          endDate: dateToInput(contract.endDate),
+          objectClause: contract.objectClause ?? '',
+          timelineClause: contract.timelineClause ?? '',
+          paymentClause: contract.paymentClause ?? '',
+          ipClause: contract.ipClause ?? '',
+        }
+      : {
+          title: preselectedQuote ? `Contrato – ${preselectedQuote.title}` : '',
+          clientId: preselectedQuote?.clientId ?? '',
+          quoteId: preselectedQuote?.id ?? '',
+          totalValue: preselectedQuote
+            ? Number(preselectedQuote.totalValue)
+            : 0,
+          objectClause: preselectedQuote
+            ? buildObjectClause(preselectedQuote)
+            : '',
+          timelineClause: preselectedQuote
+            ? buildTimelineClause(preselectedQuote)
+            : '',
+          paymentClause: preselectedQuote
+            ? buildPaymentClause(preselectedQuote)
+            : '',
+          ipClause: defaultIpClause,
+        },
   })
 
   const selectedQuoteId = watch('quoteId')
 
-  // Auto-fill form fields when user picks a quote from the dropdown
+  // Auto-fill form fields when user picks a quote from the dropdown.
+  // Skipped in edit mode to avoid overwriting existing clauses.
   useEffect(() => {
+    if (isEditing) return
     if (!selectedQuoteId) return
     const q = quotes.find((q) => q.id === selectedQuoteId)
     if (!q) return
@@ -112,9 +181,20 @@ export function ContractForm({ clients, quotes, preselectedQuote }: ContractForm
     setValue('objectClause', buildObjectClause(q))
     setValue('timelineClause', buildTimelineClause(q))
     setValue('paymentClause', buildPaymentClause(q))
-  }, [selectedQuoteId, quotes, setValue])
+  }, [selectedQuoteId, quotes, setValue, isEditing])
 
   const onSubmit = async (data: ContractInput) => {
+    if (contract) {
+      const res = await updateContract({ ...data, id: contract.id })
+      if (res.success) {
+        toast.success('Contrato atualizado com sucesso!')
+        router.push(`/dashboard/contratos/${contract.id}`)
+      } else {
+        toast.error(res.error)
+      }
+      return
+    }
+
     const res = await createContract(data)
     if (res.success) {
       toast.success('Contrato criado com sucesso!')
@@ -142,8 +222,12 @@ export function ContractForm({ clients, quotes, preselectedQuote }: ContractForm
               <FileSignature className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-black text-white tracking-tight">Novo Contrato</h1>
-              <p className="text-white/60 text-sm mt-1">Preencha os campos e personalize as cláusulas</p>
+              <h1 className="text-3xl font-black text-white tracking-tight">
+                {isEditing ? 'Editar Contrato' : 'Novo Contrato'}
+              </h1>
+              <p className="text-white/60 text-sm mt-1">
+                Preencha os campos e personalize as cláusulas
+              </p>
             </div>
           </div>
         </div>
@@ -155,19 +239,35 @@ export function ContractForm({ clients, quotes, preselectedQuote }: ContractForm
             {/* Informações Básicas */}
             <Card className="bg-white border border-gray-200 rounded-[24px] p-8">
               <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <span className="w-7 h-7 rounded-lg bg-brand/10 flex items-center justify-center text-brand text-xs font-black">1</span>
+                <span className="w-7 h-7 rounded-lg bg-brand/10 flex items-center justify-center text-brand text-xs font-black">
+                  1
+                </span>
                 Informações Básicas
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="md:col-span-2 space-y-1.5">
                   <Label htmlFor="title">Título do Contrato *</Label>
-                  <Input id="title" placeholder="Ex: Contrato de Desenvolvimento – Sistema ERP" {...register('title')} />
-                  {errors.title && <p className="text-red-500 text-xs">{errors.title.message}</p>}
+                  <Input
+                    id="title"
+                    placeholder="Ex: Contrato de Desenvolvimento – Sistema ERP"
+                    {...register('title')}
+                  />
+                  {errors.title && (
+                    <p className="text-red-500 text-xs">
+                      {errors.title.message}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="contractNumber">Número do Contrato (opcional)</Label>
-                  <Input id="contractNumber" placeholder="Ex: 2025-001" {...register('contractNumber')} />
+                  <Label htmlFor="contractNumber">
+                    Número do Contrato (opcional)
+                  </Label>
+                  <Input
+                    id="contractNumber"
+                    placeholder="Ex: 2025-001"
+                    {...register('contractNumber')}
+                  />
                 </div>
 
                 <div className="space-y-1.5">
@@ -179,7 +279,11 @@ export function ContractForm({ clients, quotes, preselectedQuote }: ContractForm
                     placeholder="0.00"
                     {...register('totalValue', { valueAsNumber: true })}
                   />
-                  {errors.totalValue && <p className="text-red-500 text-xs">{errors.totalValue.message}</p>}
+                  {errors.totalValue && (
+                    <p className="text-red-500 text-xs">
+                      {errors.totalValue.message}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-1.5">
@@ -191,14 +295,22 @@ export function ContractForm({ clients, quotes, preselectedQuote }: ContractForm
                   >
                     <option value="">Selecione um cliente...</option>
                     {clients.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
                     ))}
                   </select>
-                  {errors.clientId && <p className="text-red-500 text-xs">{errors.clientId.message}</p>}
+                  {errors.clientId && (
+                    <p className="text-red-500 text-xs">
+                      {errors.clientId.message}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="quoteId">Vincular Orçamento Aprovado (opcional)</Label>
+                  <Label htmlFor="quoteId">
+                    Vincular Orçamento Aprovado (opcional)
+                  </Label>
                   <select
                     id="quoteId"
                     {...register('quoteId')}
@@ -206,14 +318,20 @@ export function ContractForm({ clients, quotes, preselectedQuote }: ContractForm
                   >
                     <option value="">Nenhum</option>
                     {quotes.map((q) => (
-                      <option key={q.id} value={q.id}>{q.title}</option>
+                      <option key={q.id} value={q.id}>
+                        {q.title}
+                      </option>
                     ))}
                   </select>
                 </div>
 
                 <div className="space-y-1.5">
                   <Label htmlFor="startDate">Data de Início</Label>
-                  <Input id="startDate" type="date" {...register('startDate')} />
+                  <Input
+                    id="startDate"
+                    type="date"
+                    {...register('startDate')}
+                  />
                 </div>
 
                 <div className="space-y-1.5">
@@ -226,10 +344,14 @@ export function ContractForm({ clients, quotes, preselectedQuote }: ContractForm
             {/* Objeto e Escopo */}
             <Card className="bg-white border border-gray-200 rounded-[24px] p-8">
               <h2 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
-                <span className="w-7 h-7 rounded-lg bg-brand/10 flex items-center justify-center text-brand text-xs font-black">2</span>
+                <span className="w-7 h-7 rounded-lg bg-brand/10 flex items-center justify-center text-brand text-xs font-black">
+                  2
+                </span>
                 Objeto e Escopo
               </h2>
-              <p className="text-sm text-gray-500 mb-5">Descreva os serviços a serem prestados e as entregas esperadas.</p>
+              <p className="text-sm text-gray-500 mb-5">
+                Descreva os serviços a serem prestados e as entregas esperadas.
+              </p>
               <Textarea
                 rows={8}
                 placeholder="Descreva o objeto do contrato..."
@@ -241,10 +363,14 @@ export function ContractForm({ clients, quotes, preselectedQuote }: ContractForm
             {/* Prazo */}
             <Card className="bg-white border border-gray-200 rounded-[24px] p-8">
               <h2 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
-                <span className="w-7 h-7 rounded-lg bg-brand/10 flex items-center justify-center text-brand text-xs font-black">3</span>
+                <span className="w-7 h-7 rounded-lg bg-brand/10 flex items-center justify-center text-brand text-xs font-black">
+                  3
+                </span>
                 Prazo de Execução
               </h2>
-              <p className="text-sm text-gray-500 mb-5">Defina o cronograma e as condições de prazo.</p>
+              <p className="text-sm text-gray-500 mb-5">
+                Defina o cronograma e as condições de prazo.
+              </p>
               <Textarea
                 rows={6}
                 placeholder="Descreva as condições de prazo..."
@@ -256,10 +382,14 @@ export function ContractForm({ clients, quotes, preselectedQuote }: ContractForm
             {/* Valores e Pagamento */}
             <Card className="bg-white border border-gray-200 rounded-[24px] p-8">
               <h2 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
-                <span className="w-7 h-7 rounded-lg bg-brand/10 flex items-center justify-center text-brand text-xs font-black">4</span>
+                <span className="w-7 h-7 rounded-lg bg-brand/10 flex items-center justify-center text-brand text-xs font-black">
+                  4
+                </span>
                 Valores e Forma de Pagamento
               </h2>
-              <p className="text-sm text-gray-500 mb-5">Especifique valores, forma e condições de pagamento.</p>
+              <p className="text-sm text-gray-500 mb-5">
+                Especifique valores, forma e condições de pagamento.
+              </p>
               <Textarea
                 rows={8}
                 placeholder="Descreva as condições de pagamento..."
@@ -271,10 +401,14 @@ export function ContractForm({ clients, quotes, preselectedQuote }: ContractForm
             {/* IP, Confidencialidade e Rescisão */}
             <Card className="bg-white border border-gray-200 rounded-[24px] p-8">
               <h2 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
-                <span className="w-7 h-7 rounded-lg bg-brand/10 flex items-center justify-center text-brand text-xs font-black">5</span>
+                <span className="w-7 h-7 rounded-lg bg-brand/10 flex items-center justify-center text-brand text-xs font-black">
+                  5
+                </span>
                 Propriedade Intelectual, Confidencialidade e Rescisão
               </h2>
-              <p className="text-sm text-gray-500 mb-5">Cláusulas sobre IP, sigilo e condições de cancelamento.</p>
+              <p className="text-sm text-gray-500 mb-5">
+                Cláusulas sobre IP, sigilo e condições de cancelamento.
+              </p>
               <Textarea
                 rows={12}
                 placeholder="Descreva as cláusulas de IP, confidencialidade e rescisão..."
@@ -284,7 +418,12 @@ export function ContractForm({ clients, quotes, preselectedQuote }: ContractForm
             </Card>
 
             <div className="flex items-center justify-end gap-3 pt-2">
-              <Button type="button" variant="outline" onClick={() => router.back()} className="rounded-xl">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.back()}
+                className="rounded-xl"
+              >
                 Cancelar
               </Button>
               <Button
@@ -294,11 +433,13 @@ export function ContractForm({ clients, quotes, preselectedQuote }: ContractForm
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Criando...
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />{' '}
+                    {isEditing ? 'Salvando...' : 'Criando...'}
                   </>
                 ) : (
                   <>
-                    <FileSignature className="w-4 h-4 mr-2" /> Criar Contrato
+                    <FileSignature className="w-4 h-4 mr-2" />{' '}
+                    {isEditing ? 'Salvar Alterações' : 'Criar Contrato'}
                   </>
                 )}
               </Button>

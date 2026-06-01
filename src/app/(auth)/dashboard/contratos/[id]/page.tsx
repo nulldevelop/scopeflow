@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getSessionClient } from '@/lib/getSession'
-import { getContractById } from '../_data-access/get-contracts'
+import { getContractById, parseOrgLegal } from '../_data-access/get-contracts'
 import { ContractDetail } from './_components/contract-detail'
 
 export const dynamic = 'force-dynamic'
@@ -24,7 +24,9 @@ export default async function ContractPage({
     return (
       <div className="min-h-screen flex items-center justify-center p-8 text-center">
         <div>
-          <h2 className="text-xl font-semibold mb-4">Contrato não encontrado</h2>
+          <h2 className="text-xl font-semibold mb-4">
+            Contrato não encontrado
+          </h2>
           <a
             href="/dashboard/contratos"
             className="inline-flex h-10 items-center justify-center rounded-md bg-brand px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-brand-dark"
@@ -36,9 +38,16 @@ export default async function ContractPage({
     )
   }
 
+  const legal = parseOrgLegal(data.organization.metadata)
   const contract = {
     ...data,
     totalValue: Number(data.totalValue),
+    organization: {
+      name: data.organization.name,
+      slug: data.organization.slug,
+      logo: data.organization.logo,
+      ...legal,
+    },
   }
 
   return <ContractDetail contract={contract} />
