@@ -565,7 +565,7 @@ export function CatalogClient({
         </Button>
       </Header>
 
-      <div className="-mt-25 relative z-10">
+      <div className="px-4 md:px-8 -mt-25 relative z-10 pb-12">
         <div className="max-w-[1600px] mx-auto">
           {/* Categorias */}
           <div className="flex flex-wrap items-center gap-y-4 gap-x-2 mb-10">
