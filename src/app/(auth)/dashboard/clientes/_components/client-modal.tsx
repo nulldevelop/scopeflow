@@ -164,7 +164,7 @@ export function ClientModal({
               placeholder="Nome do cliente"
             />
             {errors.name && (
-              <p className="text-sm text-red-500">{errors.name.message}</p>
+              <p className="text-sm text-danger">{errors.name.message}</p>
             )}
           </div>
 
@@ -177,7 +177,7 @@ export function ClientModal({
               placeholder="email@exemplo.com"
             />
             {errors.email && (
-              <p className="text-sm text-red-500">{errors.email.message}</p>
+              <p className="text-sm text-danger">{errors.email.message}</p>
             )}
           </div>
 
@@ -191,7 +191,7 @@ export function ClientModal({
               inputMode="numeric"
             />
             {errors.document && (
-              <p className="text-sm text-red-500">{errors.document.message}</p>
+              <p className="text-sm text-danger">{errors.document.message}</p>
             )}
           </div>
 
@@ -205,7 +205,7 @@ export function ClientModal({
               inputMode="numeric"
             />
             {errors.phone && (
-              <p className="text-sm text-red-500">{errors.phone.message}</p>
+              <p className="text-sm text-danger">{errors.phone.message}</p>
             )}
           </div>
 
@@ -217,7 +217,7 @@ export function ClientModal({
               placeholder="Rua, nº, bairro, cidade/UF, CEP"
             />
             {errors.address && (
-              <p className="text-sm text-red-500">{errors.address.message}</p>
+              <p className="text-sm text-danger">{errors.address.message}</p>
             )}
           </div>
 

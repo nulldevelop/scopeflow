@@ -214,7 +214,7 @@ export function ClientsClient({
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleDelete(client.id)}
-                            className="gap-2 text-red-600 focus:text-red-600 cursor-pointer"
+                            className="gap-2 text-danger focus:text-danger cursor-pointer"
                             disabled={isPending}
                           >
                             <Trash2 className="w-4 h-4" /> Excluir

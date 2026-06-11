@@ -13,7 +13,8 @@ export const signAndSendContract = withPermission(
       const contract = await prisma.contract.findUnique({
         where: { id, organizationId: ctx.organizationId },
       })
-      if (!contract) return { success: false, error: 'Contrato não encontrado.' }
+      if (!contract)
+        return { success: false, error: 'Contrato não encontrado.' }
       if (contract.providerSigned) {
         return { success: false, error: 'Contrato já assinado pelo prestador.' }
       }

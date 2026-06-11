@@ -90,15 +90,15 @@ const statusConfig: Record<
   },
   enviado: {
     label: 'Enviado',
-    className: 'bg-blue-100 text-blue-700 ring-1 ring-blue-200',
+    className: 'bg-accent-blue-bg text-accent-blue ring-1 ring-accent-blue/20',
   },
   assinado: {
     label: 'Assinado',
-    className: 'bg-green-100 text-green-700 ring-1 ring-green-200',
+    className: 'bg-ok-bg text-ok ring-1 ring-ok/20',
   },
   cancelado: {
     label: 'Cancelado',
-    className: 'bg-red-100 text-red-700 ring-1 ring-red-200',
+    className: 'bg-danger-bg text-danger ring-1 ring-danger/20',
   },
 }
 
@@ -255,7 +255,7 @@ export function ContractDetail({
                 size="sm"
                 onClick={handleDelete}
                 disabled={isPending}
-                className="text-red-500 hover:text-red-600 hover:bg-red-50 gap-2 border-red-200"
+                className="text-danger hover:text-danger hover:bg-danger-bg gap-2 border-danger/30"
               >
                 <Trash2 className="w-4 h-4" /> Excluir
               </Button>
@@ -497,13 +497,13 @@ export function ContractDetail({
                   Contratante
                 </div>
                 {contract.clientSigned ? (
-                  <div className="p-4 bg-green-50/50 border border-green-100 rounded-2xl relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-2 text-green-500/10">
+                  <div className="p-4 bg-ok-bg/50 border border-ok/20 rounded-2xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-2 text-ok/10">
                       <Check className="w-8 h-8" />
                     </div>
-                    <p className="text-xs font-bold text-green-700 mb-1 flex items-center gap-2">
-                      <Check className="w-3.5 h-3.5 text-green-600" /> Assinado
-                      pelo Cliente
+                    <p className="text-xs font-bold text-ok mb-1 flex items-center gap-2">
+                      <Check className="w-3.5 h-3.5 text-ok" /> Assinado pelo
+                      Cliente
                     </p>
                     <p className="text-sm font-semibold text-gray-700">
                       {contract.clientSignerName}
@@ -623,9 +623,9 @@ export function ContractDetail({
 
       {/* Already signed confirmation */}
       {isPublic && status === 'assinado' && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 px-6 py-4 bg-green-50/90 backdrop-blur-xl border border-green-200 rounded-full shadow-2xl z-50 print:hidden">
-          <CheckCircle className="w-5 h-5 text-green-600" />
-          <p className="text-sm font-semibold text-green-700">
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 px-6 py-4 bg-ok-bg/90 backdrop-blur-xl border border-ok/20 rounded-full shadow-2xl z-50 print:hidden">
+          <CheckCircle className="w-5 h-5 text-ok" />
+          <p className="text-sm font-semibold text-ok">
             Contrato assinado por ambas as partes
           </p>
         </div>

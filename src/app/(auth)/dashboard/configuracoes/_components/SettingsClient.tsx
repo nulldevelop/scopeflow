@@ -28,6 +28,7 @@ import {
 import { cn } from '@/lib/utils'
 import { updateSettingsAction } from '../_actions/update-settings'
 import { type SettingsInput, settingsSchema } from '../_schemas/settings'
+import { DangerZone } from './DangerZone'
 
 interface SettingsClientProps {
   initialData: {
@@ -360,7 +361,7 @@ export function SettingsClient({
                           className="rounded-lg h-11"
                         />
                         {errors.name && (
-                          <p className="text-xs text-red-500">
+                          <p className="text-xs text-danger">
                             {errors.name.message}
                           </p>
                         )}
@@ -373,7 +374,7 @@ export function SettingsClient({
                           className="rounded-lg h-11"
                         />
                         {errors.email && (
-                          <p className="text-xs text-red-500">
+                          <p className="text-xs text-danger">
                             {errors.email.message}
                           </p>
                         )}
@@ -754,7 +755,7 @@ export function SettingsClient({
                                       R$ {invoice.amount}
                                     </td>
                                     <td className="px-6 py-4">
-                                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-green-50 text-green-700">
+                                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-ok-bg text-ok">
                                         {invoice.status}
                                       </span>
                                     </td>
@@ -787,20 +788,24 @@ export function SettingsClient({
                   </div>
                 )}
 
-                {activeTab !== 'perfil' && activeTab !== 'pagamento' && (
-                  <div className="py-12 text-center">
-                    <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Shield className="w-8 h-8 text-gray-300" />
+                {activeTab === 'seguranca' && <DangerZone />}
+
+                {activeTab !== 'perfil' &&
+                  activeTab !== 'pagamento' &&
+                  activeTab !== 'seguranca' && (
+                    <div className="py-12 text-center">
+                      <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Shield className="w-8 h-8 text-gray-300" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Em desenvolvimento
+                      </h3>
+                      <p className="text-sm text-gray-500 max-w-sm mx-auto">
+                        Esta seção de configurações está sendo preparada e
+                        estará disponível em breve.
+                      </p>
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      Em desenvolvimento
-                    </h3>
-                    <p className="text-sm text-gray-500 max-w-sm mx-auto">
-                      Esta seção de configurações está sendo preparada e estará
-                      disponível em breve.
-                    </p>
-                  </div>
-                )}
+                  )}
               </form>
             </Card>
           </main>

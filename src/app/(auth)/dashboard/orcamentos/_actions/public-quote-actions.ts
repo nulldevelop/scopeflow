@@ -40,9 +40,10 @@ export async function publicUpdateQuoteStatus(
       data: {
         status,
         ...(status === 'aprovada' && { approvedAt: new Date() }),
-        ...(status === 'aprovada' && signerName?.trim() && {
-          signerName: signerName.trim(),
-        }),
+        ...(status === 'aprovada' &&
+          signerName?.trim() && {
+            signerName: signerName.trim(),
+          }),
       },
     })
 

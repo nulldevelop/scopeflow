@@ -24,12 +24,31 @@
   --color-danger: #a32d2d;
   --color-danger-bg: #fcebeb;
 
+  /* Escala de cinza quente completa — todos os tons partilham o mesmo
+     matiz levemente oliva do fundo (#f8f7f3), evitando cinzas frios. */
   --color-gray-50: #f5f4f0;
   --color-gray-100: #eceae3;
   --color-gray-200: #d3d1c7;
+  --color-gray-300: #c2bfb4;
   --color-gray-400: #888780;
+  --color-gray-500: #74736c;
   --color-gray-600: #5f5e5a;
+  --color-gray-700: #45443f;
+  --color-gray-800: #2c2b28;
   --color-gray-900: #1c1c1a;
+
+  /* Tipografia fluida: o tamanho de desktop é igual ao padrão do Tailwind,
+     mas encolhe no mobile via clamp() — corrige "gigante no celular". */
+  --text-3xl: clamp(1.5rem, 1.18rem + 1.45vw, 1.875rem);
+  --text-3xl--line-height: 1.2;
+  --text-4xl: clamp(1.75rem, 1.34rem + 1.85vw, 2.25rem);
+  --text-4xl--line-height: 1.15;
+  --text-5xl: clamp(2rem, 1.39rem + 2.8vw, 3rem);
+  --text-5xl--line-height: 1.1;
+  --text-6xl: clamp(2.25rem, 1.39rem + 3.8vw, 3.75rem);
+  --text-6xl--line-height: 1.05;
+  --text-7xl: clamp(2.6rem, 1.5rem + 4.9vw, 4.5rem);
+  --text-7xl--line-height: 1.02;
 
   --color-background: #f8f7f3;
   --color-foreground: #1c1c1a;
@@ -105,6 +124,11 @@
 }
 
 :root {
+  /* O app é projetado apenas para tema claro. Declarar color-scheme impede
+     que o "dark mode automático" do navegador/SO inverta as cores e deixe
+     textos escuros brancos (ilegíveis) em modais e popovers. */
+  color-scheme: light;
+
   --background: #f8f7f3;
   --foreground: #1c1c1a;
   --card: #ffffff;

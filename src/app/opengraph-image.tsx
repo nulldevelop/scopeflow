@@ -59,7 +59,13 @@ export default function OgImage() {
           marginBottom: 32,
         }}
       >
-        <svg width="56" height="56" viewBox="0 0 60 60" fill="none" aria-hidden="true">
+        <svg
+          width="56"
+          height="56"
+          viewBox="0 0 60 60"
+          fill="none"
+          aria-hidden="true"
+        >
           <rect width="60" height="60" rx="14" fill="#2A6B5C" />
           <rect
             x="13"

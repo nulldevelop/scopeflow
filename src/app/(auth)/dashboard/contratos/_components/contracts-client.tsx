@@ -41,11 +41,26 @@ export type ContractWithRelations = Omit<Contract, 'totalValue'> & {
   quote: { id: string; title: string } | null
 }
 
-const statusConfig: Record<ContractStatus, { label: string; className: string }> = {
-  rascunho: { label: 'Rascunho', className: 'bg-gray-100 text-gray-700 ring-1 ring-gray-200' },
-  enviado: { label: 'Enviado', className: 'bg-blue-100 text-blue-700 ring-1 ring-blue-200' },
-  assinado: { label: 'Assinado', className: 'bg-green-100 text-green-700 ring-1 ring-green-200' },
-  cancelado: { label: 'Cancelado', className: 'bg-red-100 text-red-700 ring-1 ring-red-200' },
+const statusConfig: Record<
+  ContractStatus,
+  { label: string; className: string }
+> = {
+  rascunho: {
+    label: 'Rascunho',
+    className: 'bg-gray-100 text-gray-700 ring-1 ring-gray-200',
+  },
+  enviado: {
+    label: 'Enviado',
+    className: 'bg-accent-blue-bg text-accent-blue ring-1 ring-accent-blue/20',
+  },
+  assinado: {
+    label: 'Assinado',
+    className: 'bg-ok-bg text-ok ring-1 ring-ok/20',
+  },
+  cancelado: {
+    label: 'Cancelado',
+    className: 'bg-danger-bg text-danger ring-1 ring-danger/20',
+  },
 }
 
 const filterOptions: { label: string; value: ContractStatus | 'Todos' }[] = [
@@ -56,11 +71,17 @@ const filterOptions: { label: string; value: ContractStatus | 'Todos' }[] = [
   { label: 'Cancelado', value: 'cancelado' },
 ]
 
-export function ContractsClient({ contracts }: { contracts: ContractWithRelations[] }) {
+export function ContractsClient({
+  contracts,
+}: {
+  contracts: ContractWithRelations[]
+}) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<ContractStatus | 'Todos'>('Todos')
+  const [statusFilter, setStatusFilter] = useState<ContractStatus | 'Todos'>(
+    'Todos',
+  )
 
   const filtered = contracts.filter((c) => {
     const matchesSearch =
@@ -84,7 +105,12 @@ export function ContractsClient({ contracts }: { contracts: ContractWithRelation
   }
 
   const handleSignAndSend = (id: string) => {
-    if (!confirm('Deseja assinar e enviar este contrato? Isso irá gerar sua assinatura digital e disponibilizar o link para o cliente.')) return
+    if (
+      !confirm(
+        'Deseja assinar e enviar este contrato? Isso irá gerar sua assinatura digital e disponibilizar o link para o cliente.',
+      )
+    )
+      return
     startTransition(async () => {
       const res = await signAndSendContract({ id })
       if (res.success) {
@@ -123,7 +149,8 @@ export function ContractsClient({ contracts }: { contracts: ContractWithRelation
                 variant={statusFilter === opt.value ? 'default' : 'outline'}
                 className={cn(
                   'rounded-full text-sm font-medium transition-all whitespace-nowrap',
-                  statusFilter !== opt.value && 'bg-white text-gray-600 hover:text-gray-700 hover:bg-gray-50',
+                  statusFilter !== opt.value &&
+                    'bg-white text-gray-600 hover:text-gray-700 hover:bg-gray-50',
                 )}
               >
                 {opt.label}
@@ -141,7 +168,10 @@ export function ContractsClient({ contracts }: { contracts: ContractWithRelation
                 : 'Você ainda não tem contratos. Crie o primeiro!'}
             </p>
             {!searchTerm && statusFilter === 'Todos' && (
-              <Button asChild className="bg-brand text-white hover:bg-brand-dark rounded-xl">
+              <Button
+                asChild
+                className="bg-brand text-white hover:bg-brand-dark rounded-xl"
+              >
                 <Link href="/dashboard/contratos/novo">
                   <Plus className="w-4 h-4 mr-2" /> Novo Contrato
                 </Link>
@@ -164,7 +194,12 @@ export function ContractsClient({ contracts }: { contracts: ContractWithRelation
                 <div className="p-6 relative">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-2">
-                      <span className={cn('px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold', statusInfo.className)}>
+                      <span
+                        className={cn(
+                          'px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold',
+                          statusInfo.className,
+                        )}
+                      >
                         {statusInfo.label}
                       </span>
                       {contract.providerSigned && (
@@ -173,7 +208,7 @@ export function ContractsClient({ contracts }: { contracts: ContractWithRelation
                         </span>
                       )}
                       {contract.clientSigned && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[10px] font-bold uppercase tracking-wider">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-ok-bg text-ok text-[10px] font-bold uppercase tracking-wider">
                           <CheckCircle className="w-3 h-3" /> Cliente assinou
                         </span>
                       )}
@@ -181,13 +216,19 @@ export function ContractsClient({ contracts }: { contracts: ContractWithRelation
 
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button className="p-1 text-gray-400 hover:text-gray-600 transition-colors" variant="ghost">
+                        <Button
+                          className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                          variant="ghost"
+                        >
                           <MoreHorizontal className="w-5 h-5" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/contratos/${contract.id}`} className="flex items-center gap-2">
+                          <Link
+                            href={`/dashboard/contratos/${contract.id}`}
+                            className="flex items-center gap-2"
+                          >
                             <Edit className="w-4 h-4" /> Ver / Editar
                           </Link>
                         </DropdownMenuItem>
@@ -201,7 +242,12 @@ export function ContractsClient({ contracts }: { contracts: ContractWithRelation
                         )}
                         {(status === 'enviado' || status === 'assinado') && (
                           <DropdownMenuItem
-                            onClick={() => handleCopyLink(contract.id, contract.organization.slug)}
+                            onClick={() =>
+                              handleCopyLink(
+                                contract.id,
+                                contract.organization.slug,
+                              )
+                            }
                             className="flex items-center gap-2"
                           >
                             <LinkIcon className="w-4 h-4" /> Copiar Link
@@ -209,7 +255,7 @@ export function ContractsClient({ contracts }: { contracts: ContractWithRelation
                         )}
                         <DropdownMenuItem
                           onClick={() => handleDelete(contract.id)}
-                          className="flex items-center gap-2 text-red-600 focus:text-red-600"
+                          className="flex items-center gap-2 text-danger focus:text-danger"
                         >
                           <Trash2 className="w-4 h-4" /> Excluir
                         </DropdownMenuItem>
@@ -227,7 +273,9 @@ export function ContractsClient({ contracts }: { contracts: ContractWithRelation
                           <Users className="w-3.5 h-3.5 text-brand" />
                         </div>
                         <div>
-                          <p className="text-[10px] uppercase font-bold text-gray-400 leading-none mb-0.5">Cliente</p>
+                          <p className="text-[10px] uppercase font-bold text-gray-400 leading-none mb-0.5">
+                            Cliente
+                          </p>
                           <p className="font-semibold text-gray-800 leading-none">
                             {contract.client?.name || 'Cliente Removido'}
                           </p>
@@ -236,7 +284,10 @@ export function ContractsClient({ contracts }: { contracts: ContractWithRelation
                       <div className="flex items-center gap-2 ml-0.5">
                         <Calendar className="w-3.5 h-3.5 text-gray-400" />
                         <span className="text-gray-500">
-                          {new Date(contract.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
+                          {new Date(contract.createdAt).toLocaleDateString(
+                            'pt-BR',
+                            { day: '2-digit', month: 'short', year: 'numeric' },
+                          )}
                         </span>
                       </div>
                     </div>
@@ -244,28 +295,48 @@ export function ContractsClient({ contracts }: { contracts: ContractWithRelation
 
                   <div className="grid grid-cols-3 gap-3 mb-5">
                     <div className="p-4 bg-gradient-to-br from-gray-50 to-white rounded-2xl border border-gray-100">
-                      <p className="text-[10px] uppercase tracking-wider font-bold text-gray-400 mb-1">Valor</p>
+                      <p className="text-[10px] uppercase tracking-wider font-bold text-gray-400 mb-1">
+                        Valor
+                      </p>
                       <p className="text-base font-mono font-bold text-brand">
-                        {Number(contract.totalValue).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })}
+                        {Number(contract.totalValue).toLocaleString('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL',
+                          maximumFractionDigits: 0,
+                        })}
                       </p>
                     </div>
                     <div className="p-4 bg-gradient-to-br from-gray-50 to-white rounded-2xl border border-gray-100">
-                      <p className="text-[10px] uppercase tracking-wider font-bold text-gray-400 mb-1">Início</p>
+                      <p className="text-[10px] uppercase tracking-wider font-bold text-gray-400 mb-1">
+                        Início
+                      </p>
                       <p className="text-sm font-semibold text-gray-900">
-                        {contract.startDate ? new Date(contract.startDate).toLocaleDateString('pt-BR') : '—'}
+                        {contract.startDate
+                          ? new Date(contract.startDate).toLocaleDateString(
+                              'pt-BR',
+                            )
+                          : '—'}
                       </p>
                     </div>
                     <div className="p-4 bg-gradient-to-br from-gray-50 to-white rounded-2xl border border-gray-100">
-                      <p className="text-[10px] uppercase tracking-wider font-bold text-gray-400 mb-1">Término</p>
+                      <p className="text-[10px] uppercase tracking-wider font-bold text-gray-400 mb-1">
+                        Término
+                      </p>
                       <p className="text-sm font-semibold text-gray-900">
-                        {contract.endDate ? new Date(contract.endDate).toLocaleDateString('pt-BR') : '—'}
+                        {contract.endDate
+                          ? new Date(contract.endDate).toLocaleDateString(
+                              'pt-BR',
+                            )
+                          : '—'}
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between gap-3">
                     {contract.contractNumber && (
-                      <span className="text-xs text-gray-400 font-mono">#{contract.contractNumber}</span>
+                      <span className="text-xs text-gray-400 font-mono">
+                        #{contract.contractNumber}
+                      </span>
                     )}
                     <div className="flex items-center gap-2 ml-auto">
                       {status === 'rascunho' && (
@@ -275,14 +346,20 @@ export function ContractsClient({ contracts }: { contracts: ContractWithRelation
                           onClick={() => handleSignAndSend(contract.id)}
                           className="bg-brand text-white hover:bg-brand-dark rounded-xl shadow-sm hover:shadow-md transition-all"
                         >
-                          <Send className="w-3.5 h-3.5 mr-1.5" /> Assinar e Enviar
+                          <Send className="w-3.5 h-3.5 mr-1.5" /> Assinar e
+                          Enviar
                         </Button>
                       )}
                       {(status === 'enviado' || status === 'assinado') && (
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleCopyLink(contract.id, contract.organization.slug)}
+                          onClick={() =>
+                            handleCopyLink(
+                              contract.id,
+                              contract.organization.slug,
+                            )
+                          }
                           className="rounded-xl border-gray-200 text-gray-600 hover:bg-gray-50"
                         >
                           <LinkIcon className="w-3.5 h-3.5 mr-1.5" /> Link

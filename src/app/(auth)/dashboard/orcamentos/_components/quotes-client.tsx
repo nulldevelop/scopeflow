@@ -267,9 +267,10 @@ export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
                                 className={cn(
                                   'w-2 h-2 rounded-full',
                                   option.value === 'rascunho' && 'bg-gray-400',
-                                  option.value === 'enviada' && 'bg-blue-400',
-                                  option.value === 'aprovada' && 'bg-green-400',
-                                  option.value === 'recusada' && 'bg-red-400',
+                                  option.value === 'enviada' &&
+                                    'bg-accent-blue',
+                                  option.value === 'aprovada' && 'bg-ok',
+                                  option.value === 'recusada' && 'bg-danger',
                                 )}
                               />
                               {option.label}
@@ -318,7 +319,8 @@ export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
                               href={`/dashboard/contratos/novo?quoteId=${quote.id}`}
                               className="flex items-center gap-2 text-brand font-medium"
                             >
-                              <FileSignature className="w-4 h-4" /> Gerar Contrato
+                              <FileSignature className="w-4 h-4" /> Gerar
+                              Contrato
                             </Link>
                           </DropdownMenuItem>
                         )}
@@ -340,7 +342,7 @@ export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDelete(quote.id)}
-                          className="flex items-center gap-2 text-red-600 focus:text-red-600"
+                          className="flex items-center gap-2 text-danger focus:text-danger"
                         >
                           <Trash2 className="w-4 h-4" /> Excluir
                         </DropdownMenuItem>
@@ -429,9 +431,13 @@ export function QuotesClient({ quotes }: { quotes: QuoteWithClient[] }) {
                       </p>
                       <div className="flex flex-wrap items-center gap-2">
                         {entryPercent > 0 && (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-green-50 to-green-50/50 text-green-700 border border-green-100">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-ok-bg text-ok border border-ok/20">
                             <CreditCard className="w-3 h-3" />
-                            Entrada: {entryValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                            Entrada:{' '}
+                            {entryValue.toLocaleString('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL',
+                            })}
                           </span>
                         )}
                         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-brand/5 to-brand/[0.02] text-brand border border-brand/10">

@@ -21,7 +21,8 @@ export const updateContract = withPermission(
       const existing = await prisma.contract.findUnique({
         where: { id, organizationId: ctx.organizationId },
       })
-      if (!existing) return { success: false, error: 'Contrato não encontrado.' }
+      if (!existing)
+        return { success: false, error: 'Contrato não encontrado.' }
 
       // Validate that clientId belongs to this org
       if (data.clientId) {

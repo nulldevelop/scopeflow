@@ -9,7 +9,9 @@ export async function POST(req: Request) {
     const secret = process.env.ABACATEPAY_WEBHOOK_SECRET
 
     if (!secret) {
-      console.error('[AbacatePay Webhook] ABACATEPAY_WEBHOOK_SECRET is not defined')
+      console.error(
+        '[AbacatePay Webhook] ABACATEPAY_WEBHOOK_SECRET is not defined',
+      )
       return NextResponse.json(
         { error: 'Webhook secret not configured' },
         { status: 500 },
@@ -20,7 +22,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Assinatura ausente' }, { status: 401 })
     }
 
-    const digest = crypto.createHmac('sha256', secret).update(rawBody).digest('hex')
+    const digest = crypto
+      .createHmac('sha256', secret)
+      .update(rawBody)
+      .digest('hex')
 
     // Timing-safe comparison to prevent timing attacks
     const sigBuf = Buffer.from(signature)
@@ -30,7 +35,10 @@ export async function POST(req: Request) {
       crypto.timingSafeEqual(sigBuf, digestBuf)
 
     if (!isValid) {
-      return NextResponse.json({ error: 'Assinatura inválida' }, { status: 401 })
+      return NextResponse.json(
+        { error: 'Assinatura inválida' },
+        { status: 401 },
+      )
     }
 
     const body = JSON.parse(rawBody)
@@ -69,11 +77,22 @@ export async function POST(req: Request) {
           if (existingSub) {
             await prisma.subscription.update({
               where: { id: existingSub.id },
-              data: { externalId: subscriptionId, status: 'active', plan: planName, currentPeriodEnd: periodEnd },
+              data: {
+                externalId: subscriptionId,
+                status: 'active',
+                plan: planName,
+                currentPeriodEnd: periodEnd,
+              },
             })
           } else {
             await prisma.subscription.create({
-              data: { organizationId: org.id, externalId: subscriptionId, status: 'active', plan: planName, currentPeriodEnd: periodEnd },
+              data: {
+                organizationId: org.id,
+                externalId: subscriptionId,
+                status: 'active',
+                plan: planName,
+                currentPeriodEnd: periodEnd,
+              },
             })
           }
 
@@ -102,6 +121,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('[AbacatePay Webhook Error]', error)
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 },
+    )
   }
 }

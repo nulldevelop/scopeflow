@@ -479,8 +479,8 @@ export function QuoteEditorClient({
               {/* Financial Configs */}
               <div className="pt-10 border-t border-gray-100 space-y-6">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center">
-                    <Settings className="w-5 h-5 text-orange-500" />
+                  <div className="w-10 h-10 rounded-xl bg-accent-amber-bg flex items-center justify-center">
+                    <Settings className="w-5 h-5 text-accent-amber" />
                   </div>
                   <div>
                     <h3 className="font-bold text-gray-900">
@@ -523,7 +523,7 @@ export function QuoteEditorClient({
                       </span>
                     ) : suggestedHourlyRate &&
                       Number(formValues.hourlyRate) !== suggestedHourlyRate ? (
-                      <span className="text-[10px] text-orange-500 font-medium mt-1 px-1">
+                      <span className="text-[10px] text-accent-amber font-medium mt-1 px-1">
                         Personalizado · seu perfil: R$ {suggestedHourlyRate}
                       </span>
                     ) : null}
@@ -892,7 +892,7 @@ export function QuoteEditorClient({
                             variant="ghost"
                             size="icon"
                             onClick={() => removeItem(index)}
-                            className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all rounded-xl"
+                            className="p-2 text-gray-300 hover:text-danger hover:bg-danger-bg transition-all rounded-xl"
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -994,14 +994,14 @@ export function QuoteEditorClient({
                             type="number"
                             {...register('discount')}
                             placeholder="0"
-                            className="w-full bg-white/5 border border-white/10 rounded-lg h-7 text-center text-xs font-bold text-green-400 outline-none focus-visible:ring-1 focus-visible:ring-green-400/50 p-0 hover:bg-white/10 transition-colors"
+                            className="w-full bg-white/5 border border-white/10 rounded-lg h-7 text-center text-xs font-bold text-brand-mid outline-none focus-visible:ring-1 focus-visible:ring-brand-mid/50 p-0 hover:bg-white/10 transition-colors"
                           />
                           <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] text-gray-500 pointer-events-none font-medium">
                             %
                           </span>
                         </div>
                       </div>
-                      <span className="font-mono text-green-400 font-medium">
+                      <span className="font-mono text-brand-mid font-medium">
                         -{' '}
                         {totals.valorDesconto.toLocaleString('pt-BR', {
                           style: 'currency',
@@ -1018,14 +1018,14 @@ export function QuoteEditorClient({
                             type="number"
                             {...register('urgencyFee')}
                             placeholder="0"
-                            className="w-full bg-white/5 border border-white/10 rounded-lg h-7 text-center text-xs font-bold text-orange-400 outline-none focus-visible:ring-1 focus-visible:ring-orange-400/50 p-0 hover:bg-white/10 transition-colors"
+                            className="w-full bg-white/5 border border-white/10 rounded-lg h-7 text-center text-xs font-bold text-accent-amber outline-none focus-visible:ring-1 focus-visible:ring-accent-amber/50 p-0 hover:bg-white/10 transition-colors"
                           />
                           <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] text-gray-500 pointer-events-none font-medium">
                             %
                           </span>
                         </div>
                       </div>
-                      <span className="font-mono text-orange-400 font-medium">
+                      <span className="font-mono text-accent-amber font-medium">
                         +{' '}
                         {totals.valorUrgencia.toLocaleString('pt-BR', {
                           style: 'currency',

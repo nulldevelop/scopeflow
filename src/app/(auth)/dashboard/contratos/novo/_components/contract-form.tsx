@@ -253,7 +253,7 @@ export function ContractForm({
                     {...register('title')}
                   />
                   {errors.title && (
-                    <p className="text-red-500 text-xs">
+                    <p className="text-danger text-xs">
                       {errors.title.message}
                     </p>
                   )}
@@ -280,7 +280,7 @@ export function ContractForm({
                     {...register('totalValue', { valueAsNumber: true })}
                   />
                   {errors.totalValue && (
-                    <p className="text-red-500 text-xs">
+                    <p className="text-danger text-xs">
                       {errors.totalValue.message}
                     </p>
                   )}
@@ -301,7 +301,7 @@ export function ContractForm({
                     ))}
                   </select>
                   {errors.clientId && (
-                    <p className="text-red-500 text-xs">
+                    <p className="text-danger text-xs">
                       {errors.clientId.message}
                     </p>
                   )}

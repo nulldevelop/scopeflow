@@ -38,7 +38,10 @@ export async function completeOnboardingAction(values: OnboardingInput) {
         select: { id: true },
       })
       if (slugTaken) {
-        return { success: false, error: 'Este endereço (slug) já está em uso. Escolha outro.' }
+        return {
+          success: false,
+          error: 'Este endereço (slug) já está em uso. Escolha outro.',
+        }
       }
 
       const newOrgResponse = await auth.api.createOrganization({
@@ -58,7 +61,10 @@ export async function completeOnboardingAction(values: OnboardingInput) {
           select: { id: true },
         })
         if (slugTaken) {
-          return { success: false, error: 'Este novo endereço (slug) já está em uso.' }
+          return {
+            success: false,
+            error: 'Este novo endereço (slug) já está em uso.',
+          }
         }
       }
 
@@ -74,19 +80,6 @@ export async function completeOnboardingAction(values: OnboardingInput) {
 
     if (isNewOrg) {
       await seedOrganization(org.id)
-    }
-
-    let abacateCustomerId = org.abacateCustomerId
-    if (!abacateCustomerId) {
-      const customer = await abacatePay.customers.create({
-        email: session.user.email,
-        name: org.name,
-      })
-      abacateCustomerId = customer.id
-      await prisma.organization.update({
-        where: { id: org.id },
-        data: { abacateCustomerId },
-      })
     }
 
     await prisma.organization.update({
@@ -122,6 +115,21 @@ export async function completeOnboardingAction(values: OnboardingInput) {
     let checkoutUrl = null
     if (data.plan === 'pro' || data.plan === 'equipe') {
       try {
+        // O cliente AbacatePay só é necessário para planos pagos.
+        // Criamos sob demanda para não bloquear o onboarding do plano grátis.
+        let abacateCustomerId = org.abacateCustomerId
+        if (!abacateCustomerId) {
+          const customer = await abacatePay.customers.create({
+            email: session.user.email,
+            name: org.name,
+          })
+          abacateCustomerId = customer.id
+          await prisma.organization.update({
+            where: { id: org.id },
+            data: { abacateCustomerId },
+          })
+        }
+
         const checkout = await createPlanCheckout(
           data.plan,
           abacateCustomerId as string,

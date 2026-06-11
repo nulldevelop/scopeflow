@@ -28,7 +28,7 @@ export default async function ContractsPage() {
 
   if (!success || !data) {
     return (
-      <div className="p-8 text-center text-red-500">
+      <div className="p-8 text-center text-danger">
         {error || 'Erro ao carregar contratos.'}
       </div>
     )

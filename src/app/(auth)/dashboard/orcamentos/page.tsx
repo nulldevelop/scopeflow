@@ -31,7 +31,7 @@ export default async function QuotesPage() {
 
   if (!success || !quotesData) {
     return (
-      <div className="p-8 text-center text-red-500">
+      <div className="p-8 text-center text-danger">
         {error || 'Erro ao carregar orçamentos.'}
       </div>
     )

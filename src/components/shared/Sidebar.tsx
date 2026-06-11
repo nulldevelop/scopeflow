@@ -222,7 +222,7 @@ export function Sidebar({ user, userRole }: SidebarProps) {
                       </span>
                     )}
                   </div>
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-[#0F1115] rounded-full" />
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-ok border-2 border-[#0F1115] rounded-full" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-white truncate">
@@ -248,7 +248,7 @@ export function Sidebar({ user, userRole }: SidebarProps) {
                 <Button
                   onClick={handleSignOut}
                   variant="ghost"
-                  className="h-10 rounded-xl bg-red-500/5 hover:bg-red-500/10 text-red-500 hover:text-red-400 transition-all text-xs border border-red-500/10"
+                  className="h-10 rounded-xl bg-danger/10 hover:bg-danger/20 text-danger hover:text-danger transition-all text-xs border border-danger/20"
                 >
                   <LogOut className="w-3.5 h-3.5 mr-2" />
                   Sair

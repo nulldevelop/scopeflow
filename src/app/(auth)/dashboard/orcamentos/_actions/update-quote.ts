@@ -12,8 +12,14 @@ export const updateQuote = withPermission(
   async (ctx, input: UpdateQuoteInput) => {
     const validatedFields = updateQuoteSchema.safeParse(input)
     if (!validatedFields.success) {
-      console.error('[updateQuote Validation Error]', validatedFields.error.flatten().fieldErrors)
-      return { success: false, error: 'Dados inválidos para atualizar orçamento.' }
+      console.error(
+        '[updateQuote Validation Error]',
+        validatedFields.error.flatten().fieldErrors,
+      )
+      return {
+        success: false,
+        error: 'Dados inválidos para atualizar orçamento.',
+      }
     }
 
     const data = validatedFields.data
@@ -60,7 +66,11 @@ export const updateQuote = withPermission(
           entryAmount: data.entryAmount,
           installments: data.installments,
           expirationDate: data.expirationDate,
-          ...(clearSignature && { signedAt: null, signatureHash: null, signerName: null }),
+          ...(clearSignature && {
+            signedAt: null,
+            signatureHash: null,
+            signerName: null,
+          }),
           items: {
             create: data.items.map((item, index) => ({
               name: item.name,

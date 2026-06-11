@@ -336,8 +336,8 @@ export function ProposalClient({
                       </span>
                       {Number(item.monthlyFee) > 0 && (
                         <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-semibold text-brand/70">
-                          <RefreshCw className="w-2.5 h-2.5" />
-                          +{Number(item.monthlyFee).toLocaleString('pt-BR', {
+                          <RefreshCw className="w-2.5 h-2.5" />+
+                          {Number(item.monthlyFee).toLocaleString('pt-BR', {
                             style: 'currency',
                             currency: 'BRL',
                           })}
@@ -431,7 +431,7 @@ export function ProposalClient({
                             currency: 'BRL',
                           })}
                         </p>
-                        <p className="text-xs font-bold text-green-500 uppercase tracking-wider">
+                        <p className="text-xs font-bold text-ok uppercase tracking-wider">
                           {quote.discount}% de Desconto aplicado
                         </p>
                       </div>
@@ -504,12 +504,12 @@ export function ProposalClient({
               <div className="flex flex-col gap-4">
                 <div className="section-label mb-2 text-gray-400">Cliente</div>
                 {quote.status === 'aprovada' ? (
-                  <div className="p-4 bg-green-50/50 border border-green-100 rounded-2xl relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-2 text-green-500/10">
+                  <div className="p-4 bg-ok-bg/50 border border-ok/20 rounded-2xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-2 text-ok/10">
                       <Check className="w-8 h-8" />
                     </div>
-                    <p className="text-xs font-bold text-green-700 mb-1 flex items-center gap-2">
-                      <Check className="w-3.5 h-3.5 text-green-600" />
+                    <p className="text-xs font-bold text-ok mb-1 flex items-center gap-2">
+                      <Check className="w-3.5 h-3.5 text-ok" />
                       Aprovado pelo Cliente
                     </p>
                     <p className="text-sm font-semibold text-gray-700">
@@ -541,13 +541,13 @@ export function ProposalClient({
                 className={cn(
                   'px-3 py-1.5 rounded-full text-[10px] uppercase tracking-wider font-bold',
                   quote.status === 'aprovada' &&
-                    'bg-green-100 text-green-700 ring-1 ring-green-200',
+                    'bg-ok-bg text-ok ring-1 ring-ok/20',
                   quote.status === 'recusada' &&
-                    'bg-red-100 text-red-700 ring-1 ring-red-200',
+                    'bg-danger-bg text-danger ring-1 ring-danger/20',
                   quote.status === 'rascunho' &&
                     'bg-gray-100 text-gray-700 ring-1 ring-gray-200',
                   quote.status === 'enviada' &&
-                    'bg-blue-100 text-blue-700 ring-1 ring-blue-200',
+                    'bg-accent-blue-bg text-accent-blue ring-1 ring-accent-blue/20',
                 )}
               >
                 {quote.status}
@@ -558,7 +558,7 @@ export function ProposalClient({
 
         {/* Approved Stamp for Print */}
         {quote.status === 'aprovada' && (
-          <div className="hidden print:block mt-8 text-center border-2 border-green-500 rounded-xl p-4 text-green-600 font-bold uppercase tracking-widest">
+          <div className="hidden print:block mt-8 text-center border-2 border-ok rounded-xl p-4 text-ok font-bold uppercase tracking-widest">
             Aprovado em{' '}
             {quote.approvedAt
               ? new Date(quote.approvedAt).toLocaleDateString('pt-BR')
@@ -568,25 +568,27 @@ export function ProposalClient({
       </div>
 
       {/* Floating Actions - public view only, hidden on print */}
-      {isPublic && quote.status !== 'aprovada' && quote.status !== 'recusada' && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 px-6 py-4 bg-white/80 backdrop-blur-xl border border-gray-200/80 rounded-full shadow-2xl z-50 animate-in fade-in slide-in-from-bottom-4 duration-500 print:hidden">
-          <Button
-            variant="outline"
-            disabled={isPending}
-            onClick={() => handleUpdateStatus('recusada')}
-            className="rounded-full h-12 px-8 border-red-200 text-red-600 hover:bg-red-50 gap-2"
-          >
-            <X className="w-4 h-4" /> Recusar
-          </Button>
-          <Button
-            disabled={isPending}
-            onClick={() => handleUpdateStatus('aprovada')}
-            className="rounded-full h-12 px-8 bg-brand text-white hover:bg-brand-dark gap-2 shadow-lg shadow-brand/20"
-          >
-            <Check className="w-4 h-4" /> Aprovar proposta
-          </Button>
-        </div>
-      )}
+      {isPublic &&
+        quote.status !== 'aprovada' &&
+        quote.status !== 'recusada' && (
+          <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 px-6 py-4 bg-white/80 backdrop-blur-xl border border-gray-200/80 rounded-full shadow-2xl z-50 animate-in fade-in slide-in-from-bottom-4 duration-500 print:hidden">
+            <Button
+              variant="outline"
+              disabled={isPending}
+              onClick={() => handleUpdateStatus('recusada')}
+              className="rounded-full h-12 px-8 border-danger/30 text-danger hover:bg-danger-bg gap-2"
+            >
+              <X className="w-4 h-4" /> Recusar
+            </Button>
+            <Button
+              disabled={isPending}
+              onClick={() => handleUpdateStatus('aprovada')}
+              className="rounded-full h-12 px-8 bg-brand text-white hover:bg-brand-dark gap-2 shadow-lg shadow-brand/20"
+            >
+              <Check className="w-4 h-4" /> Aprovar proposta
+            </Button>
+          </div>
+        )}
     </div>
   )
 }

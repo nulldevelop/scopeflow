@@ -380,10 +380,14 @@ export function ProposalPDF({
   activeOrg,
 }: ProposalPDFProps) {
   const displayLogo = activeOrg?.logo || quote.organization?.logo
-  const displayOrgName = activeOrg?.name || quote.organization?.name || organizationName
+  const displayOrgName =
+    activeOrg?.name || quote.organization?.name || organizationName
 
   const orgLogoUrl = getAbsoluteUrl(displayLogo)
-  const grossValue = quote.items.reduce((acc, item) => acc + Number(item.unitValue), 0)
+  const grossValue = quote.items.reduce(
+    (acc, item) => acc + Number(item.unitValue),
+    0,
+  )
   const discountValue = (grossValue * Number(quote.discount)) / 100
   const urgencyValue = (grossValue * Number(quote.urgencyFee)) / 100
   const netValue = grossValue - discountValue + urgencyValue
@@ -407,9 +411,7 @@ export function ProposalPDF({
                 />
               )}
 
-              <Text style={styles.companyName}>
-                {displayOrgName}
-              </Text>
+              <Text style={styles.companyName}>{displayOrgName}</Text>
             </View>
             <Text style={styles.documentTitle}>Proposta Comercial</Text>
             <Text style={styles.referenceRow}>
@@ -646,9 +648,7 @@ export function ProposalPDF({
             ) : (
               <View style={styles.signatureLine} />
             )}
-            <Text style={styles.signatureLabel}>
-              {displayOrgName}
-            </Text>
+            <Text style={styles.signatureLabel}>{displayOrgName}</Text>
           </View>
           <View style={styles.signatureBlock}>
             <View style={styles.signatureLine} />

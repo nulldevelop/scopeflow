@@ -26,7 +26,10 @@ export async function publicSignContract(
 
     if (!contract) return { success: false, error: 'Contrato não encontrado.' }
     if (contract.status !== 'enviado') {
-      return { success: false, error: 'Este contrato não está disponível para assinatura.' }
+      return {
+        success: false,
+        error: 'Este contrato não está disponível para assinatura.',
+      }
     }
     if (contract.clientSigned) {
       return { success: false, error: 'Contrato já assinado.' }

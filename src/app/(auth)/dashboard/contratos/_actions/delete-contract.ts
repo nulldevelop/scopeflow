@@ -12,9 +12,12 @@ export const deleteContract = withPermission(
       const existing = await prisma.contract.findUnique({
         where: { id, organizationId: ctx.organizationId },
       })
-      if (!existing) return { success: false, error: 'Contrato não encontrado.' }
+      if (!existing)
+        return { success: false, error: 'Contrato não encontrado.' }
 
-      await prisma.contract.delete({ where: { id, organizationId: ctx.organizationId } })
+      await prisma.contract.delete({
+        where: { id, organizationId: ctx.organizationId },
+      })
 
       ctx.log({ entityId: id })
       revalidatePath('/dashboard/contratos')

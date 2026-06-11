@@ -38,7 +38,12 @@ export const signQuote = withPermission(
 
       await prisma.quote.update({
         where: { id },
-        data: { signedAt, signatureHash, signerName: user.name, status: 'enviada' },
+        data: {
+          signedAt,
+          signatureHash,
+          signerName: user.name,
+          status: 'enviada',
+        },
       })
 
       ctx.log({ entityId: id })

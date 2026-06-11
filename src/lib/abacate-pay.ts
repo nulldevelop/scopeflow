@@ -22,7 +22,9 @@ export const abacatePay = {
 
     const data = await response.json()
     if (!response.ok || !data.success) {
-      throw new Error(data.error || `AbacatePay API Error: ${response.statusText}`)
+      throw new Error(
+        data.error || `AbacatePay API Error: ${response.statusText}`,
+      )
     }
 
     return data.data
@@ -56,7 +58,11 @@ export const abacatePay = {
     }) {
       return abacatePay.fetch('/checkouts/create', {
         method: 'POST',
-        body: JSON.stringify({ ...data, frequency: 'SUBSCRIPTION', methods: ['CARD'] }),
+        body: JSON.stringify({
+          ...data,
+          frequency: 'SUBSCRIPTION',
+          methods: ['CARD'],
+        }),
       })
     },
   },
@@ -96,7 +102,9 @@ export async function createPlanCheckout(
 ): Promise<{ url: string }> {
   const productId = PRODUCT_IDS[planId]
   if (!productId) {
-    throw new Error(`Plano "${planId}" não mapeado (variável de ambiente ausente)`)
+    throw new Error(
+      `Plano "${planId}" não mapeado (variável de ambiente ausente)`,
+    )
   }
 
   const products = await abacatePay.products.list()

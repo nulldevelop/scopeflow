@@ -418,16 +418,16 @@ export function CatalogClient({
                       name: 'Frontend',
                       desc: 'Interfaces, Dashboards e CMS',
                       icon: Monitor,
-                      color: 'text-blue-500',
-                      bg: 'bg-blue-50',
+                      color: 'text-accent-blue',
+                      bg: 'bg-accent-blue-bg',
                     },
                     {
                       id: 'backend',
                       name: 'Backend',
                       desc: 'APIs, Segurança e Infra',
                       icon: Database,
-                      color: 'text-orange-500',
-                      bg: 'bg-orange-50',
+                      color: 'text-accent-amber',
+                      bg: 'bg-accent-amber-bg',
                     },
                     {
                       id: 'saas',
@@ -442,8 +442,8 @@ export function CatalogClient({
                       name: 'Mobile',
                       desc: 'Apps, PWA e Sincronização',
                       icon: Smartphone,
-                      color: 'text-purple-500',
-                      bg: 'bg-purple-50',
+                      color: 'text-ok',
+                      bg: 'bg-ok-bg',
                     },
                   ].map((profile) => {
                     const isSelected = selectedProfiles.includes(profile.id)
@@ -493,17 +493,17 @@ export function CatalogClient({
                         </div>
                         <div>
                           <p className="text-xs font-bold text-gray-900">
-                            {f.name}
+                            {f.nome}
                           </p>
                           <p className="text-[10px] text-gray-400">
-                            {f.baseHours} horas • {f.categoryName}
+                            {f.horasEstimadas} horas • {f.categoria}
                           </p>
                         </div>
                       </div>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-gray-300 hover:text-red-500 hover:bg-red-50"
+                        className="h-8 w-8 text-gray-300 hover:text-danger hover:bg-danger-bg"
                         onClick={() => {
                           setSelectedFeatures((prev) =>
                             prev.filter((_, i) => i !== idx),
@@ -707,10 +707,10 @@ export function CatalogClient({
                           className={cn(
                             'text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg',
                             feature.complexity === 'baixa'
-                              ? 'bg-green-50 text-green-600'
+                              ? 'bg-ok-bg text-ok'
                               : feature.complexity === 'alta'
-                                ? 'bg-red-50 text-red-500'
-                                : 'bg-orange-50 text-orange-500',
+                                ? 'bg-danger-bg text-danger'
+                                : 'bg-accent-amber-bg text-accent-amber',
                           )}
                         >
                           {feature.complexity}
@@ -731,7 +731,7 @@ export function CatalogClient({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="w-8 h-8 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all"
+                          className="w-8 h-8 rounded-full text-gray-400 hover:text-danger hover:bg-danger-bg transition-all"
                           onClick={() => handleDelete(feature.id)}
                           disabled={isPending}
                         >

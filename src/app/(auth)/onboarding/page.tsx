@@ -55,6 +55,8 @@ import {
   onboardingSchema,
 } from './_schemas/onboarding-schema'
 
+const NO_TAX_REGIME = 'Autônomo (sem imposto)'
+
 const profiles = [
   {
     id: 'landing_page',
@@ -66,7 +68,7 @@ const profiles = [
         id: 'taxRegime',
         label: 'Regime Tributário',
         type: 'select',
-        options: ['MEI', 'Simples Nacional', 'Lucro Presumido'],
+        options: ['MEI', 'Simples Nacional', 'Lucro Presumido', NO_TAX_REGIME],
       },
       {
         id: 'taxPercentage',
@@ -104,7 +106,12 @@ const profiles = [
         id: 'taxRegime',
         label: 'Regime Tributário',
         type: 'select',
-        options: ['Simples Nacional', 'PF / Autônomo', 'Lucro Presumido'],
+        options: [
+          'Simples Nacional',
+          'PF / Autônomo',
+          'Lucro Presumido',
+          NO_TAX_REGIME,
+        ],
       },
       {
         id: 'taxPercentage',
@@ -142,7 +149,12 @@ const profiles = [
         id: 'taxRegime',
         label: 'Regime Tributário',
         type: 'select',
-        options: ['Simples Nacional', 'Lucro Presumido', 'Offshore'],
+        options: [
+          'Simples Nacional',
+          'Lucro Presumido',
+          'Offshore',
+          NO_TAX_REGIME,
+        ],
       },
       {
         id: 'taxPercentage',
@@ -180,7 +192,7 @@ const profiles = [
         id: 'taxRegime',
         label: 'Regime Tributário',
         type: 'select',
-        options: ['MEI', 'Simples Nacional', 'Lucro Presumido'],
+        options: ['MEI', 'Simples Nacional', 'Lucro Presumido', NO_TAX_REGIME],
       },
       {
         id: 'taxPercentage',
@@ -664,7 +676,7 @@ function OnboardingContent() {
                   })}
                 </div>
                 {errors.profile && (
-                  <p className="text-red-500 text-xs mt-4">
+                  <p className="text-danger text-xs mt-4">
                     {errors.profile.message}
                   </p>
                 )}
@@ -784,7 +796,16 @@ function OnboardingContent() {
                                 name={`answers.${q.id}`}
                                 render={({ field }) => (
                                   <Select
-                                    onValueChange={field.onChange}
+                                    onValueChange={(val) => {
+                                      field.onChange(val)
+                                      // "Autônomo (sem imposto)" zera o imposto
+                                      if (
+                                        q.id === 'taxRegime' &&
+                                        val === NO_TAX_REGIME
+                                      ) {
+                                        setValue('answers.taxPercentage', '0')
+                                      }
+                                    }}
                                     defaultValue={field.value}
                                   >
                                     <SelectTrigger className="h-10 rounded-xl bg-gray-50/50 border-gray-100">
@@ -801,12 +822,41 @@ function OnboardingContent() {
                                 )}
                               />
                             ) : (
-                              <Input
-                                type={q.type}
-                                {...register(`answers.${q.id}`)}
-                                placeholder={q.placeholder}
-                                className="h-10 rounded-xl bg-gray-50/50 border-gray-100 focus:bg-white py-2"
-                              />
+                              (() => {
+                                const reg = register(`answers.${q.id}`)
+                                const isTaxLocked =
+                                  q.id === 'taxPercentage' &&
+                                  formData.answers?.taxRegime === NO_TAX_REGIME
+                                return (
+                                  <Input
+                                    type={q.type}
+                                    min={q.type === 'number' ? 0 : undefined}
+                                    disabled={isTaxLocked}
+                                    {...reg}
+                                    onKeyDown={(e) => {
+                                      // Impede valores negativos em campos numéricos
+                                      if (
+                                        q.type === 'number' &&
+                                        (e.key === '-' || e.key === 'e')
+                                      ) {
+                                        e.preventDefault()
+                                      }
+                                    }}
+                                    onChange={(e) => {
+                                      if (
+                                        q.type === 'number' &&
+                                        e.target.value !== '' &&
+                                        Number(e.target.value) < 0
+                                      ) {
+                                        e.target.value = '0'
+                                      }
+                                      reg.onChange(e)
+                                    }}
+                                    placeholder={q.placeholder}
+                                    className="h-10 rounded-xl bg-gray-50/50 border-gray-100 focus:bg-white py-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                                  />
+                                )
+                              })()
                             )}
                           </FieldContent>
                         </Field>
@@ -822,7 +872,12 @@ function OnboardingContent() {
                         <FieldContent>
                           <Input
                             type="number"
+                            min={0}
                             {...register('answers.workDaysMonth')}
+                            onKeyDown={(e) => {
+                              if (e.key === '-' || e.key === 'e')
+                                e.preventDefault()
+                            }}
                             placeholder="22"
                             className="h-10 rounded-xl bg-gray-50/50 border-gray-100 focus:bg-white py-2"
                           />
@@ -839,7 +894,12 @@ function OnboardingContent() {
                         <FieldContent>
                           <Input
                             type="number"
+                            min={0}
                             {...register('answers.profitMargin')}
+                            onKeyDown={(e) => {
+                              if (e.key === '-' || e.key === 'e')
+                                e.preventDefault()
+                            }}
                             className="h-10 rounded-xl bg-gray-50/50 border-gray-100 focus:bg-white py-2"
                           />
                         </FieldContent>

@@ -53,7 +53,8 @@ export async function getContractById(organizationId: string, id: string) {
         quote: { select: { id: true, title: true } },
       },
     })
-    if (!contract) return { success: false as const, error: 'Contrato não encontrado' }
+    if (!contract)
+      return { success: false as const, error: 'Contrato não encontrado' }
     return { success: true as const, contract }
   } catch (error) {
     console.error('[getContractById Error]', error)
@@ -72,7 +73,8 @@ export async function getPublicContractById(id: string, slug: string) {
         },
       },
     })
-    if (!contract) return { success: false as const, error: 'Contrato não encontrado' }
+    if (!contract)
+      return { success: false as const, error: 'Contrato não encontrado' }
     return { success: true as const, contract }
   } catch (error) {
     console.error('[getPublicContractById Error]', error)

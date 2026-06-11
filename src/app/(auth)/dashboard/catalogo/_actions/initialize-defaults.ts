@@ -29,7 +29,10 @@ export const initializeDefaultsAction = withPermission(
 
       // Fetch all existing categories in one query
       const existingCategories = await prisma.category.findMany({
-        where: { name: { in: categoryNames }, organizationId: ctx.organizationId },
+        where: {
+          name: { in: categoryNames },
+          organizationId: ctx.organizationId,
+        },
         select: { id: true, name: true },
       })
 
@@ -50,7 +53,10 @@ export const initializeDefaultsAction = withPermission(
       // Fetch all existing features in one query
       const featureNames = featuresToImport.map((f) => f.name)
       const existingFeatures = await prisma.feature.findMany({
-        where: { name: { in: featureNames }, organizationId: ctx.organizationId },
+        where: {
+          name: { in: featureNames },
+          organizationId: ctx.organizationId,
+        },
         select: { name: true },
       })
       const existingFeatureNames = new Set(existingFeatures.map((f) => f.name))

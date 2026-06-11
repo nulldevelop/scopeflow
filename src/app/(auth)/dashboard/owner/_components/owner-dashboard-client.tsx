@@ -30,8 +30,8 @@ const planLabels: Record<string, string> = {
 
 const statusConfig: Record<string, { label: string; color: string }> = {
   active: { label: 'Ativas', color: 'text-ok' },
-  cancelled: { label: 'Canceladas', color: 'text-red-600' },
-  past_due: { label: 'Vencidas', color: 'text-amber-600' },
+  cancelled: { label: 'Canceladas', color: 'text-danger' },
+  past_due: { label: 'Vencidas', color: 'text-accent-amber' },
 }
 
 export function OwnerDashboardClient({

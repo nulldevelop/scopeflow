@@ -1,5 +1,19 @@
 import { z } from 'zod'
 
+// Garante que um campo numérico (armazenado como string) não seja negativo.
+const nonNegativeNumeric = (message: string) =>
+  z
+    .string()
+    .optional()
+    .refine(
+      (val) => {
+        if (val === undefined || val === '') return true
+        const n = Number(val)
+        return !Number.isNaN(n) && n >= 0
+      },
+      { message },
+    )
+
 export const onboardingSchema = z.object({
   // Identidade
   orgName: z
@@ -27,13 +41,13 @@ export const onboardingSchema = z.object({
     // Dados Financeiros (Calculadora)
     companyName: z.string().optional(),
     taxRegime: z.string().optional(),
-    taxPercentage: z.string().optional(),
-    workHoursDay: z.string().optional(),
-    workDaysMonth: z.string().optional(),
-    desiredSalary: z.string().optional(),
-    fixedCosts: z.string().optional(),
-    contingencyReserve: z.string().optional(),
-    profitMargin: z.string().optional(),
+    taxPercentage: nonNegativeNumeric('O imposto não pode ser negativo'),
+    workHoursDay: nonNegativeNumeric('As horas não podem ser negativas'),
+    workDaysMonth: nonNegativeNumeric('Os dias não podem ser negativos'),
+    desiredSalary: nonNegativeNumeric('O valor não pode ser negativo'),
+    fixedCosts: nonNegativeNumeric('Os custos não podem ser negativos'),
+    contingencyReserve: nonNegativeNumeric('O valor não pode ser negativo'),
+    profitMargin: nonNegativeNumeric('A margem não pode ser negativa'),
 
     // Legados/Específicos
     hourlyRate: z.string().optional(),

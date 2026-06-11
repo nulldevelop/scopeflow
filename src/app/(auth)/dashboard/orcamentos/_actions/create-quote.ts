@@ -21,7 +21,10 @@ export const createQuote = withPermission(
 
     const validatedFields = createQuoteSchema.safeParse(input)
     if (!validatedFields.success) {
-      console.error('[createQuote Validation Error]', validatedFields.error.flatten().fieldErrors)
+      console.error(
+        '[createQuote Validation Error]',
+        validatedFields.error.flatten().fieldErrors,
+      )
       return { success: false, error: 'Dados inválidos para criar orçamento.' }
     }
 

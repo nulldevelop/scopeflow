@@ -1,5 +1,5 @@
 import { Analytics } from '@vercel/analytics/next'
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { IBM_Plex_Mono, Sora } from 'next/font/google'
 import type React from 'react'
 import '@/styles/globals.css'
@@ -19,7 +19,8 @@ const ibmPlexMono = IBM_Plex_Mono({
   variable: '--font-mono',
 })
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.scopeflow.dev.br'
+const baseUrl =
+  process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.scopeflow.dev.br'
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
@@ -80,9 +81,7 @@ export const metadata: Metadata = {
     creator: '@scopeflow',
   },
   icons: {
-    icon: [
-      { url: '/logo.svg', type: 'image/svg+xml' },
-    ],
+    icon: [{ url: '/logo.svg', type: 'image/svg+xml' }],
     apple: '/logo.svg',
   },
   alternates: {
@@ -91,6 +90,10 @@ export const metadata: Metadata = {
   verification: {
     google: 'google44b65a859e6c7576',
   },
+}
+
+export const viewport: Viewport = {
+  colorScheme: 'light',
 }
 
 export default function RootLayout({
