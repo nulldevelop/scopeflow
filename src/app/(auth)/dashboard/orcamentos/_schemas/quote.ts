@@ -35,7 +35,7 @@ export const createQuoteSchema = z.object({
 })
 
 export const updateQuoteSchema = createQuoteSchema.extend({
-  id: z.string().uuid(),
+  id: z.string().uuid().optional(),
   status: z.string().optional(),
 })
 

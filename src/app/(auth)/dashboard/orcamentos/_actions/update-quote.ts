@@ -24,6 +24,10 @@ export const updateQuote = withPermission(
 
     const data = validatedFields.data
 
+    if (!data.id) {
+      return { success: false, error: 'ID do orçamento não informado.' }
+    }
+
     if (data.clientId) {
       const client = await prisma.client.findFirst({
         where: { id: data.clientId, organizationId: ctx.organizationId },
