@@ -107,13 +107,74 @@ function buildPaymentClause(quote: QuoteOption): string {
   return text
 }
 
-const defaultIpClause = `PROPRIEDADE INTELECTUAL: Todos os direitos sobre o software desenvolvido serão transferidos ao CONTRATANTE após o pagamento integral dos valores acordados. Até a quitação total, o código-fonte permanece de propriedade do CONTRATADO.
+const defaultObjectClause = `1. OBJETO E ESCOPO DOS SERVIÇOS
 
-CONFIDENCIALIDADE: As partes se comprometem a manter sigilo sobre informações confidenciais compartilhadas durante a execução do contrato, pelo prazo de 2 (dois) anos após o término.
+1.1 Objeto
+O presente contrato tem por objeto a prestação de serviços de desenvolvimento completo e suporte técnico contínuo do projeto denominado "[NOME DO PROJETO]", abrangendo desde a concepção e desenvolvimento do sistema até a manutenção e suporte pós-entrega.
 
-RESCISÃO: Este contrato poderá ser rescindido por qualquer das partes mediante notificação escrita com antecedência mínima de 30 (trinta) dias. Em caso de rescisão unilateral imotivada, a parte inadimplente ficará sujeita a multa equivalente a 20% do valor total do contrato.
+1.2 Fase de Desenvolvimento
+Compreende a criação, implementação e entrega do projeto conforme especificações acordadas entre as partes, incluindo todas as funcionalidades, páginas e integrações definidas no escopo original, detalhadas no Anexo I deste contrato (documento de escopo ou e-mail de formalização acordado entre as partes).
 
-FORO: Fica eleito o foro da comarca onde reside o CONTRATADO para dirimir quaisquer controvérsias oriundas deste contrato, com renúncia a qualquer outro, por mais privilegiado que seja.`
+1.3 Aceite Formal e Entrega
+Considerar-se-á formalmente entregue o projeto após notificação escrita do CONTRATADO ao CONTRATANTE. O CONTRATANTE terá o prazo de 7 (sete) dias corridos para homologar a entrega ou apontar inconformidades em relação ao escopo definido no Anexo I. Transcorrido esse prazo sem manifestação, a entrega será considerada aceita tacitamente, iniciando-se a contagem da garantia.
+
+1.4 Garantia (90 dias após entrega)
+Serviços incluídos na garantia: correção de bugs funcionais — páginas que não carregam, botões e links que param de funcionar, formulários que não enviam dados, erros exibidos na interface e quaisquer falhas que impossibilitem o funcionamento normal do sistema conforme entregue originalmente.
+
+Serviços cobrados adicionalmente (R$ [VALOR]/h):
+- Alterações visuais: espaçamentos, tipografia, cores, fontes, reorganização de seções e ajustes de layout.
+- Novas funcionalidades: recursos, módulos ou integrações não existentes no sistema original.
+- Inovações e melhorias: novas páginas, seções ou fluxos não previstos no escopo original.
+- Alterações estruturais: arquitetura do sistema, banco de dados ou infraestrutura.
+- Correção de bugs após o período de 90 dias de garantia.`
+
+const defaultTimelineClause = `2. PRAZO DE EXECUÇÃO
+
+2.1 Prazo para Correção de Bugs
+O CONTRATADO se compromete a resolver bugs funcionais no prazo máximo de 48 (quarenta e oito) horas após a comunicação formal pelo CONTRATANTE, a contar da confirmação de recebimento pelo CONTRATADO.
+
+2.2 Prazo para Serviços Adicionais
+Para serviços cobrados adicionalmente, o prazo de execução será de até 12 (doze) horas após a confirmação do pagamento pelo CONTRATANTE, salvo complexidade técnica que justifique prazo diferenciado, a ser acordado previamente entre as partes por escrito.
+
+2.3 Comunicação
+Toda solicitação de serviço deverá ser realizada por meio de canal de comunicação previamente acordado entre as partes (WhatsApp, e-mail ou plataforma de gestão), acompanhada de descrição clara do problema ou serviço solicitado.`
+
+const defaultPaymentClause = `3. VALORES E FORMA DE PAGAMENTO
+
+3.1 Valor do Desenvolvimento
+O valor total pelos serviços de desenvolvimento é de R$ [VALOR TOTAL] ([VALOR POR EXTENSO]).
+
+3.2 Forma de Pagamento
+[Descreva o parcelamento acordado, ex: parcelado em 3 (três) parcelas de R$ X cada.]
+
+3.3 Saldo Restante
+[Descreva o saldo remanescente e prazo de vencimento, se aplicável.]
+
+3.4 Valor do Suporte Técnico
+Os serviços de suporte técnico cobrados adicionalmente serão precificados à razão de R$ [VALOR]/h (reais por hora trabalhada), ou conforme proposta específica apresentada pelo CONTRATADO antes do início de cada execução.
+
+3.5 Orçamento Prévio para Suporte
+Antes de qualquer execução de serviço adicional, o CONTRATADO apresentará ao CONTRATANTE um orçamento detalhado com estimativa de horas e valor total. O início dos serviços fica condicionado à aprovação expressa do CONTRATANTE.
+
+3.6 Forma de Pagamento do Suporte
+O pagamento pelos serviços adicionais deverá ser realizado de forma antecipada, antes do início da execução, por meio de transferência bancária (PIX, TED ou DOC) ou outro meio acordado entre as partes.`
+
+const defaultIpClause = `4. PROPRIEDADE INTELECTUAL, CONFIDENCIALIDADE E RESCISÃO
+
+4.1 Propriedade Intelectual
+Todo o código-fonte, design e demais ativos digitais produzidos pelo CONTRATADO são de propriedade exclusiva do CONTRATANTE após a quitação integral dos valores devidos. Enquanto houver valores em aberto, o CONTRATADO retém os direitos sobre os materiais desenvolvidos.
+
+4.2 Hospedagem e Domínio
+A hospedagem e o domínio do projeto já são de propriedade exclusiva do CONTRATANTE, não havendo qualquer ônus ou vinculação a este contrato quanto a esses itens.
+
+4.3 Confidencialidade
+Ambas as partes se comprometem a manter sigilo sobre informações confidenciais trocadas no âmbito deste contrato, incluindo dados técnicos, comerciais e estratégicos, pelo prazo de 2 (dois) anos após o encerramento do contrato.
+
+4.4 Rescisão
+Qualquer das partes poderá rescindir o presente contrato mediante aviso prévio de 30 (trinta) dias, por escrito. Em caso de rescisão imotivada pelo CONTRATANTE, será devida ao CONTRATADO uma multa equivalente a 20% (vinte por cento) do valor dos serviços contratados e não executados. Em caso de rescisão imotivada pelo CONTRATADO, o mesmo deverá devolver os valores recebidos proporcionalmente aos serviços não executados, acrescidos de multa de 20% (vinte por cento).
+
+4.5 Foro de Eleição
+As partes elegem o foro da comarca de Campina Grande do Sul, estado do Paraná, para dirimir quaisquer controvérsias oriundas do presente contrato, com renúncia expressa a qualquer outro, por mais privilegiado que seja.`
 
 export function ContractForm({
   clients,
@@ -155,13 +216,13 @@ export function ContractForm({
             : 0,
           objectClause: preselectedQuote
             ? buildObjectClause(preselectedQuote)
-            : '',
+            : defaultObjectClause,
           timelineClause: preselectedQuote
             ? buildTimelineClause(preselectedQuote)
-            : '',
+            : defaultTimelineClause,
           paymentClause: preselectedQuote
             ? buildPaymentClause(preselectedQuote)
-            : '',
+            : defaultPaymentClause,
           ipClause: defaultIpClause,
         },
   })
