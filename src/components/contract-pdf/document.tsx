@@ -140,13 +140,15 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     letterSpacing: -0.2,
   },
+  clauseTextWrapper: {
+    backgroundColor: GRAY_50,
+    borderRadius: 6,
+    padding: 12,
+  },
   clauseText: {
     fontSize: 9,
     color: GRAY_600,
     lineHeight: 1.6,
-    padding: 12,
-    backgroundColor: GRAY_50,
-    borderRadius: 6,
   },
   valueBox: {
     marginTop: 8,
@@ -493,11 +495,15 @@ export function ContractPDF({ contract }: { contract: ContractPDFData }) {
         {/* Clauses */}
         {clauses.map((clause) =>
           clause.content ? (
-            <View key={clause.number} style={styles.clauseSection} wrap={false}>
-              <Text style={styles.clauseTitle}>
-                {clause.number}. {clause.title}
-              </Text>
-              <Text style={styles.clauseText}>{clause.content}</Text>
+            <View key={clause.number} style={styles.clauseSection}>
+              <View wrap={false}>
+                <Text style={styles.clauseTitle}>
+                  {clause.number}. {clause.title}
+                </Text>
+              </View>
+              <View style={styles.clauseTextWrapper}>
+                <Text style={styles.clauseText}>{clause.content}</Text>
+              </View>
             </View>
           ) : null,
         )}
