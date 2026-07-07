@@ -19,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { getCategoryLabel } from '@/lib/leads/category-labels'
 import { STAGE_LABELS, STAGE_ORDER, STAGE_TEXT_CLASS } from '@/lib/leads/lead-stage'
-import { buildWhatsAppUrl } from '@/lib/leads/whatsapp'
+import { buildWhatsAppUrl, OUTREACH_OFFER_LABELS, type OutreachOfferType } from '@/lib/leads/whatsapp'
 import type { LeadStage } from '@/lib/prisma'
 import { cn } from '@/lib/utils'
 import { addLeadActivityAction } from '../../_actions/add-lead-activity'
@@ -52,7 +52,8 @@ export function LeadDetail({ lead: initialLead }: Props) {
   const [activityContent, setActivityContent] = useState('')
   const [isAddingActivity, startAddActivityTransition] = useTransition()
 
-  const whatsAppUrl = lead.phone ? buildWhatsAppUrl(lead.phone, lead) : null
+  const [offerType, setOfferType] = useState<OutreachOfferType>('diagnostico')
+  const whatsAppUrl = lead.phone ? buildWhatsAppUrl(lead.phone, lead, offerType) : null
 
   function handleStageChange(next: LeadStage) {
     setLead((prev) => ({ ...prev, stage: next }))
@@ -221,12 +222,31 @@ export function LeadDetail({ lead: initialLead }: Props) {
                   )}
                 </p>
               </div>
-              {whatsAppUrl && (
-                <Button asChild className="w-full bg-ok hover:bg-ok/90">
-                  <a href={whatsAppUrl} target="_blank" rel="noreferrer">
-                    <MessageCircle /> Chamar no WhatsApp
-                  </a>
-                </Button>
+              {lead.phone && (
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <span className="text-xs font-medium text-gray-500">Assunto da abordagem</span>
+                    <Select value={offerType} onValueChange={(v) => setOfferType(v as OutreachOfferType)}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(OUTREACH_OFFER_LABELS).map(([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {whatsAppUrl && (
+                    <Button asChild className="w-full bg-ok hover:bg-ok/90">
+                      <a href={whatsAppUrl} target="_blank" rel="noreferrer">
+                        <MessageCircle /> Chamar no WhatsApp
+                      </a>
+                    </Button>
+                  )}
+                </div>
               )}
             </Card>
 
