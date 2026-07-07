@@ -101,11 +101,40 @@ export function LeadDetailsDialog({ lead }: Props) {
                   : 'Não verificado (site sem HTTPS)'}
               </span>
 
-              <span className="text-gray-400">Domínio</span>
+              <span className="text-gray-400">Domínio expira</span>
               <span className="text-gray-900">
                 {status.domain.expiresAt
-                  ? `Expira em ${formatDate(status.domain.expiresAt)} (${status.domain.daysRemaining} dias)`
+                  ? `${formatDate(status.domain.expiresAt)} (${status.domain.daysRemaining} dias)`
                   : (status.domain.error ?? 'Sem dados')}
+              </span>
+
+              <span className="text-gray-400">Domínio registrado desde</span>
+              <span className="text-gray-900">
+                {status.domain.registeredAt
+                  ? `${formatDate(status.domain.registeredAt)} (${Math.floor((status.domain.ageDays ?? 0) / 365)} anos)`
+                  : 'Sem dados'}
+              </span>
+
+              <span className="text-gray-400">Mobile-friendly</span>
+              <span className="text-gray-900">
+                {status.freshness.hasMobileViewport === null
+                  ? 'Não verificado'
+                  : status.freshness.hasMobileViewport
+                    ? 'Sim'
+                    : 'Não (sem meta viewport)'}
+              </span>
+
+              <span className="text-gray-400">Copyright no rodapé</span>
+              <span className="text-gray-900">{status.freshness.copyrightYear ?? 'Não encontrado'}</span>
+
+              <span className="text-gray-400">1ª aparição (Wayback)</span>
+              <span className="text-gray-900">
+                {status.wayback.firstSnapshot ? formatDate(status.wayback.firstSnapshot) : 'Sem dados'}
+              </span>
+
+              <span className="text-gray-400">Última mudança (Wayback)</span>
+              <span className="text-gray-900">
+                {status.wayback.lastSnapshot ? formatDate(status.wayback.lastSnapshot) : 'Sem dados'}
               </span>
 
               <span className="text-gray-400">Verificado em</span>

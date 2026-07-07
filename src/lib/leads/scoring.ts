@@ -8,6 +8,8 @@ export type ScoringWeights = {
   sslInvalid: number
   domainExpired: number
   domainExpiringSoon: number
+  notMobileFriendly: number
+  siteStale: number
 }
 
 export const defaultScoringWeights: ScoringWeights = {
@@ -18,9 +20,12 @@ export const defaultScoringWeights: ScoringWeights = {
   sslInvalid: 30,
   domainExpired: 40,
   domainExpiringSoon: 20,
+  notMobileFriendly: 20,
+  siteStale: 15,
 }
 
 export const DOMAIN_EXPIRING_SOON_DAYS = 60
+export const SITE_STALE_DAYS = 730
 
 export type ScoringInput = {
   hasWebsite: boolean
@@ -29,6 +34,17 @@ export type ScoringInput = {
 
 function clampScore(score: number): number {
   return Math.max(0, Math.min(100, Math.round(score)))
+}
+
+/** Prefers the Wayback last-capture date (actual evidence of inactivity); falls back to a scraped copyright year. */
+function daysSinceLastActivity(status: DomainStatus): number | null {
+  if (status.wayback.lastSnapshot) {
+    return Math.floor((Date.now() - new Date(status.wayback.lastSnapshot).getTime()) / 86_400_000)
+  }
+  if (status.freshness.copyrightYear !== null) {
+    return (new Date().getFullYear() - status.freshness.copyrightYear) * 365
+  }
+  return null
 }
 
 /**
@@ -64,6 +80,15 @@ export function calculateScore(
     } else if (domain.daysRemaining < DOMAIN_EXPIRING_SOON_DAYS) {
       score += weights.domainExpiringSoon
     }
+  }
+
+  if (input.domainStatus.freshness.hasMobileViewport === false) {
+    score += weights.notMobileFriendly
+  }
+
+  const inactiveDays = daysSinceLastActivity(input.domainStatus)
+  if (inactiveDays !== null && inactiveDays >= SITE_STALE_DAYS) {
+    score += weights.siteStale
   }
 
   return clampScore(score)
@@ -119,6 +144,21 @@ export function explainScore(
         points: weights.domainExpiringSoon,
       })
     }
+  }
+
+  if (input.domainStatus.freshness.hasMobileViewport === false) {
+    reasons.push({
+      label: 'Site sem versão mobile (não responsivo)',
+      points: weights.notMobileFriendly,
+    })
+  }
+
+  const inactiveDays = daysSinceLastActivity(input.domainStatus)
+  if (inactiveDays !== null && inactiveDays >= SITE_STALE_DAYS) {
+    reasons.push({
+      label: `Site parado há ${Math.floor(inactiveDays / 365)}+ anos sem atualização visível`,
+      points: weights.siteStale,
+    })
   }
 
   if (reasons.length === 0) {

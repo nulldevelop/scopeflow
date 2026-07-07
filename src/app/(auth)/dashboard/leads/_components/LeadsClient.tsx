@@ -241,7 +241,18 @@ export function LeadsClient({ initialLeads }: { initialLeads: LeadData[] }) {
                         />
                       </TableCell>
                       <TableCell className="pr-6">
-                        <LeadRowActions lead={{ id: lead.id, stage: lead.stage, notes: lead.notes }} />
+                        <LeadRowActions
+                          lead={{
+                            id: lead.id,
+                            stage: lead.stage,
+                            notes: lead.notes,
+                            name: lead.name,
+                            phone: lead.phone,
+                            address: lead.address,
+                            category: lead.category,
+                            website: lead.website,
+                          }}
+                        />
                       </TableCell>
                     </TableRow>
                   )

@@ -34,15 +34,20 @@ const overpassResponseSchema = z.object({
   elements: z.array(overpassElementSchema),
 })
 
+const categoryTagSchema = z
+  .string()
+  .min(1, 'categoria é obrigatória')
+  .max(50)
+  .regex(
+    /^[a-z][a-z0-9_]*$/,
+    'categoria deve ser uma tag OSM em snake_case (ex: restaurant, hairdresser, bakery)',
+  )
+
 export const collectPlacesInputSchema = z.object({
-  category: z
-    .string()
-    .min(1, 'categoria é obrigatória')
-    .max(50)
-    .regex(
-      /^[a-z][a-z0-9_]*$/,
-      'categoria deve ser uma tag OSM em snake_case (ex: restaurant, hairdresser, bakery)',
-    ),
+  categories: z
+    .array(categoryTagSchema)
+    .min(1, 'selecione ao menos uma categoria')
+    .max(8, 'máximo de 8 categorias por coleta'),
   lat: z.number().min(-90).max(90),
   lng: z.number().min(-180).max(180),
   radiusMeters: z.number().min(1).max(50_000),
@@ -62,9 +67,9 @@ export type CollectedPlace = {
 
 function buildQuery(input: CollectPlacesInput): string {
   const around = `around:${input.radiusMeters},${input.lat},${input.lng}`
-  const clauses = CATEGORY_KEYS.map((key) => `nwr["${key}"="${input.category}"](${around});`).join(
-    '\n  ',
-  )
+  const clauses = input.categories
+    .flatMap((category) => CATEGORY_KEYS.map((key) => `nwr["${key}"="${category}"](${around});`))
+    .join('\n  ')
 
   return `[out:json][timeout:${OVERPASS_QUERY_TIMEOUT_S}];
 (
@@ -163,6 +168,6 @@ export async function collectPlaces(input: CollectPlacesInput): Promise<Collecte
   }
 
   return parsed.data.elements
-    .map((element) => normalizeElement(element, parsedInput.category))
+    .map((element) => normalizeElement(element, parsedInput.categories[0]))
     .filter((place): place is CollectedPlace => place !== null)
 }
