@@ -13,6 +13,8 @@ import { STAGE_LABELS, STAGE_ORDER, STAGE_TEXT_CLASS } from '@/lib/leads/lead-st
 import { buildWhatsAppUrl } from '@/lib/leads/whatsapp'
 import type { LeadStage } from '@/lib/prisma'
 import type { LeadData } from '../_data-access/get-leads'
+import { AddLeadDialog } from './AddLeadDialog'
+import { BulkRecheckButton } from './BulkRecheckButton'
 import { LeadDetailsDialog } from './LeadDetailsDialog'
 import { LeadRowActions } from './LeadRowActions'
 import { LeadsFilters, type LeadsFilterState } from './LeadsFilters'
@@ -84,6 +86,8 @@ export function LeadsClient({ initialLeads }: { initialLeads: LeadData[] }) {
         subtitle="Diagnóstico de presença digital · fila priorizada de vendas"
         icon={Target}
       >
+        <BulkRecheckButton />
+        <AddLeadDialog />
         <TriggerCollectionDialog />
       </Header>
 
