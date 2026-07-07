@@ -58,10 +58,5 @@
     "babel-plugin-react-compiler": "1.0.0",
     "prisma": "^7.8.0",
     "typescript": "^5"
-  },
-  "pnpm": {
-    "overrides": {
-      "samlify": "^2.13.0"
-    }
   }
 }
