@@ -363,7 +363,8 @@ export function ContractPDF({ contract }: { contract: ContractPDFData }) {
     },
     {
       number: '4',
-      title: 'Propriedade Intelectual, Confidencialidade e Rescisão',
+      title:
+        'Propriedade Intelectual, Confidencialidade, Rescisão e Limitação de Responsabilidade',
       content: contract.ipClause,
     },
   ]

@@ -115,11 +115,17 @@ O presente contrato tem por objeto a prestação de serviços de desenvolvimento
 1.2 Fase de Desenvolvimento
 Compreende a criação, implementação e entrega do projeto conforme especificações acordadas entre as partes, incluindo todas as funcionalidades, páginas e integrações definidas no escopo original, detalhadas no Anexo I deste contrato (documento de escopo ou e-mail de formalização acordado entre as partes).
 
-1.3 Aceite Formal e Entrega
-Considerar-se-á formalmente entregue o projeto após notificação escrita do CONTRATADO ao CONTRATANTE. O CONTRATANTE terá o prazo de 7 (sete) dias corridos para homologar a entrega ou apontar inconformidades em relação ao escopo definido no Anexo I. Transcorrido esse prazo sem manifestação, a entrega será considerada aceita tacitamente, iniciando-se a contagem da garantia.
+1.3 Serviços Fora do Escopo
+Qualquer serviço, funcionalidade ou alteração não descrita expressamente no Anexo I será considerada fora do escopo original e tratada como nova contratação, sujeita a orçamento e aprovação prévia e expressa do CONTRATANTE. A execução de serviços adicionais só terá início após a confirmação do pagamento integral e antecipado do valor orçado.
 
-1.4 Garantia (90 dias após entrega)
-Serviços incluídos na garantia: correção de bugs funcionais — páginas que não carregam, botões e links que param de funcionar, formulários que não enviam dados, erros exibidos na interface e quaisquer falhas que impossibilitem o funcionamento normal do sistema conforme entregue originalmente.
+1.4 Indisponibilidade Causada por Terceiros
+O CONTRATADO não se responsabiliza por indisponibilidade, instabilidade ou falhas decorrentes de serviços de terceiros, incluindo hospedagem, domínio, provedores externos e integrações de APIs, ainda que tais falhas afetem o funcionamento do sistema entregue.
+
+1.5 Aceite Formal e Entrega
+Considerar-se-á formalmente entregue o projeto após notificação escrita do CONTRATADO ao CONTRATANTE. O CONTRATANTE terá o prazo de 7 (sete) dias corridos para homologar a entrega ou apontar inconformidades em relação ao escopo definido no Anexo I. Transcorrido esse prazo sem manifestação, a entrega será considerada aceita tacitamente, de forma definitiva e não sujeita a contestação posterior, iniciando-se a contagem da garantia.
+
+1.6 Garantia (90 dias após entrega)
+Serviços incluídos na garantia: correção de bugs funcionais — páginas que não carregam, botões e links que param de funcionar, formulários que não enviam dados, erros exibidos na interface e quaisquer falhas que impossibilitem o funcionamento normal do sistema conforme entregue originalmente. A garantia limita-se a falhas diretamente relacionadas ao código entregue pelo CONTRATADO, excluindo-se expressamente falhas decorrentes de uso inadequado do sistema ou de alterações realizadas pelo CONTRATANTE ou por terceiros não autorizados.
 
 Serviços cobrados adicionalmente (R$ [VALOR]/h):
 - Alterações visuais: espaçamentos, tipografia, cores, fontes, reorganização de seções e ajustes de layout.
@@ -157,24 +163,30 @@ Os serviços de suporte técnico cobrados adicionalmente serão precificados à 
 Antes de qualquer execução de serviço adicional, o CONTRATADO apresentará ao CONTRATANTE um orçamento detalhado com estimativa de horas e valor total. O início dos serviços fica condicionado à aprovação expressa do CONTRATANTE.
 
 3.6 Forma de Pagamento do Suporte
-O pagamento pelos serviços adicionais deverá ser realizado de forma antecipada, antes do início da execução, por meio de transferência bancária (PIX, TED ou DOC) ou outro meio acordado entre as partes.`
+O pagamento pelos serviços adicionais deverá ser realizado de forma antecipada, antes do início da execução, por meio de transferência bancária (PIX, TED ou DOC) ou outro meio acordado entre as partes.
 
-const defaultIpClause = `4. PROPRIEDADE INTELECTUAL, CONFIDENCIALIDADE E RESCISÃO
+3.7 Atraso no Pagamento
+O atraso no pagamento de qualquer valor devido suspende automaticamente, até a regularização, todas as obrigações do CONTRATADO decorrentes deste contrato, inclusive a prestação de suporte técnico. Sobre o valor em atraso incidirá multa de 2% (dois por cento), acrescida de juros de 1% (um por cento) ao mês.`
+
+const defaultIpClause = `4. PROPRIEDADE INTELECTUAL, CONFIDENCIALIDADE, RESCISÃO E LIMITAÇÃO DE RESPONSABILIDADE
 
 4.1 Propriedade Intelectual
-Todo o código-fonte, design e demais ativos digitais produzidos pelo CONTRATADO são de propriedade exclusiva do CONTRATANTE após a quitação integral dos valores devidos. Enquanto houver valores em aberto, o CONTRATADO retém os direitos sobre os materiais desenvolvidos.
+Todo o código-fonte, design e demais ativos digitais produzidos pelo CONTRATADO são de propriedade exclusiva do CONTRATANTE após a quitação integral dos valores devidos. Enquanto houver valores em aberto, o CONTRATADO retém os direitos sobre os materiais desenvolvidos e poderá suspender o acesso ou uso do sistema pelo CONTRATANTE. O CONTRATADO poderá, ainda, manter cópia do código-fonte para fins de portfólio e comprovação técnica, independentemente da quitação.
 
 4.2 Hospedagem e Domínio
 A hospedagem e o domínio do projeto já são de propriedade exclusiva do CONTRATANTE, não havendo qualquer ônus ou vinculação a este contrato quanto a esses itens.
 
 4.3 Confidencialidade
-Ambas as partes se comprometem a manter sigilo sobre informações confidenciais trocadas no âmbito deste contrato, incluindo dados técnicos, comerciais e estratégicos, pelo prazo de 2 (dois) anos após o encerramento do contrato.
+Ambas as partes se comprometem a manter sigilo sobre informações confidenciais trocadas no âmbito deste contrato, incluindo dados técnicos, comerciais e estratégicos, pelo prazo de 2 (dois) anos após o encerramento do contrato. A responsabilidade do CONTRATADO limita-se às informações recebidas formalmente do CONTRATANTE e expressamente identificadas como confidenciais.
 
 4.4 Rescisão
-Qualquer das partes poderá rescindir o presente contrato mediante aviso prévio de 30 (trinta) dias, por escrito. Em caso de rescisão imotivada pelo CONTRATANTE, será devida ao CONTRATADO uma multa equivalente a 20% (vinte por cento) do valor dos serviços contratados e não executados. Em caso de rescisão imotivada pelo CONTRATADO, o mesmo deverá devolver os valores recebidos proporcionalmente aos serviços não executados, acrescidos de multa de 20% (vinte por cento).
+Qualquer das partes poderá rescindir o presente contrato mediante aviso prévio de 30 (trinta) dias, por escrito. Em caso de rescisão imotivada pelo CONTRATANTE, será devida ao CONTRATADO uma multa equivalente a 20% (vinte por cento) do valor dos serviços contratados e não executados, não sendo devolvidos os valores já pagos. Em caso de rescisão imotivada pelo CONTRATADO, o mesmo deverá devolver os valores recebidos proporcionalmente aos serviços não executados, acrescidos de multa de 20% (vinte por cento). Em qualquer hipótese de rescisão anterior à quitação integral, o CONTRATADO não terá obrigação de entregar materiais parciais.
 
-4.5 Foro de Eleição
-As partes elegem o foro da comarca de Campina Grande do Sul, estado do Paraná, para dirimir quaisquer controvérsias oriundas do presente contrato, com renúncia expressa a qualquer outro, por mais privilegiado que seja.`
+4.5 Limitação de Responsabilidade
+O CONTRATADO não se responsabiliza por lucros cessantes, danos indiretos, perda de dados ou prejuízos comerciais decorrentes do uso do sistema. A responsabilidade máxima do CONTRATADO, em qualquer hipótese, fica limitada ao valor efetivamente pago pelo CONTRATANTE até a data do evento gerador.
+
+4.6 Foro de Eleição
+As partes elegem o foro da comarca de [CIDADE/UF DA CONTRATADA], para dirimir quaisquer controvérsias oriundas do presente contrato, com renúncia expressa a qualquer outro, por mais privilegiado que seja.`
 
 export function ContractForm({
   clients,
@@ -414,7 +426,7 @@ export function ContractForm({
                 Descreva os serviços a serem prestados e as entregas esperadas.
               </p>
               <Textarea
-                rows={8}
+                rows={14}
                 placeholder="Descreva o objeto do contrato..."
                 {...register('objectClause')}
                 className="font-mono text-sm resize-none"
@@ -452,7 +464,7 @@ export function ContractForm({
                 Especifique valores, forma e condições de pagamento.
               </p>
               <Textarea
-                rows={8}
+                rows={10}
                 placeholder="Descreva as condições de pagamento..."
                 {...register('paymentClause')}
                 className="font-mono text-sm resize-none"
@@ -465,14 +477,16 @@ export function ContractForm({
                 <span className="w-7 h-7 rounded-lg bg-brand/10 flex items-center justify-center text-brand text-xs font-black">
                   5
                 </span>
-                Propriedade Intelectual, Confidencialidade e Rescisão
+                Propriedade Intelectual, Confidencialidade, Rescisão e
+                Limitação de Responsabilidade
               </h2>
               <p className="text-sm text-gray-500 mb-5">
-                Cláusulas sobre IP, sigilo e condições de cancelamento.
+                Cláusulas sobre IP, sigilo, cancelamento e limitação de
+                responsabilidade.
               </p>
               <Textarea
-                rows={12}
-                placeholder="Descreva as cláusulas de IP, confidencialidade e rescisão..."
+                rows={18}
+                placeholder="Descreva as cláusulas de IP, confidencialidade, rescisão e limitação de responsabilidade..."
                 {...register('ipClause')}
                 className="font-mono text-sm resize-none"
               />

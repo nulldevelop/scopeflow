@@ -1,0 +1,42 @@
+/** OSM tags are English snake_case (what Overpass requires); labels are what a human reads. */
+export const CATEGORY_LABELS: Record<string, string> = {
+  restaurant: 'Restaurante',
+  bakery: 'Padaria',
+  hotel: 'Hotel',
+  apartment: 'Apartamento',
+  guest_house: 'Pousada',
+  hostel: 'Hostel',
+  motel: 'Motel',
+  chalet: 'Chalé',
+  camp_site: 'Camping',
+  supermarket: 'Supermercado',
+  hairdresser: 'Salão de beleza',
+  cafe: 'Café',
+  bar: 'Bar',
+  pub: 'Bar',
+  pharmacy: 'Farmácia',
+  clinic: 'Clínica',
+  dentist: 'Dentista',
+  doctors: 'Consultório médico',
+  gym: 'Academia',
+  fast_food: 'Fast food',
+  clothes: 'Loja de roupas',
+  car_repair: 'Oficina mecânica',
+  hardware: 'Materiais de construção',
+  florist: 'Floricultura',
+  bookshop: 'Livraria',
+  butcher: 'Açougue',
+  optician: 'Ótica',
+  veterinary: 'Clínica veterinária',
+  laundry: 'Lavanderia',
+  beauty: 'Estética',
+  car_wash: 'Lava-rápido',
+  travel_agency: 'Agência de viagens',
+  real_estate_agent: 'Imobiliária',
+  insurance: 'Corretora de seguros',
+  photo_studio: 'Estúdio fotográfico',
+}
+
+export function getCategoryLabel(tag: string): string {
+  return CATEGORY_LABELS[tag] ?? tag
+}

@@ -12,6 +12,7 @@ export type Module =
   | 'contracts'
   | 'organizations'
   | 'users'
+  | 'leads'
 
 export type WithPermissionOptions = {
   module: Module

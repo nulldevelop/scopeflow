@@ -12,6 +12,7 @@ const PERMISSION_MATRIX: Record<UserRole, Partial<Record<Module, Action[]>>> = {
     clients: ['create', 'read', 'update', 'delete', 'manage'],
     contracts: ['create', 'read', 'update', 'delete', 'manage'],
     organizations: ['create', 'read', 'update', 'delete', 'manage'],
+    leads: ['create', 'read', 'update', 'delete', 'manage'],
     users: ['read', 'update'],
   },
   admin: {
@@ -21,6 +22,7 @@ const PERMISSION_MATRIX: Record<UserRole, Partial<Record<Module, Action[]>>> = {
     clients: ['create', 'read', 'update', 'delete'],
     contracts: ['create', 'read', 'update', 'delete'],
     organizations: ['read', 'update'],
+    leads: ['create', 'read', 'update', 'delete'],
     users: ['read', 'update'],
   },
   member: {
@@ -30,6 +32,7 @@ const PERMISSION_MATRIX: Record<UserRole, Partial<Record<Module, Action[]>>> = {
     clients: ['read'],
     contracts: ['create', 'read', 'update'],
     organizations: ['read'],
+    leads: ['read', 'update'],
     users: ['read', 'update'],
   },
 }

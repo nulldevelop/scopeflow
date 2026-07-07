@@ -10,6 +10,7 @@ import {
   Menu,
   Settings,
   Shield,
+  Target,
   Users,
   X,
 } from 'lucide-react'
@@ -32,6 +33,7 @@ interface SidebarProps {
 
 const menuItems = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { label: 'Leads', href: '/dashboard/leads', icon: Target },
   { label: 'Orçamentos', href: '/dashboard/orcamentos', icon: FileText },
   { label: 'Contratos', href: '/dashboard/contratos', icon: FileSignature },
   { label: 'Catálogo', href: '/dashboard/catalogo', icon: Library },
