@@ -34,3 +34,42 @@ export async function getSessionLeads(): Promise<LeadData[]> {
 
   return leads
 }
+
+export interface LeadActivityData {
+  id: string
+  content: string
+  createdAt: string
+}
+
+export interface LeadDetailData extends LeadData {
+  createdAt: string
+  updatedAt: string
+  activities: LeadActivityData[]
+}
+
+export async function getSessionLeadById(id: string): Promise<LeadDetailData | null> {
+  const sessionResponse = await getSessionClient()
+  if (!sessionResponse.success) return null
+
+  const { session } = sessionResponse
+  const activeOrgId = session.activeOrganizationId
+  if (!activeOrgId) return null
+
+  const lead = await prisma.lead.findFirst({
+    where: { id, organizationId: activeOrgId },
+    include: { activities: { orderBy: { createdAt: 'desc' } } },
+  })
+
+  if (!lead) return null
+
+  return {
+    ...lead,
+    createdAt: lead.createdAt.toISOString(),
+    updatedAt: lead.updatedAt.toISOString(),
+    activities: lead.activities.map((activity) => ({
+      id: activity.id,
+      content: activity.content,
+      createdAt: activity.createdAt.toISOString(),
+    })),
+  }
+}

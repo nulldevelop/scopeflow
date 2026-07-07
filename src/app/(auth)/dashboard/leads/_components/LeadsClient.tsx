@@ -1,6 +1,7 @@
 'use client'
 
 import { Globe, MessageCircle, Target } from 'lucide-react'
+import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { Header } from '@/components/shared/Header'
 import { Card } from '@/components/ui/card'
@@ -188,10 +189,10 @@ export function LeadsClient({ initialLeads }: { initialLeads: LeadData[] }) {
                   return (
                     <TableRow key={lead.id} className="border-b border-gray-50 hover:bg-gray-50/30 transition-colors">
                       <TableCell className="pl-6 py-4">
-                        <div className="flex flex-col">
+                        <Link href={`/dashboard/leads/${lead.id}`} className="flex flex-col hover:underline">
                           <span className="font-medium text-gray-900">{lead.name}</span>
                           <span className="text-xs text-gray-400">{getCategoryLabel(lead.category)}</span>
-                        </div>
+                        </Link>
                       </TableCell>
                       <TableCell
                         className="max-w-48 truncate text-gray-500"

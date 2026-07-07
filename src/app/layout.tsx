@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next'
 import { IBM_Plex_Mono, Sora } from 'next/font/google'
 import type React from 'react'
 import '@/styles/globals.css'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import { CookieBanner } from '@/components/shared/CookieBanner'
 import { Toaster } from '@/components/ui/sonner'
 import { cn } from '@/lib/utils'
@@ -116,6 +117,7 @@ export default function RootLayout({
         <CookieBanner />
         <Toaster />
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )
