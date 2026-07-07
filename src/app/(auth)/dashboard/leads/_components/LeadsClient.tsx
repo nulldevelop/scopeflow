@@ -232,6 +232,7 @@ export function LeadsClient({ initialLeads }: { initialLeads: LeadData[] }) {
                       <TableCell>
                         <LeadDetailsDialog
                           lead={{
+                            id: lead.id,
                             name: lead.name,
                             phone: lead.phone,
                             hasWebsite: lead.hasWebsite,

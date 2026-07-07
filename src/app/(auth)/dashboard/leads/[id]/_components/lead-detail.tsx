@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeft, Globe, MessageCircle, Pencil, Send, Trash2 } from 'lucide-react'
+import { ArrowLeft, Globe, MessageCircle, Pencil, RefreshCw, Send, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
@@ -25,6 +25,7 @@ import { cn } from '@/lib/utils'
 import { addLeadActivityAction } from '../../_actions/add-lead-activity'
 import { deleteLeadAction } from '../../_actions/delete-lead'
 import { deleteLeadActivityAction } from '../../_actions/delete-lead-activity'
+import { recheckLeadDomainAction } from '../../_actions/recheck-domain'
 import { updateLeadAction } from '../../_actions/update-lead'
 import { DomainDiagnostics } from '../../_components/DomainDiagnostics'
 import type { LeadDetailData } from '../../_data-access/get-leads'
@@ -40,6 +41,7 @@ export function LeadDetail({ lead: initialLead }: Props) {
   const [lead, setLead] = useState(initialLead)
   const [isPending, startTransition] = useTransition()
   const [isDeleting, startDeleteTransition] = useTransition()
+  const [isRechecking, startRecheckTransition] = useTransition()
 
   const [editOpen, setEditOpen] = useState(false)
   const [name, setName] = useState(lead.name)
@@ -103,6 +105,18 @@ export function LeadDetail({ lead: initialLead }: Props) {
       if (res.success) {
         toast.success('Lead excluído.')
         router.push('/dashboard/leads')
+      } else {
+        toast.error(res.error)
+      }
+    })
+  }
+
+  function handleRecheckDomain() {
+    startRecheckTransition(async () => {
+      const res = await recheckLeadDomainAction(lead.id)
+      if (res.success) {
+        setLead((prev) => ({ ...prev, score: res.data.score, domainStatus: res.data.domainStatus }))
+        toast.success('Site reexaminado, score atualizado.')
       } else {
         toast.error(res.error)
       }
@@ -265,7 +279,21 @@ export function LeadDetail({ lead: initialLead }: Props) {
           </div>
 
           <Card className="rounded-[24px] border border-gray-200 bg-white p-6">
-            <h2 className="mb-3 text-sm font-semibold text-gray-900">Diagnóstico do site</h2>
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-gray-900">Diagnóstico do site</h2>
+              {lead.website && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRecheckDomain}
+                  disabled={isRechecking}
+                  className="gap-2 border-gray-200 text-gray-600 hover:bg-gray-50"
+                >
+                  <RefreshCw className={cn('size-3.5', isRechecking && 'animate-spin')} />
+                  Reexaminar site
+                </Button>
+              )}
+            </div>
             <DomainDiagnostics lead={lead} />
           </Card>
         </div>
